@@ -37,11 +37,10 @@ struct Vertex {
 // Helper function to read a file like a shader
 std::string readFile(const std::string& path) {
 	std::ifstream file(path, std::ios::binary);
-	
 	std::stringstream buffer;
 	buffer << file.rdbuf();
-
-	return buffer.str();
+	std::string R = buffer.str();
+	return R;
 }
 
 bool checkShaderErrors(GLuint shader) {
