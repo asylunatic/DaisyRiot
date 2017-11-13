@@ -1,0 +1,58 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+*.mtl
+
+# Images
+*.png
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# VS folders
+*.vcxproj
+*.sdf
+*.ipc
+
+# Video files
+*.mp4
+
+.vs/
+ShaderProgramming/coolshaders/
+ShaderProgramming/coolshaders/*
+ShaderProgramming/visual studio/*
+ShaderProgramming/visual studio/.vs/
+ShaderProgramming/visual studio/.vs/*
+ShaderProgramming/visual studio/Debug/
+ShaderProgramming/visual studio/Debug/*
+ShaderProgramming/visual studio/Release/
+ShaderProgramming/visual studio/Release/*
+ShaderProgramming/visual studio/ToonShaderExercise.vcxproj
+ShaderProgramming/visual studio/backupprojectfiles/
+ShaderProgramming/visual studio/backupprojectfiles/*

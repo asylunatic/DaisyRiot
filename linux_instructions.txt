@@ -1,0 +1,12 @@
+To get required libraries  (on ubuntu, should be similar in other distributions) :
+
+sudo apt-get install libglew-dev
+sudo apt-get install libglfw3-dev
+
+To compile using gcc:
+
+g++ -std=c++11 -I libraries/glm -I libraries/tinyobjloader/  -I libraries/ main.cpp -lGL -lGLEW -lglfw
+
+Note:
+In case you get an error complaining about the type of the debugCallback function (line 97 of main.cpp),
+you can try changing the type of userParam from const void * to void * (remove the const).
