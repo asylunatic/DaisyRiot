@@ -44,15 +44,13 @@
 *.mp4
 
 .vs/
-ShaderProgramming/coolshaders/
-ShaderProgramming/coolshaders/*
-ShaderProgramming/visual studio/*
-ShaderProgramming/visual studio/.vs/
-ShaderProgramming/visual studio/.vs/*
-ShaderProgramming/visual studio/Debug/
-ShaderProgramming/visual studio/Debug/*
-ShaderProgramming/visual studio/Release/
-ShaderProgramming/visual studio/Release/*
-ShaderProgramming/visual studio/ToonShaderExercise.vcxproj
-ShaderProgramming/visual studio/backupprojectfiles/
-ShaderProgramming/visual studio/backupprojectfiles/*
+visual studio/*
+visual studio/.vs/
+visual studio/.vs/*
+visual studio/Debug/
+visual studio/Debug/*
+visual studio/Release/
+visual studio/Release/*
+visual studio/ToonShaderExercise.vcxproj
+visual studio/backupprojectfiles/
+visual studio/backupprojectfiles/*
