@@ -44,13 +44,12 @@
 *.mp4
 
 .vs/
-visual studio/*
 visual studio/.vs/
 visual studio/.vs/*
 visual studio/Debug/
 visual studio/Debug/*
+visual studio/x64/*
 visual studio/Release/
 visual studio/Release/*
-visual studio/ToonShaderExercise.vcxproj
 visual studio/backupprojectfiles/
 visual studio/backupprojectfiles/*
