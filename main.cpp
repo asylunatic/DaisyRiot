@@ -24,6 +24,9 @@
 #include <sstream>
 #include <vector>
 
+#include <OptiX_world.h>
+
+
 // Configuration
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -235,6 +238,43 @@ int main() {
 
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
+
+	/* *******************************************************OPTIX******************************************************* */
+	//initializing context -> holds all programs and variables
+	RTcontext context;
+	rtContextCreate(&context);
+
+	//setting entry point
+	rtContextSetEntryPointCount(context, 1);
+	RTprogram origin;
+	rtProgramCreateFromPTXFile(context,"ptx\\FirstTry.ptx" , "raytraceExecution", &origin);
+
+	if (rtProgramValidate(origin) != RT_SUCCESS) { 
+		printf("Program is not complete."); 
+	}
+
+	rtContextSetRayGenerationProgram(context, 0, origin);
+
+	//raytype shit?
+	rtContextSetRayTypeCount(context, 1);
+
+	//initialising buffers and loading normals into buffer
+	RTbuffer buffer;
+	rtBufferCreate(context, RT_BUFFER_INPUT,&buffer);
+	rtBufferSetFormat(buffer,RT_FORMAT_USER);
+	rtBufferSetElementSize(buffer, sizeof(glm::vec3));
+	rtBufferSetSize1D(buffer, vertices.size());
+	void* data;
+	rtBufferMap(buffer, &data);
+	glm::vec3* vertex_data = (glm::vec3*) data;
+	for (int i = 0; i < vertices.size(); i++) {
+		vertex_data[i] = vertices[i].normal;
+	}
+	rtBufferUnmap(buffer);
+
+
+	/* *******************************************************OPTIX******************************************************* */
+
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
