@@ -7,8 +7,7 @@
 
 using namespace optix;
 
-
 RT_PROGRAM void raytraceExecution() 
 {  
-	 
+	 rtPrintf("THIS. IS. CUDAAAA!");
 } 

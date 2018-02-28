@@ -195,7 +195,9 @@ int main() {
 	// Create Vertex Buffer Object
 	GLuint vbo;
 	glGenBuffers(1, &vbo);
+	//bind it as (possible) source for the vao
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	//insert data into the current array_buffer: the vbo
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
 	// Bind vertex data to shader inputs using their index (location)
@@ -206,6 +208,7 @@ int main() {
 
 	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
 	// Stride is the distance in bytes between vertices
+	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
 	glEnableVertexAttribArray(0);
@@ -221,6 +224,8 @@ int main() {
 	stbi_uc* pixels = stbi_load("toon_map.png", &width, &height, &channels, 3);
 
 	// Create Texture
+	// everything will now be done in GL_TEXTURE0
+	glActiveTexture(GL_TEXTURE0);
 	GLuint texToon;
 	glGenTextures(1, &texToon);
 	glBindTexture(GL_TEXTURE_2D, texToon);
@@ -244,19 +249,24 @@ int main() {
 	RTcontext context;
 	rtContextCreate(&context);
 
-	//setting entry point
+	//enable printf shit
+	rtContextSetPrintEnabled(context, 1); 
+	rtContextSetPrintBufferSize(context, 4096);
+
+	//setting entry point: a ray generationprogram
 	rtContextSetEntryPointCount(context, 1);
 	RTprogram origin;
 	rtProgramCreateFromPTXFile(context,"ptx\\FirstTry.ptx" , "raytraceExecution", &origin);
-
 	if (rtProgramValidate(origin) != RT_SUCCESS) { 
 		printf("Program is not complete."); 
 	}
-
 	rtContextSetRayGenerationProgram(context, 0, origin);
 
 	//raytype shit?
 	rtContextSetRayTypeCount(context, 1);
+	optix::Ray ray;    // Some camera code creates the ray
+	ray.ray_type = 0; // Make this a radiance ray
+
 
 	//initialising buffers and loading normals into buffer
 	RTbuffer buffer;
@@ -273,6 +283,8 @@ int main() {
 	rtBufferUnmap(buffer);
 
 
+	rtContextLaunch1D(context, 1, 3);
+	printf("check");
 	/* *******************************************************OPTIX******************************************************* */
 
 
@@ -289,6 +301,7 @@ int main() {
 
 		// Set model/view/projection matrix
 		glm::vec3 viewPos = glm::vec3(-0.8f, 0.7f, -0.5f);
+		glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
 
 		glm::mat4 view = glm::lookAt(viewPos, glm::vec3(0.0f, -0.05f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 proj = glm::perspective(45.0f, WIDTH / static_cast<float>(HEIGHT), 0.1f, 10.0f);
@@ -298,18 +311,23 @@ int main() {
 		glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
 
 		// Set view position
-		glUniform3fv(1, 1, glm::value_ptr(viewPos));
+		GLint loc = glGetUniformLocation(shaderProgram, "viewPos");
+		glUniform3fv(loc, 1, glm::value_ptr(viewPos));
 
 		// Expose current time in shader uniform
-		glUniform1f(3, static_cast<float>(glfwGetTime()));
+		loc = glGetUniformLocation(shaderProgram, "time");
+		glUniform1f(loc, static_cast<float>(glfwGetTime()));
+
+		// setLightPosition
+		loc = glGetUniformLocation(shaderProgram, "lightPos");
+		glUniform3fv(loc, 1, glm::value_ptr(lightPos));
+
+		// upload texture coordinates
+		loc = glGetUniformLocation(shaderProgram, "texToon");
+		glUniform1i(loc, 0);
 
 		// Bind vertex data
 		glBindVertexArray(vao);
-
-		// Bind the texture to slot 0
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texToon);
-		glUniform1i(2, 0);
 
 		// Execute draw command
 		glDrawArrays(GL_TRIANGLES, 0, vertices.size());

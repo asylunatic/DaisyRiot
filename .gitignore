@@ -36,7 +36,6 @@
 *.app
 
 # VS folders
-*.vcxproj
 *.sdf
 *.ipc
 
