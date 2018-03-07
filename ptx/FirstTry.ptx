@@ -41,7 +41,7 @@
 .global .align 4 .u32 _ZN21rti_internal_register14reg_rayIndex_xE;
 .global .align 4 .u32 _ZN21rti_internal_register14reg_rayIndex_yE;
 .global .align 4 .u32 _ZN21rti_internal_register14reg_rayIndex_zE;
-.global .align 16 .b8 $str[19] = {84, 72, 73, 83, 46, 32, 73, 83, 46, 32, 67, 85, 68, 65, 65, 65, 65, 33, 0};
+.global .align 16 .b8 $str[24] = {84, 72, 73, 83, 46, 32, 73, 83, 46, 32, 67, 85, 68, 65, 65, 65, 65, 65, 65, 65, 65, 65, 33, 0};
 
 .visible .entry _Z17raytraceExecutionv(
 

@@ -9,5 +9,5 @@ using namespace optix;
 
 RT_PROGRAM void raytraceExecution() 
 {  
-	 rtPrintf("THIS. IS. CUDAAAA!");
+	 rtPrintf("THIS. IS. CUDAAAAAAAAA!");
 } 

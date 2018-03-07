@@ -283,7 +283,7 @@ int main() {
 	rtBufferUnmap(buffer);
 
 
-	rtContextLaunch1D(context, 1, 3);
+	rtContextLaunch1D(context, 0, 3);
 	printf("check");
 	/* *******************************************************OPTIX******************************************************* */
 
