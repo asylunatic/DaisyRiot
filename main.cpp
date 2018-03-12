@@ -31,11 +31,15 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
+
 // Per-vertex data
 struct Vertex {
 	glm::vec3 pos;
 	glm::vec3 normal;
 };
+std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) }, 
+									{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) }};
+
 
 // Helper function to read a file like a shader
 std::string readFile(const std::string& path) {
@@ -95,6 +99,125 @@ void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severi
 	}
 }
 
+void debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram) {
+	// creating vao
+	glGenVertexArrays(1, &linevao);
+
+	// creating vertexbuffer for the vao
+	glGenBuffers(1, &linevbo);
+
+	// Load and compile vertex shader
+	std::string vertexShaderCode = readFile("debugshader.vert");
+	const char* vertexShaderCodePtr = vertexShaderCode.data();
+
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
+	glCompileShader(vertexShader);
+
+	// Load and compile fragment shader
+	std::string fragmentShaderCode = readFile("shader.frag");
+	const char* fragmentShaderCodePtr = fragmentShaderCode.data();
+
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
+	glCompileShader(fragmentShader);
+
+	if (!checkShaderErrors(vertexShader) || !checkShaderErrors(fragmentShader)) {
+		std::cerr << "Shader(s) failed to compile!" << std::endl;
+		return;
+	}
+
+	// Combine vertex and fragment shaders into single shader program
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+
+
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		xpos = xpos*2/WIDTH - 1;
+		ypos = 1 - ypos*2/HEIGHT;
+		printf("click!: %f %f", xpos, ypos);
+		if (debugline.at(0).pos.x == 0.0){
+			debugline.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+			debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+		}
+		else debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
+
+	}
+
+}
+
+void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo) {
+	glUseProgram(debugprogram);
+	glBindVertexArray(linevao);
+	// vao will get info from linevbo now
+	glBindBuffer(GL_ARRAY_BUFFER, linevbo);
+	//insert data into the current array_buffer: the vbo
+	glBufferData(GL_ARRAY_BUFFER, debugline.size()*sizeof(Vertex), debugline.data(), GL_STREAM_DRAW);
+	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
+	// Stride is the distance in bytes between vertices
+	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the current VertexArray
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glDrawArrays(GL_LINES, 0, 2);
+}
+
+void doOptix(std::vector<Vertex> &vertices) {
+
+	/* *******************************************************OPTIX******************************************************* */
+	//initializing context -> holds all programs and variables
+	RTcontext context;
+	rtContextCreate(&context);
+
+	//enable printf shit
+	rtContextSetPrintEnabled(context, 1);
+	rtContextSetPrintBufferSize(context, 4096);
+
+	//setting entry point: a ray generationprogram
+	rtContextSetEntryPointCount(context, 1);
+	RTprogram origin;
+	rtProgramCreateFromPTXFile(context, "ptx\\FirstTry.ptx", "raytraceExecution", &origin);
+	if (rtProgramValidate(origin) != RT_SUCCESS) {
+		printf("Program is not complete.");
+	}
+	rtContextSetRayGenerationProgram(context, 0, origin);
+
+	//raytype shit?
+	rtContextSetRayTypeCount(context, 1);
+	optix::Ray ray;    // Some camera code creates the ray
+	ray.ray_type = 0; // Make this a radiance ray
+
+
+	//initialising buffers and loading normals into buffer
+	RTbuffer buffer;
+	rtBufferCreate(context, RT_BUFFER_INPUT, &buffer);
+	rtBufferSetFormat(buffer, RT_FORMAT_USER);
+	rtBufferSetElementSize(buffer, sizeof(glm::vec3));
+	rtBufferSetSize1D(buffer, vertices.size());
+	void* data;
+	rtBufferMap(buffer, &data);
+	glm::vec3* vertex_data = (glm::vec3*) data;
+	for (int i = 0; i < vertices.size(); i++) {
+		vertex_data[i] = vertices[i].normal;
+	}
+	rtBufferUnmap(buffer);
+
+
+	rtContextLaunch1D(context, 0, 3);
+	printf("check");
+	/* *******************************************************OPTIX******************************************************* */
+
+}
+
 int main() {
 	if (!glfwInit()) {
 		std::cerr << "Failed to initialize GLFW!" << std::endl;
@@ -123,6 +246,7 @@ int main() {
 
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(debugCallback, nullptr);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
 	// Load and compile vertex shader
 	std::string vertexShaderCode = readFile("shader.vert");
@@ -162,7 +286,7 @@ int main() {
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
 
-	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, "dragon.obj")) {
+	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, "balls.obj")) {
 		std::cerr << err << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -244,49 +368,13 @@ int main() {
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 
-	/* *******************************************************OPTIX******************************************************* */
-	//initializing context -> holds all programs and variables
-	RTcontext context;
-	rtContextCreate(&context);
+	//initializing debugline
+	GLuint linevao, linevbo, debugprogram;
+	debuglineInit(linevao, linevbo, debugprogram);
 
-	//enable printf shit
-	rtContextSetPrintEnabled(context, 1); 
-	rtContextSetPrintBufferSize(context, 4096);
-
-	//setting entry point: a ray generationprogram
-	rtContextSetEntryPointCount(context, 1);
-	RTprogram origin;
-	rtProgramCreateFromPTXFile(context,"ptx\\FirstTry.ptx" , "raytraceExecution", &origin);
-	if (rtProgramValidate(origin) != RT_SUCCESS) { 
-		printf("Program is not complete."); 
-	}
-	rtContextSetRayGenerationProgram(context, 0, origin);
-
-	//raytype shit?
-	rtContextSetRayTypeCount(context, 1);
-	optix::Ray ray;    // Some camera code creates the ray
-	ray.ray_type = 0; // Make this a radiance ray
-
-
-	//initialising buffers and loading normals into buffer
-	RTbuffer buffer;
-	rtBufferCreate(context, RT_BUFFER_INPUT,&buffer);
-	rtBufferSetFormat(buffer,RT_FORMAT_USER);
-	rtBufferSetElementSize(buffer, sizeof(glm::vec3));
-	rtBufferSetSize1D(buffer, vertices.size());
-	void* data;
-	rtBufferMap(buffer, &data);
-	glm::vec3* vertex_data = (glm::vec3*) data;
-	for (int i = 0; i < vertices.size(); i++) {
-		vertex_data[i] = vertices[i].normal;
-	}
-	rtBufferUnmap(buffer);
-
-
-	rtContextLaunch1D(context, 0, 3);
-	printf("check");
-	/* *******************************************************OPTIX******************************************************* */
-
+	//optix stuff
+	doOptix(vertices);
+	
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
@@ -300,7 +388,7 @@ int main() {
 		glUseProgram(shaderProgram);
 
 		// Set model/view/projection matrix
-		glm::vec3 viewPos = glm::vec3(-0.8f, 0.7f, -0.5f);
+		glm::vec3 viewPos = glm::vec3(-0.8f, 0.7f, -10.0f);
 		glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
 
 		glm::mat4 view = glm::lookAt(viewPos, glm::vec3(0.0f, -0.05f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -328,9 +416,11 @@ int main() {
 
 		// Bind vertex data
 		glBindVertexArray(vao);
-
 		// Execute draw command
 		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+
+		//DRAWING DEBUGLINE
+		debuglineDraw(debugprogram, linevao, linevbo);
 
 		// Present result to the screen
 		glfwSwapBuffers(window);
