@@ -37,5 +37,6 @@
     <CudaCompile Include="FirstTry.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="geometry.cu" />
   </ItemGroup>
 </Project>

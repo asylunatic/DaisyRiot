@@ -40,7 +40,184 @@ struct Vertex {
 std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) }, 
 									{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) }};
 
+RTcontext context;
+optix::Context contextH;
 
+glm::vec3 rgb2hsv(glm::vec3 in)
+{
+	glm::vec3         out;
+	double      min, max, delta;
+
+	min = in.r < in.g ? in.r : in.g;
+	min = min  < in.b ? min : in.b;
+
+	max = in.r > in.g ? in.r : in.g;
+	max = max > in.b ? max : in.b;
+
+	out.z = max;                                // v
+	delta = max - min;
+	if (delta < 0.00001)
+	{
+		out.y = 0;
+		out.x = 0; // undefined, maybe nan?
+		return out;
+	}
+	if (max > 0.0) { // NOTE: if Max is == 0, this divide would cause a crash
+		out.y = (delta / max);                  // s
+	}
+	else {
+		// if max is 0, then r = g = b = 0              
+		// s = 0, h is undefined
+		out.y = 0.0;
+		out.x = NAN;                            // its now undefined
+		return out;
+	}
+	if (in.r >= max)                           // > is bogus, just keeps compilor happy
+		out.x = (in.g - in.b) / delta;        // between yellow & magenta
+	else
+		if (in.g >= max)
+			out.x = 2.0 + (in.b - in.r) / delta;  // between cyan & yellow
+		else
+			out.x = 4.0 + (in.r - in.g) / delta;  // between magenta & cyan
+
+	out.x *= 60.0;                              // degrees
+
+	if (out.x < 0.0)
+		out.x += 360.0;
+
+	return out;
+}
+
+glm::vec3 hsv2rgb(glm::vec3 in)
+{
+	double      hh, p, q, t, ff;
+	long        i;
+	glm::vec3   out;
+
+	if (in.s <= 0.0) {       // < is bogus, just shuts up warnings
+		out.r = in.z;
+		out.g = in.z;
+		out.b = in.z;
+		return out;
+	}
+	hh = in.x;
+	if (hh >= 360.0) hh = 0.0;
+	hh /= 60.0;
+	i = (long)hh;
+	ff = hh - i;
+	p = in.z * (1.0 - in.y);
+	q = in.z * (1.0 - (in.y * ff));
+	t = in.z * (1.0 - (in.y * (1.0 - ff)));
+
+	switch (i) {
+	case 0:
+		out.r = in.z;
+		out.g = t;
+		out.b = p;
+		break;
+	case 1:
+		out.r = q;
+		out.g = in.z;
+		out.b = p;
+		break;
+	case 2:
+		out.r = p;
+		out.g = in.z;
+		out.b = t;
+		break;
+
+	case 3:
+		out.r = p;
+		out.g = q;
+		out.b = in.z;
+		break;
+	case 4:
+		out.r = t;
+		out.g = p;
+		out.b = in.z;
+		break;
+	case 5:
+	default:
+		out.r = in.z;
+		out.g = p;
+		out.b = q;
+		break;
+	}
+	return out;
+}
+
+void initOptix(std::vector<Vertex> &vertices) {
+
+	/* *******************************************************OPTIX******************************************************* */
+	//initializing context -> holds all programs and variables
+	contextH = optix::Context::create();
+	context = contextH->get();
+	
+
+	//enable printf shit
+	rtContextSetPrintEnabled(context, 1);
+	rtContextSetPrintBufferSize(context, 4096);
+
+	//setting entry point: a ray generationprogram
+	rtContextSetEntryPointCount(context, 1);
+	RTprogram origin;
+	rtProgramCreateFromPTXFile(context, "ptx\\FirstTry.ptx", "raytraceExecution", &origin);
+	if (rtProgramValidate(origin) != RT_SUCCESS) {
+		printf("Program is not complete.");
+	}
+	rtContextSetRayGenerationProgram(context, 0, origin);
+
+
+	//initialising buffers and loading normals into buffer
+	RTbuffer buffer;
+	rtBufferCreate(context, RT_BUFFER_INPUT, &buffer);
+	rtBufferSetFormat(buffer, RT_FORMAT_USER);
+	rtBufferSetElementSize(buffer, sizeof(glm::vec3));
+	rtBufferSetSize1D(buffer, vertices.size());
+	void* data;
+	rtBufferMap(buffer, &data);
+	glm::vec3* vertex_data = (glm::vec3*) data;
+	for (int i = 0; i < vertices.size(); i++) {
+		vertex_data[i] = vertices[i].normal;
+	}
+	rtBufferUnmap(buffer);
+
+	optix::Geometry geometryH = contextH -> createGeometry();
+	optix::Material materialH = contextH->createMaterial();
+	optix::GeometryInstance geometryInstanceH = contextH->createGeometryInstance();
+	optix::GeometryGroup geometryGroupH = contextH->createGeometryGroup();
+	
+	optix::Program intersection = contextH->createProgramFromPTXFile("ptx\\geometry.ptx", "intersection");
+	intersection->validate();
+
+	optix::Program boundingbox = contextH->createProgramFromPTXFile("ptx\\geometry.ptx", "boundingbox");
+	boundingbox->validate();
+
+	geometryH->setPrimitiveCount(1);
+	geometryH->setIntersectionProgram(intersection);
+	geometryH->setBoundingBoxProgram(boundingbox);
+
+	geometryInstanceH->setMaterialCount(1);
+	geometryInstanceH->setGeometry(geometryH);
+	geometryInstanceH->setMaterial(0, materialH);
+
+	geometryGroupH->setChildCount(1);
+	geometryGroupH->setChild(0, geometryInstanceH);
+	geometryGroupH->setAcceleration(contextH->createAcceleration("NoAccel"));
+
+	contextH["top_object"]->set(geometryGroupH);
+
+	printf("check");
+	/* *******************************************************OPTIX******************************************************* */
+
+}
+
+void doOptix(double xpos, double ypos) {
+
+	contextH["mousePos"]->setFloat((float)xpos, (float)ypos);
+
+	rtContextLaunch1D(context, 0, 1);
+}
 // Helper function to read a file like a shader
 std::string readFile(const std::string& path) {
 	std::ifstream file(path, std::ios::binary);
@@ -144,18 +321,21 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		xpos = xpos*2/WIDTH - 1;
 		ypos = 1 - ypos*2/HEIGHT;
 		printf("click!: %f %f", xpos, ypos);
-		if (debugline.at(0).pos.x == 0.0){
+		/*if (debugline.at(0).pos.x == 0.0){
 			debugline.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
 			debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
 		}
-		else debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
+		else debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };*/
+		doOptix(xpos, ypos);
 
 	}
+
+
 
 }
 
 void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo) {
-	glUseProgram(debugprogram);
+	glUseProgram(debugprogram); 
 	glBindVertexArray(linevao);
 	// vao will get info from linevbo now
 	glBindBuffer(GL_ARRAY_BUFFER, linevbo);
@@ -171,52 +351,6 @@ void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo) {
 	glDrawArrays(GL_LINES, 0, 2);
 }
 
-void doOptix(std::vector<Vertex> &vertices) {
-
-	/* *******************************************************OPTIX******************************************************* */
-	//initializing context -> holds all programs and variables
-	RTcontext context;
-	rtContextCreate(&context);
-
-	//enable printf shit
-	rtContextSetPrintEnabled(context, 1);
-	rtContextSetPrintBufferSize(context, 4096);
-
-	//setting entry point: a ray generationprogram
-	rtContextSetEntryPointCount(context, 1);
-	RTprogram origin;
-	rtProgramCreateFromPTXFile(context, "ptx\\FirstTry.ptx", "raytraceExecution", &origin);
-	if (rtProgramValidate(origin) != RT_SUCCESS) {
-		printf("Program is not complete.");
-	}
-	rtContextSetRayGenerationProgram(context, 0, origin);
-
-	//raytype shit?
-	rtContextSetRayTypeCount(context, 1);
-	optix::Ray ray;    // Some camera code creates the ray
-	ray.ray_type = 0; // Make this a radiance ray
-
-
-	//initialising buffers and loading normals into buffer
-	RTbuffer buffer;
-	rtBufferCreate(context, RT_BUFFER_INPUT, &buffer);
-	rtBufferSetFormat(buffer, RT_FORMAT_USER);
-	rtBufferSetElementSize(buffer, sizeof(glm::vec3));
-	rtBufferSetSize1D(buffer, vertices.size());
-	void* data;
-	rtBufferMap(buffer, &data);
-	glm::vec3* vertex_data = (glm::vec3*) data;
-	for (int i = 0; i < vertices.size(); i++) {
-		vertex_data[i] = vertices[i].normal;
-	}
-	rtBufferUnmap(buffer);
-
-
-	rtContextLaunch1D(context, 0, 3);
-	printf("check");
-	/* *******************************************************OPTIX******************************************************* */
-
-}
 
 int main() {
 	if (!glfwInit()) {
@@ -373,7 +507,7 @@ int main() {
 	debuglineInit(linevao, linevbo, debugprogram);
 
 	//optix stuff
-	doOptix(vertices);
+	initOptix(vertices);
 	
 
 	// Main loop

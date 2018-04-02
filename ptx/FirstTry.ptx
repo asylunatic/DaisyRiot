@@ -17,6 +17,10 @@
 	.param .b64 vprintf_param_1
 )
 ;
+.global .align 8 .b8 mousePos[8];
+.global .align 4 .b8 top_object[4];
+.global .align 4 .b8 _ZN21rti_internal_typeinfo8mousePosE[8] = {82, 97, 121, 0, 8, 0, 0, 0};
+.global .align 4 .b8 _ZN21rti_internal_typeinfo10top_objectE[8] = {82, 97, 121, 0, 4, 0, 0, 0};
 .global .align 8 .u64 _ZN21rti_internal_register20reg_bitness_detectorE;
 .global .align 8 .u64 _ZN21rti_internal_register24reg_exception_64_detail0E;
 .global .align 8 .u64 _ZN21rti_internal_register24reg_exception_64_detail1E;
@@ -41,34 +45,55 @@
 .global .align 4 .u32 _ZN21rti_internal_register14reg_rayIndex_xE;
 .global .align 4 .u32 _ZN21rti_internal_register14reg_rayIndex_yE;
 .global .align 4 .u32 _ZN21rti_internal_register14reg_rayIndex_zE;
-.global .align 16 .b8 $str[24] = {84, 72, 73, 83, 46, 32, 73, 83, 46, 32, 67, 85, 68, 65, 65, 65, 65, 65, 65, 65, 65, 65, 33, 0};
+.global .align 8 .b8 _ZN21rti_internal_typename8mousePosE[7] = {102, 108, 111, 97, 116, 50, 0};
+.global .align 16 .b8 _ZN21rti_internal_typename10top_objectE[9] = {114, 116, 79, 98, 106, 101, 99, 116, 0};
+.global .align 4 .u32 _ZN21rti_internal_typeenum8mousePosE = 4919;
+.global .align 4 .u32 _ZN21rti_internal_typeenum10top_objectE = 4919;
+.global .align 1 .b8 _ZN21rti_internal_semantic8mousePosE[1];
+.global .align 1 .b8 _ZN21rti_internal_semantic10top_objectE[1];
+.global .align 1 .b8 _ZN23rti_internal_annotation8mousePosE[1];
+.global .align 1 .b8 _ZN23rti_internal_annotation10top_objectE[1];
+.global .align 16 .b8 $str[30] = {84, 72, 73, 83, 46, 32, 73, 83, 46, 32, 67, 85, 68, 65, 65, 65, 65, 65, 65, 65, 65, 65, 33, 32, 37, 102, 32, 37, 102, 0};
 
 .visible .entry _Z17raytraceExecutionv(
 
 )
 {
+	.local .align 16 .b8 	__local_depot0[32];
+	.reg .b64 	%SP;
+	.reg .b64 	%SPL;
 	.reg .pred 	%p<2>;
-	.reg .b32 	%r<3>;
-	.reg .b64 	%rd<4>;
+	.reg .b16 	%rs<2>;
+	.reg .f32 	%f<15>;
+	.reg .b32 	%r<6>;
+	.reg .f64 	%fd<3>;
+	.reg .b64 	%rd<8>;
 
 
+	mov.u64 	%rd7, __local_depot0;
+	cvta.local.u64 	%SP, %rd7;
+	ld.global.v2.f32 	{%f3, %f4}, [mousePos];
 	// inline asm
 	call (%r1), _rt_print_active, ();
 	// inline asm
 	setp.eq.s32	%p1, %r1, 0;
 	@%p1 bra 	BB0_2;
 
-	mov.u64 	%rd1, $str;
-	cvta.global.u64 	%rd2, %rd1;
-	mov.u64 	%rd3, 0;
+	add.u64 	%rd1, %SP, 0;
+	cvta.to.local.u64 	%rd2, %rd1;
+	cvt.f64.f32	%fd1, %f4;
+	cvt.f64.f32	%fd2, %f3;
+	st.local.v2.f64 	[%rd2], {%fd2, %fd1};
+	mov.u64 	%rd3, $str;
+	cvta.global.u64 	%rd4, %rd3;
 	// Callseq Start 0
 	{
 	.reg .b32 temp_param_reg;
 	// <end>}
 	.param .b64 param0;
-	st.param.b64	[param0+0], %rd2;
+	st.param.b64	[param0+0], %rd4;
 	.param .b64 param1;
-	st.param.b64	[param1+0], %rd3;
+	st.param.b64	[param1+0], %rd1;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	vprintf, 
@@ -82,6 +107,21 @@
 	}// Callseq End 0
 
 BB0_2:
+	add.u64 	%rd5, %SP, 16;
+	cvta.to.local.u64 	%rd6, %rd5;
+	ld.global.v2.f32 	{%f13, %f14}, [mousePos];
+	mov.u16 	%rs1, 0;
+	st.local.u8 	[%rd6], %rs1;
+	ld.global.u32 	%r3, [top_object];
+	mov.f32 	%f7, 0f3FC00000;
+	mov.f32 	%f10, 0fBF800000;
+	mov.u32 	%r4, 0;
+	mov.f32 	%f11, 0f00000000;
+	mov.f32 	%f12, 0f6C4ECB8F;
+	mov.u32 	%r5, 1;
+	// inline asm
+	call _rt_trace_64, (%r3, %f13, %f14, %f7, %f11, %f11, %f10, %r4, %f11, %f12, %rd5, %r5);
+	// inline asm
 	ret;
 }
 

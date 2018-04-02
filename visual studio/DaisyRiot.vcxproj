@@ -43,6 +43,7 @@
       <CompileOut Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\ptx\%(Filename).ptx</CompileOut>
       <CompileOut Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\ptx\%(Filename).ptx</CompileOut>
     </CudaCompile>
+    <CudaCompile Include="geometry.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F108EF87-748D-44F4-8D03-92EF4625363D}</ProjectGuid>
