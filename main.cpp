@@ -25,6 +25,9 @@
 #include <vector>
 
 #include <OptiX_world.h>
+#include <optix_prime\optix_prime.h>
+#include <optix_prime\optix_prime_declarations.h>
+#include <optix_prime\optix_primepp.h>
 
 
 // Configuration
@@ -42,6 +45,8 @@ std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,
 
 RTcontext context;
 optix::Context contextH;
+optix::prime::Context contextP;
+optix::prime::Model model;
 
 glm::vec3 rgb2hsv(glm::vec3 in)
 {
@@ -153,7 +158,6 @@ void initOptix(std::vector<Vertex> &vertices) {
 	contextH = optix::Context::create();
 	context = contextH->get();
 	
-
 	//enable printf shit
 	rtContextSetPrintEnabled(context, 1);
 	rtContextSetPrintBufferSize(context, 4096);
@@ -212,12 +216,49 @@ void initOptix(std::vector<Vertex> &vertices) {
 
 }
 
+void initOptixPrime(std::vector<Vertex> &vertices) {
+	contextP = optix::prime::Context::create(RTP_CONTEXT_TYPE_CUDA);
+	optix::prime::BufferDesc buffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_VERTEX_FLOAT3, RTP_BUFFER_TYPE_HOST, &vertices);
+	buffer->setRange(1, vertices.size());
+	buffer->setStride(sizeof(Vertex));
+	model = contextP->createModel();
+	model->setTriangles(buffer);
+	try{
+		model->update(RTP_MODEL_HINT_NONE);
+		model->finish();
+	}
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+		<< e.getErrorCode() << " and message "
+		<< e.getErrorString() << std::endl;
+	}
+}
+
 void doOptix(double xpos, double ypos) {
 
 	contextH["mousePos"]->setFloat((float)xpos, (float)ypos);
 
 	rtContextLaunch1D(context, 0, 1);
 }
+
+void doOptixPrime(double xpos, double ypos) {
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+	std::vector<optix::float3> rays = { optix::make_float3(xpos, ypos, -10), optix::make_float3(0, 0, 1) };
+	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION,RTP_BUFFER_TYPE_HOST, &rays);
+	std::vector<float> hits;
+	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T, RTP_BUFFER_TYPE_HOST, &hits);
+	try{
+		query->execute(RTP_QUERY_HINT_NONE);
+	}
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
+	}
+	if (hits[0] != 0) printf("hit! %f", hits[0]);
+	else printf("miss!");
+}
+
 // Helper function to read a file like a shader
 std::string readFile(const std::string& path) {
 	std::ifstream file(path, std::ios::binary);
@@ -326,7 +367,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 			debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
 		}
 		else debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };*/
-		doOptix(xpos, ypos);
+		doOptixPrime(xpos, ypos);
 
 	}
 
@@ -507,7 +548,7 @@ int main() {
 	debuglineInit(linevao, linevbo, debugprogram);
 
 	//optix stuff
-	initOptix(vertices);
+	initOptixPrime(vertices);
 	
 
 	// Main loop

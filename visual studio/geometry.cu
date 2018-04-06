@@ -17,7 +17,10 @@ float3 normal = make_float3(0, 0, 1);
 Aabb triangle = Aabb(ta, tb, tc);
 
 //triangle plane = plane with normal 'normal' and origin 'ta'
-float t = dot((ta - ray.origin), normal)/dot(ray.direction, normal);
+float t;
+if (dot(ray.direction, normal) != 0) t = dot((ta - ray.origin), normal)/dot(ray.direction, normal);
+else t = -1;
+
 float3 p = ray.origin + t * ray.direction; 
 if (triangle.contains(p)) {
 	rtPrintf("Hit!");
