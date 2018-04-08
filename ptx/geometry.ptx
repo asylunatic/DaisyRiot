@@ -7,14 +7,25 @@
 //
 
 .version 6.0
-.target sm_30
+.target sm_30, debug
 .address_size 64
 
-	// .globl	_Z12intersectioni
 .extern .func  (.param .b32 func_retval0) vprintf
 (
 	.param .b64 vprintf_param_0,
 	.param .b64 vprintf_param_1
+)
+;
+.func  (.param .b32 func_retval0) fminf
+(
+	.param .b32 fminf_param_0,
+	.param .b32 fminf_param_1
+)
+;
+.func  (.param .b32 func_retval0) fmaxf
+(
+	.param .b32 fmaxf_param_0,
+	.param .b32 fmaxf_param_1
 )
 ;
 .global .align 4 .b8 ray[36];
@@ -43,87 +54,108 @@
 .global .align 4 .u32 _ZN21rti_internal_register14reg_rayIndex_xE;
 .global .align 4 .u32 _ZN21rti_internal_register14reg_rayIndex_yE;
 .global .align 4 .u32 _ZN21rti_internal_register14reg_rayIndex_zE;
-.global .align 16 .b8 _ZN21rti_internal_typename3rayE[11] = {111, 112, 116, 105, 120, 58, 58, 82, 97, 121, 0};
+.global .align 1 .b8 _ZN21rti_internal_typename3rayE[11] = {111, 112, 116, 105, 120, 58, 58, 82, 97, 121, 0};
 .global .align 4 .u32 _ZN21rti_internal_typeenum3rayE = 4919;
-.global .align 16 .b8 _ZN21rti_internal_semantic3rayE[13] = {114, 116, 67, 117, 114, 114, 101, 110, 116, 82, 97, 121, 0};
+.global .align 1 .b8 _ZN21rti_internal_semantic3rayE[13] = {114, 116, 67, 117, 114, 114, 101, 110, 116, 82, 97, 121, 0};
 .global .align 1 .b8 _ZN23rti_internal_annotation3rayE[1];
-.global .align 8 .b8 $str[5] = {72, 105, 116, 33, 0};
+.global .align 1 .b8 $str[5] = {72, 105, 116, 33, 0};
 
-.visible .entry _Z12intersectioni(
-	.param .u32 _Z12intersectioni_param_0
+.func  (.param .align 4 .b8 func_retval0[12]) _ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff(
+	.param .b32 _ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff_param_0,
+	.param .b32 _ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff_param_1,
+	.param .b32 _ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff_param_2
 )
 {
-	.reg .pred 	%p<14>;
-	.reg .f32 	%f<30>;
-	.reg .b32 	%r<3>;
-	.reg .b64 	%rd<4>;
+	.local .align 4 .b8 	__local_depot0[12];
+	.reg .b64 	%SP;
+	.reg .b64 	%SPL;
+	.reg .f32 	%f<7>;
+	.reg .b64 	%rd<2>;
 
 
-	ld.global.f32 	%f1, [ray+12];
-	ld.global.f32 	%f2, [ray+16];
-	mul.f32 	%f14, %f2, 0f00000000;
-	fma.rn.f32 	%f15, %f1, 0f00000000, %f14;
-	ld.global.f32 	%f3, [ray+20];
-	add.f32 	%f4, %f3, %f15;
-	setp.neu.f32	%p1, %f4, 0f00000000;
-	ld.global.f32 	%f5, [ray];
-	@%p1 bra 	BB0_2;
-	bra.uni 	BB0_1;
+	.loc 6 245 1
+func_begin0:
+	.loc	6 0 0
 
-BB0_2:
-	mov.f32 	%f17, 0f00000000;
-	sub.f32 	%f18, %f17, %f5;
-	ld.global.f32 	%f28, [ray+4];
-	sub.f32 	%f19, %f17, %f28;
-	ld.global.f32 	%f27, [ray+8];
-	sub.f32 	%f20, %f17, %f27;
-	mul.f32 	%f21, %f19, 0f00000000;
-	fma.rn.f32 	%f22, %f18, 0f00000000, %f21;
-	add.f32 	%f23, %f20, %f22;
-	div.rn.f32 	%f29, %f23, %f4;
-	bra.uni 	BB0_3;
+	.loc 6 245 1
 
-BB0_1:
-	ld.global.f32 	%f28, [ray+4];
-	mov.f32 	%f29, 0fBF800000;
-	ld.global.f32 	%f27, [ray+8];
+	mov.u64 	%rd1, __local_depot0;
+	cvta.local.u64 	%SP, %rd1;
+	ld.param.f32 	%f1, [_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff_param_0];
+	ld.param.f32 	%f2, [_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff_param_1];
+	ld.param.f32 	%f3, [_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff_param_2];
+tmp0:
+func_exec_begin0:
+	.loc	6 247 13
+	st.f32 	[%SP+0], %f1;
+	.loc	6 247 22
+	st.f32 	[%SP+4], %f2;
+	.loc	6 247 31
+	st.f32 	[%SP+8], %f3;
+	.loc	6 247 40
+	ld.f32 	%f4, [%SP+8];
+	ld.f32 	%f5, [%SP+4];
+	ld.f32 	%f6, [%SP+0];
+	st.param.f32	[func_retval0+0], %f6;
+	st.param.f32	[func_retval0+4], %f5;
+	st.param.f32	[func_retval0+8], %f4;
+	ret;
+tmp1:
+func_end0:
+}
 
-BB0_3:
-	fma.rn.f32 	%f24, %f29, %f1, %f5;
-	fma.rn.f32 	%f25, %f29, %f2, %f28;
-	fma.rn.f32 	%f26, %f29, %f3, %f27;
-	setp.le.f32	%p2, %f24, 0f3F800000;
-	setp.ge.f32	%p3, %f24, 0f00000000;
-	and.pred  	%p4, %p3, %p2;
-	setp.ge.f32	%p5, %f25, 0f00000000;
-	and.pred  	%p6, %p4, %p5;
-	setp.le.f32	%p7, %f25, 0f3F800000;
-	and.pred  	%p8, %p6, %p7;
-	setp.ge.f32	%p9, %f26, 0f00000000;
-	and.pred  	%p10, %p8, %p9;
-	setp.le.f32	%p11, %f26, 0f00000000;
-	and.pred  	%p12, %p10, %p11;
-	@!%p12 bra 	BB0_6;
-	bra.uni 	BB0_4;
+.func _ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb8rtPrintfEPKc(
+	.param .b64 _ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb8rtPrintfEPKc_param_0
+)
+{
+	.reg .pred 	%p<4>;
+	.reg .b32 	%r<4>;
+	.reg .b64 	%rd<3>;
 
-BB0_4:
+
+	.loc 5 2200 1
+func_begin1:
+	.loc	5 0 0
+
+	.loc 5 2200 1
+
+	ld.param.u64 	%rd1, [_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb8rtPrintfEPKc_param_0];
+func_exec_begin1:
+	.loc	5 2202 8
+	bra.uni	tmp2;
+tmp2:
+	.loc	8 444 5
 	// inline asm
 	call (%r1), _rt_print_active, ();
 	// inline asm
-	setp.eq.s32	%p13, %r1, 0;
-	@%p13 bra 	BB0_6;
+tmp3:
+	.loc	8 448 5
+	mov.b32 	%r2, %r1;
+tmp4:
+	.loc	5 2202 8
+	setp.ne.s32	%p1, %r2, 0;
+	not.pred 	%p2, %p1;
+	not.pred 	%p3, %p2;
+	@%p3 bra 	BB1_2;
+	bra.uni 	BB1_1;
 
-	mov.u64 	%rd1, $str;
-	cvta.global.u64 	%rd2, %rd1;
-	mov.u64 	%rd3, 0;
+BB1_1:
+	.loc	5 2202 35
+tmp5:
+	bra.uni 	BB1_3;
+tmp6:
+
+BB1_2:
+	mov.u64 	%rd2, 0;
+	.loc	5 2203 3
 	// Callseq Start 0
 	{
 	.reg .b32 temp_param_reg;
 	// <end>}
 	.param .b64 param0;
-	st.param.b64	[param0+0], %rd2;
+	st.param.b64	[param0+0], %rd1;
 	.param .b64 param1;
-	st.param.b64	[param1+0], %rd3;
+	st.param.b64	[param1+0], %rd2;
 	.param .b32 retval0;
 	call.uni (retval0), 
 	vprintf, 
@@ -131,13 +163,1078 @@ BB0_4:
 	param0, 
 	param1
 	);
-	ld.param.b32	%r2, [retval0+0];
+	ld.param.b32	%r3, [retval0+0];
 	
 	//{
 	}// Callseq End 0
 
-BB0_6:
+BB1_3:
+	.loc	5 2204 1
 	ret;
+tmp7:
+func_end1:
+}
+
+	// .globl	_Z12intersectioni
+.visible .entry _Z12intersectioni(
+	.param .u32 _Z12intersectioni_param_0
+)
+{
+	.local .align 8 .b8 	__local_depot2[368];
+	.reg .b64 	%SP;
+	.reg .b64 	%SPL;
+	.reg .pred 	%p<37>;
+	.reg .b16 	%rs<3>;
+	.reg .f32 	%f<147>;
+	.reg .b32 	%r<7>;
+	.reg .b64 	%rd<142>;
+
+
+	.loc 1 12 1
+func_begin2:
+	.loc	1 0 0
+
+	.loc 1 12 1
+
+	mov.u64 	%rd141, __local_depot2;
+	cvta.local.u64 	%SP, %rd141;
+	ld.param.u32 	%r1, [_Z12intersectioni_param_0];
+	mov.b32 	%r2, %r1;
+	mov.f32 	%f4, 0f00000000;
+tmp8:
+func_exec_begin2:
+	.loc	1 13 13
+	// Callseq Start 1
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f4;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f4;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f4;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f5, [retval0+0];
+	ld.param.f32	%f6, [retval0+4];
+	ld.param.f32	%f7, [retval0+8];
+	
+	//{
+	}// Callseq End 1
+	st.f32 	[%SP+276], %f7;
+	st.f32 	[%SP+272], %f6;
+	st.f32 	[%SP+268], %f5;
+	mov.f32 	%f8, 0f3F800000;
+	.loc	1 14 13
+	// Callseq Start 2
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f8;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f4;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f4;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f9, [retval0+0];
+	ld.param.f32	%f10, [retval0+4];
+	ld.param.f32	%f11, [retval0+8];
+	
+	//{
+	}// Callseq End 2
+	st.f32 	[%SP+288], %f11;
+	st.f32 	[%SP+284], %f10;
+	st.f32 	[%SP+280], %f9;
+	.loc	1 15 13
+	// Callseq Start 3
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f4;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f8;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f4;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f12, [retval0+0];
+	ld.param.f32	%f13, [retval0+4];
+	ld.param.f32	%f14, [retval0+8];
+	
+	//{
+	}// Callseq End 3
+	st.f32 	[%SP+300], %f14;
+	st.f32 	[%SP+296], %f13;
+	st.f32 	[%SP+292], %f12;
+	.loc	1 16 17
+	// Callseq Start 4
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f4;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f4;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f8;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f15, [retval0+0];
+	ld.param.f32	%f16, [retval0+4];
+	ld.param.f32	%f17, [retval0+8];
+	
+	//{
+	}// Callseq End 4
+	st.f32 	[%SP+312], %f17;
+	st.f32 	[%SP+308], %f16;
+	st.f32 	[%SP+304], %f15;
+	add.u64 	%rd1, %SP, 316;
+	mov.u64 	%rd2, %rd1;
+	st.u64 	[%SP+224], %rd2;
+	add.u64 	%rd3, %SP, 268;
+	mov.u64 	%rd4, %rd3;
+	st.u64 	[%SP+232], %rd4;
+	add.u64 	%rd5, %SP, 280;
+	mov.u64 	%rd6, %rd5;
+	st.u64 	[%SP+240], %rd6;
+	add.u64 	%rd7, %SP, 292;
+	mov.u64 	%rd8, %rd7;
+	st.u64 	[%SP+248], %rd8;
+	.loc	1 17 6
+	bra.uni	tmp9;
+tmp9:
+	.loc	7 193 5
+	ld.u64 	%rd9, [%SP+224];
+	ld.u64 	%rd10, [%SP+232];
+	ld.u64 	%rd11, [%SP+240];
+	ld.u64 	%rd12, [%SP+248];
+	mov.u64 	%rd13, %rd9;
+	st.u64 	[%SP+168], %rd13;
+	mov.u64 	%rd14, %rd10;
+	st.u64 	[%SP+176], %rd14;
+	mov.u64 	%rd15, %rd11;
+	st.u64 	[%SP+184], %rd15;
+	mov.u64 	%rd16, %rd12;
+	st.u64 	[%SP+192], %rd16;
+	.loc	7 193 5
+	bra.uni	tmp10;
+tmp10:
+	.loc	7 226 5
+	ld.u64 	%rd17, [%SP+168];
+	ld.u64 	%rd18, [%SP+176];
+	ld.u64 	%rd19, [%SP+184];
+	ld.u64 	%rd20, [%SP+192];
+	mov.u64 	%rd21, %rd19;
+	st.u64 	[%SP+152], %rd21;
+	mov.u64 	%rd22, %rd20;
+	st.u64 	[%SP+160], %rd22;
+	.loc	7 226 24
+	bra.uni	tmp11;
+tmp11:
+	.loc	9 587 3
+	ld.u64 	%rd23, [%SP+152];
+	ld.f32 	%f18, [%rd23];
+	ld.u64 	%rd24, [%SP+160];
+	ld.f32 	%f19, [%rd24];
+	.loc	9 587 22
+	// Callseq Start 5
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f18;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f19;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f20, [retval0+0];
+	
+	//{
+	}// Callseq End 5
+	ld.u64 	%rd25, [%SP+152];
+	ld.f32 	%f21, [%rd25+4];
+	ld.u64 	%rd26, [%SP+160];
+	ld.f32 	%f22, [%rd26+4];
+	.loc	9 587 38
+	// Callseq Start 6
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f21;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f22;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f23, [retval0+0];
+	
+	//{
+	}// Callseq End 6
+	ld.u64 	%rd27, [%SP+152];
+	ld.f32 	%f24, [%rd27+8];
+	ld.u64 	%rd28, [%SP+160];
+	ld.f32 	%f25, [%rd28+8];
+	.loc	9 587 54
+	// Callseq Start 7
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f24;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f25;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f26, [retval0+0];
+	
+	//{
+	}// Callseq End 7
+	.loc	9 587 10
+	// Callseq Start 8
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f20;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f23;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f26;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f27, [retval0+0];
+	ld.param.f32	%f28, [retval0+4];
+	ld.param.f32	%f29, [retval0+8];
+	
+	//{
+	}// Callseq End 8
+tmp12:
+	.loc	7 226 24
+	st.f32 	[%SP+208], %f29;
+	st.f32 	[%SP+204], %f28;
+	st.f32 	[%SP+200], %f27;
+	mov.u64 	%rd29, %rd18;
+	st.u64 	[%SP+136], %rd29;
+	add.u64 	%rd30, %SP, 200;
+tmp13:
+	mov.u64 	%rd31, %rd30;
+	st.u64 	[%SP+144], %rd31;
+	.loc	7 226 13
+	bra.uni	tmp14;
+tmp14:
+	.loc	9 587 3
+	ld.u64 	%rd32, [%SP+136];
+	ld.f32 	%f30, [%rd32];
+	ld.u64 	%rd33, [%SP+144];
+	ld.f32 	%f31, [%rd33];
+	.loc	9 587 22
+	// Callseq Start 9
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f30;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f31;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f32, [retval0+0];
+	
+	//{
+	}// Callseq End 9
+	ld.u64 	%rd34, [%SP+136];
+	ld.f32 	%f33, [%rd34+4];
+	ld.u64 	%rd35, [%SP+144];
+	ld.f32 	%f34, [%rd35+4];
+	.loc	9 587 38
+	// Callseq Start 10
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f33;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f34;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f35, [retval0+0];
+	
+	//{
+	}// Callseq End 10
+	ld.u64 	%rd36, [%SP+136];
+	ld.f32 	%f36, [%rd36+8];
+	ld.u64 	%rd37, [%SP+144];
+	ld.f32 	%f37, [%rd37+8];
+	.loc	9 587 54
+	// Callseq Start 11
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f36;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f37;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f38, [retval0+0];
+	
+	//{
+	}// Callseq End 11
+	.loc	9 587 10
+	// Callseq Start 12
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f32;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f35;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f38;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f39, [retval0+0];
+	ld.param.f32	%f40, [retval0+4];
+	ld.param.f32	%f41, [retval0+8];
+	
+	//{
+	}// Callseq End 12
+tmp15:
+	.loc	7 226 13
+	st.f32 	[%rd17+8], %f41;
+	st.f32 	[%rd17+4], %f40;
+	st.f32 	[%rd17], %f39;
+	.loc	7 227 5
+	ld.u64 	%rd38, [%SP+168];
+	add.s64 	%rd39, %rd38, 12;
+	ld.u64 	%rd40, [%SP+176];
+	ld.u64 	%rd41, [%SP+184];
+	ld.u64 	%rd42, [%SP+192];
+	mov.u64 	%rd43, %rd41;
+	st.u64 	[%SP+120], %rd43;
+	mov.u64 	%rd44, %rd42;
+	st.u64 	[%SP+128], %rd44;
+	.loc	7 227 24
+	bra.uni	tmp16;
+tmp16:
+	.loc	9 600 3
+	ld.u64 	%rd45, [%SP+120];
+	ld.f32 	%f42, [%rd45];
+	ld.u64 	%rd46, [%SP+128];
+	ld.f32 	%f43, [%rd46];
+	.loc	9 600 22
+	// Callseq Start 13
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f42;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f43;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f44, [retval0+0];
+	
+	//{
+	}// Callseq End 13
+	ld.u64 	%rd47, [%SP+120];
+	ld.f32 	%f45, [%rd47+4];
+	ld.u64 	%rd48, [%SP+128];
+	ld.f32 	%f46, [%rd48+4];
+	.loc	9 600 38
+	// Callseq Start 14
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f45;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f46;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f47, [retval0+0];
+	
+	//{
+	}// Callseq End 14
+	ld.u64 	%rd49, [%SP+120];
+	ld.f32 	%f48, [%rd49+8];
+	ld.u64 	%rd50, [%SP+128];
+	ld.f32 	%f49, [%rd50+8];
+	.loc	9 600 54
+	// Callseq Start 15
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f48;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f49;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f50, [retval0+0];
+	
+	//{
+	}// Callseq End 15
+	.loc	9 600 10
+	// Callseq Start 16
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f44;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f47;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f50;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f51, [retval0+0];
+	ld.param.f32	%f52, [retval0+4];
+	ld.param.f32	%f53, [retval0+8];
+	
+	//{
+	}// Callseq End 16
+tmp17:
+	.loc	7 227 24
+	st.f32 	[%SP+220], %f53;
+	st.f32 	[%SP+216], %f52;
+	st.f32 	[%SP+212], %f51;
+	mov.u64 	%rd51, %rd40;
+	st.u64 	[%SP+104], %rd51;
+	add.u64 	%rd52, %SP, 212;
+tmp18:
+	mov.u64 	%rd53, %rd52;
+	st.u64 	[%SP+112], %rd53;
+	.loc	7 227 13
+	bra.uni	tmp19;
+tmp19:
+	.loc	9 600 3
+	ld.u64 	%rd54, [%SP+104];
+	ld.f32 	%f54, [%rd54];
+	ld.u64 	%rd55, [%SP+112];
+	ld.f32 	%f55, [%rd55];
+	.loc	9 600 22
+	// Callseq Start 17
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f54;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f55;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f56, [retval0+0];
+	
+	//{
+	}// Callseq End 17
+	ld.u64 	%rd56, [%SP+104];
+	ld.f32 	%f57, [%rd56+4];
+	ld.u64 	%rd57, [%SP+112];
+	ld.f32 	%f58, [%rd57+4];
+	.loc	9 600 38
+	// Callseq Start 18
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f57;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f58;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f59, [retval0+0];
+	
+	//{
+	}// Callseq End 18
+	ld.u64 	%rd58, [%SP+104];
+	ld.f32 	%f60, [%rd58+8];
+	ld.u64 	%rd59, [%SP+112];
+	ld.f32 	%f61, [%rd59+8];
+	.loc	9 600 54
+	// Callseq Start 19
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f60;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f61;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f62, [retval0+0];
+	
+	//{
+	}// Callseq End 19
+	.loc	9 600 10
+	// Callseq Start 20
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f56;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f59;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f62;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f63, [retval0+0];
+	ld.param.f32	%f64, [retval0+4];
+	ld.param.f32	%f65, [retval0+8];
+	
+	//{
+	}// Callseq End 20
+tmp20:
+	.loc	7 227 13
+	st.f32 	[%rd39+8], %f65;
+	st.f32 	[%rd39+4], %f64;
+	st.f32 	[%rd38+12], %f63;
+	ld.u64 	%rd60, [%SP+168];
+	setp.ne.s64	%p11, %rd60, 0;
+	not.pred 	%p12, %p11;
+	not.pred 	%p13, %p12;
+	@%p13 bra 	BB2_2;
+	bra.uni 	BB2_1;
+
+BB2_1:
+	mov.u32 	%r3, 0;
+	mov.b32 	%r4, %r3;
+tmp21:
+
+BB2_2:
+	mov.u64 	%rd61, ray;
+	cvta.global.u64 	%rd62, %rd61;
+	add.s64 	%rd63, %rd62, 12;
+	mov.u64 	%rd64, %rd63;
+	st.u64 	[%SP+88], %rd64;
+	add.u64 	%rd65, %SP, 304;
+	mov.u64 	%rd66, %rd65;
+	st.u64 	[%SP+96], %rd66;
+	.loc	1 21 5
+	bra.uni	tmp22;
+tmp22:
+	.loc	9 728 3
+	ld.u64 	%rd67, [%SP+88];
+	ld.f32 	%f66, [%rd67];
+	ld.u64 	%rd68, [%SP+96];
+	ld.f32 	%f67, [%rd68];
+	mul.f32 	%f68, %f66, %f67;
+	ld.u64 	%rd69, [%SP+88];
+	ld.f32 	%f69, [%rd69+4];
+	ld.u64 	%rd70, [%SP+96];
+	ld.f32 	%f70, [%rd70+4];
+	mul.f32 	%f71, %f69, %f70;
+	add.f32 	%f72, %f68, %f71;
+	ld.u64 	%rd71, [%SP+88];
+	ld.f32 	%f73, [%rd71+8];
+	ld.u64 	%rd72, [%SP+96];
+	ld.f32 	%f74, [%rd72+8];
+	mul.f32 	%f75, %f73, %f74;
+	add.f32 	%f76, %f72, %f75;
+tmp23:
+	.loc	1 21 5
+	setp.neu.f32	%p14, %f76, 0f00000000;
+	not.pred 	%p15, %p14;
+	@%p15 bra 	BB2_4;
+	bra.uni 	BB2_3;
+
+BB2_3:
+tmp24:
+	add.u64 	%rd73, %SP, 268;
+	mov.u64 	%rd74, %rd73;
+	st.u64 	[%SP+72], %rd74;
+	mov.u64 	%rd75, ray;
+	cvta.global.u64 	%rd76, %rd75;
+	mov.u64 	%rd77, %rd76;
+	st.u64 	[%SP+80], %rd77;
+	.loc	1 21 47
+	bra.uni	tmp25;
+tmp25:
+	.loc	9 634 3
+	ld.u64 	%rd78, [%SP+72];
+	ld.f32 	%f78, [%rd78];
+	ld.u64 	%rd79, [%SP+80];
+	ld.f32 	%f79, [%rd79];
+	sub.f32 	%f80, %f78, %f79;
+	ld.u64 	%rd80, [%SP+72];
+	ld.f32 	%f81, [%rd80+4];
+	ld.u64 	%rd81, [%SP+80];
+	ld.f32 	%f82, [%rd81+4];
+	sub.f32 	%f83, %f81, %f82;
+	ld.u64 	%rd82, [%SP+72];
+	ld.f32 	%f84, [%rd82+8];
+	ld.u64 	%rd83, [%SP+80];
+	ld.f32 	%f85, [%rd83+8];
+	sub.f32 	%f86, %f84, %f85;
+	.loc	9 634 10
+	// Callseq Start 21
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f80;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f83;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f86;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f87, [retval0+0];
+	ld.param.f32	%f88, [retval0+4];
+	ld.param.f32	%f89, [retval0+8];
+	
+	//{
+	}// Callseq End 21
+tmp26:
+	.loc	1 21 47
+	st.f32 	[%SP+360], %f89;
+	st.f32 	[%SP+356], %f88;
+	st.f32 	[%SP+352], %f87;
+	add.u64 	%rd84, %SP, 352;
+	mov.u64 	%rd85, %rd84;
+	st.u64 	[%SP+56], %rd85;
+	add.u64 	%rd86, %SP, 304;
+	mov.u64 	%rd87, %rd86;
+	st.u64 	[%SP+64], %rd87;
+	.loc	1 21 42
+	bra.uni	tmp27;
+tmp27:
+	.loc	9 728 3
+	ld.u64 	%rd88, [%SP+56];
+	ld.f32 	%f90, [%rd88];
+	ld.u64 	%rd89, [%SP+64];
+	ld.f32 	%f91, [%rd89];
+	mul.f32 	%f92, %f90, %f91;
+	ld.u64 	%rd90, [%SP+56];
+	ld.f32 	%f93, [%rd90+4];
+	ld.u64 	%rd91, [%SP+64];
+	ld.f32 	%f94, [%rd91+4];
+	mul.f32 	%f95, %f93, %f94;
+	add.f32 	%f96, %f92, %f95;
+	ld.u64 	%rd92, [%SP+56];
+	ld.f32 	%f97, [%rd92+8];
+	ld.u64 	%rd93, [%SP+64];
+	ld.f32 	%f98, [%rd93+8];
+	mul.f32 	%f99, %f97, %f98;
+	add.f32 	%f100, %f96, %f99;
+	add.s64 	%rd94, %rd76, 12;
+	mov.u64 	%rd95, %rd94;
+	st.u64 	[%SP+40], %rd95;
+	mov.u64 	%rd96, %rd86;
+	st.u64 	[%SP+48], %rd96;
+tmp28:
+	.loc	1 21 73
+	bra.uni	tmp29;
+tmp29:
+	.loc	9 728 3
+	ld.u64 	%rd97, [%SP+40];
+	ld.f32 	%f101, [%rd97];
+	ld.u64 	%rd98, [%SP+48];
+	ld.f32 	%f102, [%rd98];
+	mul.f32 	%f103, %f101, %f102;
+	ld.u64 	%rd99, [%SP+40];
+	ld.f32 	%f104, [%rd99+4];
+	ld.u64 	%rd100, [%SP+48];
+	ld.f32 	%f105, [%rd100+4];
+	mul.f32 	%f106, %f104, %f105;
+	add.f32 	%f107, %f103, %f106;
+	ld.u64 	%rd101, [%SP+40];
+	ld.f32 	%f108, [%rd101+8];
+	ld.u64 	%rd102, [%SP+48];
+	ld.f32 	%f109, [%rd102+8];
+	mul.f32 	%f110, %f108, %f109;
+	add.f32 	%f111, %f107, %f110;
+tmp30:
+	.loc	1 21 73
+	div.rn.f32 	%f1, %f100, %f111;
+tmp31:
+	mov.f32 	%f146, %f1;
+tmp32:
+	bra.uni 	BB2_5;
+tmp33:
+
+BB2_4:
+	mov.f32 	%f77, 0fBF800000;
+	.loc	1 22 6
+tmp34:
+	mov.f32 	%f2, %f77;
+tmp35:
+	mov.f32 	%f146, %f2;
+tmp36:
+
+BB2_5:
+	.loc	1 24 10
+	mov.f32 	%f3, %f146;
+tmp37:
+	mov.f32 	%f112, %f3;
+tmp38:
+	mov.u64 	%rd103, ray;
+	add.s64 	%rd104, %rd103, 12;
+	cvta.global.u64 	%rd105, %rd104;
+	mov.u64 	%rd106, %rd105;
+	st.u64 	[%SP+32], %rd106;
+	.loc	1 24 25
+	bra.uni	tmp39;
+tmp39:
+	.loc	9 663 3
+	ld.u64 	%rd107, [%SP+32];
+	ld.f32 	%f113, [%rd107];
+	mul.f32 	%f114, %f113, %f112;
+	ld.u64 	%rd108, [%SP+32];
+	ld.f32 	%f115, [%rd108+4];
+	mul.f32 	%f116, %f115, %f112;
+	ld.u64 	%rd109, [%SP+32];
+	ld.f32 	%f117, [%rd109+8];
+	mul.f32 	%f118, %f117, %f112;
+	.loc	9 663 10
+	// Callseq Start 22
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f114;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f116;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f118;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f119, [retval0+0];
+	ld.param.f32	%f120, [retval0+4];
+	ld.param.f32	%f121, [retval0+8];
+	
+	//{
+	}// Callseq End 22
+tmp40:
+	.loc	1 24 25
+	st.f32 	[%SP+264], %f121;
+	st.f32 	[%SP+260], %f120;
+	st.f32 	[%SP+256], %f119;
+	cvta.global.u64 	%rd110, %rd103;
+	mov.u64 	%rd111, %rd110;
+	st.u64 	[%SP+16], %rd111;
+	add.u64 	%rd112, %SP, 256;
+	mov.u64 	%rd113, %rd112;
+	st.u64 	[%SP+24], %rd113;
+	.loc	1 24 12
+	bra.uni	tmp41;
+tmp41:
+	.loc	9 613 3
+	ld.u64 	%rd114, [%SP+16];
+	ld.f32 	%f122, [%rd114];
+	ld.u64 	%rd115, [%SP+24];
+	ld.f32 	%f123, [%rd115];
+	add.f32 	%f124, %f122, %f123;
+	ld.u64 	%rd116, [%SP+16];
+	ld.f32 	%f125, [%rd116+4];
+	ld.u64 	%rd117, [%SP+24];
+	ld.f32 	%f126, [%rd117+4];
+	add.f32 	%f127, %f125, %f126;
+	ld.u64 	%rd118, [%SP+16];
+	ld.f32 	%f128, [%rd118+8];
+	ld.u64 	%rd119, [%SP+24];
+	ld.f32 	%f129, [%rd119+8];
+	add.f32 	%f130, %f128, %f129;
+	.loc	9 613 10
+	// Callseq Start 23
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f124;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f127;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f130;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f131, [retval0+0];
+	ld.param.f32	%f132, [retval0+4];
+	ld.param.f32	%f133, [retval0+8];
+	
+	//{
+	}// Callseq End 23
+tmp42:
+	.loc	1 24 12
+	st.f32 	[%SP+348], %f133;
+	st.f32 	[%SP+344], %f132;
+	st.f32 	[%SP+340], %f131;
+	add.u64 	%rd120, %SP, 316;
+	mov.u64 	%rd121, %rd120;
+	st.u64 	[%SP+0], %rd121;
+	add.u64 	%rd122, %SP, 340;
+	mov.u64 	%rd123, %rd122;
+	st.u64 	[%SP+8], %rd123;
+	.loc	1 25 5
+	bra.uni	tmp43;
+tmp43:
+	.loc	7 245 5
+	ld.u64 	%rd124, [%SP+0];
+	setp.ne.s64	%p16, %rd124, 0;
+	not.pred 	%p17, %p16;
+	not.pred 	%p18, %p17;
+	@%p18 bra 	BB2_7;
+	bra.uni 	BB2_6;
+
+BB2_6:
+	mov.u32 	%r5, 0;
+	mov.b32 	%r6, %r5;
+tmp44:
+
+BB2_7:
+	ld.u64 	%rd125, [%SP+8];
+	ld.f32 	%f134, [%rd125];
+	ld.u64 	%rd126, [%SP+0];
+	ld.f32 	%f135, [%rd126];
+	setp.ge.f32	%p20, %f134, %f135;
+	mov.pred 	%p19, 0;
+	not.pred 	%p21, %p20;
+	mov.pred 	%p32, %p19;
+	@%p21 bra 	BB2_9;
+	bra.uni 	BB2_8;
+
+BB2_8:
+	ld.u64 	%rd127, [%SP+8];
+	ld.f32 	%f136, [%rd127];
+	ld.u64 	%rd128, [%SP+0];
+	ld.f32 	%f137, [%rd128+12];
+	setp.le.f32	%p1, %f136, %f137;
+	mov.pred 	%p32, %p1;
+
+BB2_9:
+	mov.pred 	%p2, %p32;
+	mov.pred 	%p22, 0;
+	not.pred 	%p23, %p2;
+	mov.pred 	%p33, %p22;
+	@%p23 bra 	BB2_11;
+	bra.uni 	BB2_10;
+
+BB2_10:
+	ld.u64 	%rd129, [%SP+8];
+	ld.f32 	%f138, [%rd129+4];
+	ld.u64 	%rd130, [%SP+0];
+	ld.f32 	%f139, [%rd130+4];
+	setp.ge.f32	%p3, %f138, %f139;
+	mov.pred 	%p33, %p3;
+
+BB2_11:
+	mov.pred 	%p4, %p33;
+	mov.pred 	%p24, 0;
+	not.pred 	%p25, %p4;
+	mov.pred 	%p34, %p24;
+	@%p25 bra 	BB2_13;
+	bra.uni 	BB2_12;
+
+BB2_12:
+	ld.u64 	%rd131, [%SP+8];
+	ld.f32 	%f140, [%rd131+4];
+	ld.u64 	%rd132, [%SP+0];
+	add.s64 	%rd133, %rd132, 12;
+	ld.f32 	%f141, [%rd133+4];
+	setp.le.f32	%p5, %f140, %f141;
+	mov.pred 	%p34, %p5;
+
+BB2_13:
+	mov.pred 	%p6, %p34;
+	mov.pred 	%p26, 0;
+	not.pred 	%p27, %p6;
+	mov.pred 	%p35, %p26;
+	@%p27 bra 	BB2_15;
+	bra.uni 	BB2_14;
+
+BB2_14:
+	ld.u64 	%rd134, [%SP+8];
+	ld.f32 	%f142, [%rd134+8];
+	ld.u64 	%rd135, [%SP+0];
+	ld.f32 	%f143, [%rd135+8];
+	setp.ge.f32	%p7, %f142, %f143;
+	mov.pred 	%p35, %p7;
+
+BB2_15:
+	mov.pred 	%p8, %p35;
+	mov.pred 	%p28, 0;
+	not.pred 	%p29, %p8;
+	mov.pred 	%p36, %p28;
+	@%p29 bra 	BB2_17;
+	bra.uni 	BB2_16;
+
+BB2_16:
+	ld.u64 	%rd136, [%SP+8];
+	ld.f32 	%f144, [%rd136+8];
+	ld.u64 	%rd137, [%SP+0];
+	add.s64 	%rd138, %rd137, 12;
+	ld.f32 	%f145, [%rd138+8];
+	setp.le.f32	%p9, %f144, %f145;
+	mov.pred 	%p36, %p9;
+
+BB2_17:
+	mov.pred 	%p10, %p36;
+	selp.u16	%rs1, 1, 0, %p10;
+	and.b16  	%rs2, %rs1, 255;
+tmp45:
+	.loc	1 25 5
+	setp.ne.s16	%p30, %rs2, 0;
+	not.pred 	%p31, %p30;
+	@%p31 bra 	BB2_19;
+	bra.uni 	BB2_18;
+
+BB2_18:
+	.loc	1 26 2
+tmp46:
+	mov.u64 	%rd139, $str;
+	cvta.global.u64 	%rd140, %rd139;
+	// Callseq Start 24
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b64 param0;
+	st.param.b64	[param0+0], %rd140;
+	call.uni 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb8rtPrintfEPKc, 
+	(
+	param0
+	);
+	
+	//{
+	}// Callseq End 24
+tmp47:
+
+BB2_19:
+	.loc	1 28 1
+	ret;
+tmp48:
+func_end2:
 }
 
 	// .globl	_Z11boundingboxiPf
@@ -146,20 +1243,9909 @@ BB0_6:
 	.param .u64 _Z11boundingboxiPf_param_1
 )
 {
-	.reg .b64 	%rd<5>;
+	.local .align 8 .b8 	__local_depot3[224];
+	.reg .b64 	%SP;
+	.reg .b64 	%SPL;
+	.reg .pred 	%p<4>;
+	.reg .f32 	%f<69>;
+	.reg .b32 	%r<5>;
+	.reg .b64 	%rd<66>;
 
 
+	.loc 1 30 1
+func_begin3:
+	.loc	1 0 0
+
+	.loc 1 30 1
+
+	mov.u64 	%rd65, __local_depot3;
+	cvta.local.u64 	%SP, %rd65;
+	ld.param.u32 	%r1, [_Z11boundingboxiPf_param_0];
 	ld.param.u64 	%rd1, [_Z11boundingboxiPf_param_1];
-	cvta.to.global.u64 	%rd2, %rd1;
-	mov.u64 	%rd3, 0;
-	st.global.u32 	[%rd2+4], %rd3;
-	st.global.u32 	[%rd2], %rd3;
-	mov.u64 	%rd4, 1065353216;
-	st.global.u32 	[%rd2+12], %rd4;
-	st.global.u32 	[%rd2+8], %rd3;
-	st.global.u32 	[%rd2+20], %rd3;
-	st.global.u32 	[%rd2+16], %rd4;
+	mov.b32 	%r2, %r1;
+	mov.f32 	%f1, 0f00000000;
+tmp49:
+func_exec_begin3:
+	.loc	1 31 14
+	// Callseq Start 25
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f1;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f1;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f1;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f2, [retval0+0];
+	ld.param.f32	%f3, [retval0+4];
+	ld.param.f32	%f4, [retval0+8];
+	
+	//{
+	}// Callseq End 25
+	st.f32 	[%SP+160], %f4;
+	st.f32 	[%SP+156], %f3;
+	st.f32 	[%SP+152], %f2;
+	mov.f32 	%f5, 0f3F800000;
+	.loc	1 32 14
+	// Callseq Start 26
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f5;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f1;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f1;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f6, [retval0+0];
+	ld.param.f32	%f7, [retval0+4];
+	ld.param.f32	%f8, [retval0+8];
+	
+	//{
+	}// Callseq End 26
+	st.f32 	[%SP+172], %f8;
+	st.f32 	[%SP+168], %f7;
+	st.f32 	[%SP+164], %f6;
+	.loc	1 33 14
+	// Callseq Start 27
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f1;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f5;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f1;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f9, [retval0+0];
+	ld.param.f32	%f10, [retval0+4];
+	ld.param.f32	%f11, [retval0+8];
+	
+	//{
+	}// Callseq End 27
+	st.f32 	[%SP+184], %f11;
+	st.f32 	[%SP+180], %f10;
+	st.f32 	[%SP+176], %f9;
+	.loc	1 34 18
+	// Callseq Start 28
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f1;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f1;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f5;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f12, [retval0+0];
+	ld.param.f32	%f13, [retval0+4];
+	ld.param.f32	%f14, [retval0+8];
+	
+	//{
+	}// Callseq End 28
+	st.f32 	[%SP+196], %f14;
+	st.f32 	[%SP+192], %f13;
+	st.f32 	[%SP+188], %f12;
+	add.u64 	%rd2, %SP, 200;
+	mov.u64 	%rd3, %rd2;
+	st.u64 	[%SP+120], %rd3;
+	add.u64 	%rd4, %SP, 152;
+	mov.u64 	%rd5, %rd4;
+	st.u64 	[%SP+128], %rd5;
+	add.u64 	%rd6, %SP, 164;
+	mov.u64 	%rd7, %rd6;
+	st.u64 	[%SP+136], %rd7;
+	add.u64 	%rd8, %SP, 176;
+	mov.u64 	%rd9, %rd8;
+	st.u64 	[%SP+144], %rd9;
+	.loc	1 35 7
+	bra.uni	tmp50;
+tmp50:
+	.loc	7 193 5
+	ld.u64 	%rd10, [%SP+120];
+	ld.u64 	%rd11, [%SP+128];
+	ld.u64 	%rd12, [%SP+136];
+	ld.u64 	%rd13, [%SP+144];
+	mov.u64 	%rd14, %rd10;
+	st.u64 	[%SP+64], %rd14;
+	mov.u64 	%rd15, %rd11;
+	st.u64 	[%SP+72], %rd15;
+	mov.u64 	%rd16, %rd12;
+	st.u64 	[%SP+80], %rd16;
+	mov.u64 	%rd17, %rd13;
+	st.u64 	[%SP+88], %rd17;
+	.loc	7 193 5
+	bra.uni	tmp51;
+tmp51:
+	.loc	7 226 5
+	ld.u64 	%rd18, [%SP+64];
+	ld.u64 	%rd19, [%SP+72];
+	ld.u64 	%rd20, [%SP+80];
+	ld.u64 	%rd21, [%SP+88];
+	mov.u64 	%rd22, %rd20;
+	st.u64 	[%SP+48], %rd22;
+	mov.u64 	%rd23, %rd21;
+	st.u64 	[%SP+56], %rd23;
+	.loc	7 226 24
+	bra.uni	tmp52;
+tmp52:
+	.loc	9 587 3
+	ld.u64 	%rd24, [%SP+48];
+	ld.f32 	%f15, [%rd24];
+	ld.u64 	%rd25, [%SP+56];
+	ld.f32 	%f16, [%rd25];
+	.loc	9 587 22
+	// Callseq Start 29
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f15;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f16;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f17, [retval0+0];
+	
+	//{
+	}// Callseq End 29
+	ld.u64 	%rd26, [%SP+48];
+	ld.f32 	%f18, [%rd26+4];
+	ld.u64 	%rd27, [%SP+56];
+	ld.f32 	%f19, [%rd27+4];
+	.loc	9 587 38
+	// Callseq Start 30
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f18;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f19;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f20, [retval0+0];
+	
+	//{
+	}// Callseq End 30
+	ld.u64 	%rd28, [%SP+48];
+	ld.f32 	%f21, [%rd28+8];
+	ld.u64 	%rd29, [%SP+56];
+	ld.f32 	%f22, [%rd29+8];
+	.loc	9 587 54
+	// Callseq Start 31
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f21;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f22;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f23, [retval0+0];
+	
+	//{
+	}// Callseq End 31
+	.loc	9 587 10
+	// Callseq Start 32
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f17;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f20;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f23;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f24, [retval0+0];
+	ld.param.f32	%f25, [retval0+4];
+	ld.param.f32	%f26, [retval0+8];
+	
+	//{
+	}// Callseq End 32
+tmp53:
+	.loc	7 226 24
+	st.f32 	[%SP+104], %f26;
+	st.f32 	[%SP+100], %f25;
+	st.f32 	[%SP+96], %f24;
+	mov.u64 	%rd30, %rd19;
+	st.u64 	[%SP+32], %rd30;
+	add.u64 	%rd31, %SP, 96;
+tmp54:
+	mov.u64 	%rd32, %rd31;
+	st.u64 	[%SP+40], %rd32;
+	.loc	7 226 13
+	bra.uni	tmp55;
+tmp55:
+	.loc	9 587 3
+	ld.u64 	%rd33, [%SP+32];
+	ld.f32 	%f27, [%rd33];
+	ld.u64 	%rd34, [%SP+40];
+	ld.f32 	%f28, [%rd34];
+	.loc	9 587 22
+	// Callseq Start 33
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f27;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f28;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f29, [retval0+0];
+	
+	//{
+	}// Callseq End 33
+	ld.u64 	%rd35, [%SP+32];
+	ld.f32 	%f30, [%rd35+4];
+	ld.u64 	%rd36, [%SP+40];
+	ld.f32 	%f31, [%rd36+4];
+	.loc	9 587 38
+	// Callseq Start 34
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f30;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f31;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f32, [retval0+0];
+	
+	//{
+	}// Callseq End 34
+	ld.u64 	%rd37, [%SP+32];
+	ld.f32 	%f33, [%rd37+8];
+	ld.u64 	%rd38, [%SP+40];
+	ld.f32 	%f34, [%rd38+8];
+	.loc	9 587 54
+	// Callseq Start 35
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f33;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f34;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f35, [retval0+0];
+	
+	//{
+	}// Callseq End 35
+	.loc	9 587 10
+	// Callseq Start 36
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f29;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f32;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f35;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f36, [retval0+0];
+	ld.param.f32	%f37, [retval0+4];
+	ld.param.f32	%f38, [retval0+8];
+	
+	//{
+	}// Callseq End 36
+tmp56:
+	.loc	7 226 13
+	st.f32 	[%rd18+8], %f38;
+	st.f32 	[%rd18+4], %f37;
+	st.f32 	[%rd18], %f36;
+	.loc	7 227 5
+	ld.u64 	%rd39, [%SP+64];
+	add.s64 	%rd40, %rd39, 12;
+	ld.u64 	%rd41, [%SP+72];
+	ld.u64 	%rd42, [%SP+80];
+	ld.u64 	%rd43, [%SP+88];
+	mov.u64 	%rd44, %rd42;
+	st.u64 	[%SP+16], %rd44;
+	mov.u64 	%rd45, %rd43;
+	st.u64 	[%SP+24], %rd45;
+	.loc	7 227 24
+	bra.uni	tmp57;
+tmp57:
+	.loc	9 600 3
+	ld.u64 	%rd46, [%SP+16];
+	ld.f32 	%f39, [%rd46];
+	ld.u64 	%rd47, [%SP+24];
+	ld.f32 	%f40, [%rd47];
+	.loc	9 600 22
+	// Callseq Start 37
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f39;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f40;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f41, [retval0+0];
+	
+	//{
+	}// Callseq End 37
+	ld.u64 	%rd48, [%SP+16];
+	ld.f32 	%f42, [%rd48+4];
+	ld.u64 	%rd49, [%SP+24];
+	ld.f32 	%f43, [%rd49+4];
+	.loc	9 600 38
+	// Callseq Start 38
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f42;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f43;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f44, [retval0+0];
+	
+	//{
+	}// Callseq End 38
+	ld.u64 	%rd50, [%SP+16];
+	ld.f32 	%f45, [%rd50+8];
+	ld.u64 	%rd51, [%SP+24];
+	ld.f32 	%f46, [%rd51+8];
+	.loc	9 600 54
+	// Callseq Start 39
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f45;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f46;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f47, [retval0+0];
+	
+	//{
+	}// Callseq End 39
+	.loc	9 600 10
+	// Callseq Start 40
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f41;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f44;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f47;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f48, [retval0+0];
+	ld.param.f32	%f49, [retval0+4];
+	ld.param.f32	%f50, [retval0+8];
+	
+	//{
+	}// Callseq End 40
+tmp58:
+	.loc	7 227 24
+	st.f32 	[%SP+116], %f50;
+	st.f32 	[%SP+112], %f49;
+	st.f32 	[%SP+108], %f48;
+	mov.u64 	%rd52, %rd41;
+	st.u64 	[%SP+0], %rd52;
+	add.u64 	%rd53, %SP, 108;
+tmp59:
+	mov.u64 	%rd54, %rd53;
+	st.u64 	[%SP+8], %rd54;
+	.loc	7 227 13
+	bra.uni	tmp60;
+tmp60:
+	.loc	9 600 3
+	ld.u64 	%rd55, [%SP+0];
+	ld.f32 	%f51, [%rd55];
+	ld.u64 	%rd56, [%SP+8];
+	ld.f32 	%f52, [%rd56];
+	.loc	9 600 22
+	// Callseq Start 41
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f51;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f52;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f53, [retval0+0];
+	
+	//{
+	}// Callseq End 41
+	ld.u64 	%rd57, [%SP+0];
+	ld.f32 	%f54, [%rd57+4];
+	ld.u64 	%rd58, [%SP+8];
+	ld.f32 	%f55, [%rd58+4];
+	.loc	9 600 38
+	// Callseq Start 42
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f54;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f55;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f56, [retval0+0];
+	
+	//{
+	}// Callseq End 42
+	ld.u64 	%rd59, [%SP+0];
+	ld.f32 	%f57, [%rd59+8];
+	ld.u64 	%rd60, [%SP+8];
+	ld.f32 	%f58, [%rd60+8];
+	.loc	9 600 54
+	// Callseq Start 43
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f57;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f58;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f59, [retval0+0];
+	
+	//{
+	}// Callseq End 43
+	.loc	9 600 10
+	// Callseq Start 44
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f53;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f56;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f59;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f60, [retval0+0];
+	ld.param.f32	%f61, [retval0+4];
+	ld.param.f32	%f62, [retval0+8];
+	
+	//{
+	}// Callseq End 44
+tmp61:
+	.loc	7 227 13
+	st.f32 	[%rd40+8], %f62;
+	st.f32 	[%rd40+4], %f61;
+	st.f32 	[%rd39+12], %f60;
+	ld.u64 	%rd61, [%SP+64];
+	setp.ne.s64	%p1, %rd61, 0;
+	not.pred 	%p2, %p1;
+	not.pred 	%p3, %p2;
+	@%p3 bra 	BB3_2;
+	bra.uni 	BB3_1;
+
+BB3_1:
+	mov.u32 	%r3, 0;
+	mov.b32 	%r4, %r3;
+tmp62:
+
+BB3_2:
+	.loc	1 36 2
+	ld.f32 	%f63, [%SP+200];
+	st.f32 	[%rd1], %f63;
+	.loc	1 37 2
+	ld.f32 	%f64, [%SP+204];
+	st.f32 	[%rd1+4], %f64;
+	.loc	1 38 2
+	ld.f32 	%f65, [%SP+208];
+	st.f32 	[%rd1+8], %f65;
+	.loc	1 39 2
+	ld.f32 	%f66, [%SP+212];
+	st.f32 	[%rd1+12], %f66;
+	add.u64 	%rd62, %SP, 200;
+	.loc	1 40 2
+	add.s64 	%rd63, %rd62, 12;
+	ld.f32 	%f67, [%rd63+4];
+	st.f32 	[%rd1+16], %f67;
+	.loc	1 41 2
+	add.s64 	%rd64, %rd62, 12;
+	ld.f32 	%f68, [%rd64+8];
+	st.f32 	[%rd1+20], %f68;
+	.loc	1 42 1
+	ret;
+tmp63:
+func_end3:
+}
+
+	// .globl	_ZN5optix3RayC1Ev
+.visible .func _ZN5optix3RayC1Ev(
+	.param .b64 _ZN5optix3RayC1Ev_param_0
+)
+{
+	.local .align 8 .b8 	__local_depot4[8];
+	.reg .b64 	%SP;
+	.reg .b64 	%SPL;
+	.reg .b64 	%rd<4>;
+
+
+	.loc 3 125 1
+func_begin4:
+	.loc	3 0 0
+
+	.loc 3 125 1
+
+	mov.u64 	%rd3, __local_depot4;
+	cvta.local.u64 	%SP, %rd3;
+	ld.param.u64 	%rd1, [_ZN5optix3RayC1Ev_param_0];
+	mov.u64 	%rd2, %rd1;
+	st.u64 	[%SP+0], %rd2;
+func_exec_begin4:
+	.loc	3 125 9
+tmp64:
+	ret;
+tmp65:
+func_end4:
+}
+
+	// .globl	_ZN5optix3RayC2Ev
+.visible .func _ZN5optix3RayC2Ev(
+	.param .b64 _ZN5optix3RayC2Ev_param_0
+)
+{
+	.reg .b64 	%rd<2>;
+
+
+	.loc 3 125 1
+func_begin5:
+	.loc	3 0 0
+
+	.loc 3 125 1
+
+	ld.param.u64 	%rd1, [_ZN5optix3RayC2Ev_param_0];
+func_exec_begin5:
+	.loc	3 125 9
+tmp66:
+	// Callseq Start 45
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b64 param0;
+	st.param.b64	[param0+0], %rd1;
+	call.uni 
+	_ZN5optix3RayC1Ev, 
+	(
+	param0
+	);
+	
+	//{
+	}// Callseq End 45
+	ret;
+tmp67:
+func_end5:
+}
+
+	// .globl	_ZN5optix4AabbC2ERK6float3S3_S3_
+.visible .func _ZN5optix4AabbC2ERK6float3S3_S3_(
+	.param .b64 _ZN5optix4AabbC2ERK6float3S3_S3__param_0,
+	.param .b64 _ZN5optix4AabbC2ERK6float3S3_S3__param_1,
+	.param .b64 _ZN5optix4AabbC2ERK6float3S3_S3__param_2,
+	.param .b64 _ZN5optix4AabbC2ERK6float3S3_S3__param_3
+)
+{
+	.local .align 8 .b8 	__local_depot6[152];
+	.reg .b64 	%SP;
+	.reg .b64 	%SPL;
+	.reg .pred 	%p<4>;
+	.reg .f32 	%f<49>;
+	.reg .b32 	%r<3>;
+	.reg .b64 	%rd<62>;
+
+
+	.loc 7 194 1
+func_begin6:
+	.loc	7 0 0
+
+	.loc 7 194 1
+
+	mov.u64 	%rd61, __local_depot6;
+	cvta.local.u64 	%SP, %rd61;
+	ld.param.u64 	%rd1, [_ZN5optix4AabbC2ERK6float3S3_S3__param_0];
+	ld.param.u64 	%rd2, [_ZN5optix4AabbC2ERK6float3S3_S3__param_1];
+	ld.param.u64 	%rd3, [_ZN5optix4AabbC2ERK6float3S3_S3__param_2];
+	ld.param.u64 	%rd4, [_ZN5optix4AabbC2ERK6float3S3_S3__param_3];
+	mov.u64 	%rd5, %rd1;
+	st.u64 	[%SP+120], %rd5;
+	mov.u64 	%rd6, %rd2;
+	st.u64 	[%SP+128], %rd6;
+	mov.u64 	%rd7, %rd3;
+	st.u64 	[%SP+136], %rd7;
+	mov.u64 	%rd8, %rd4;
+	st.u64 	[%SP+144], %rd8;
+func_exec_begin6:
+	.loc	7 194 3
+	bra.uni	tmp68;
+tmp68:
+	.loc	7 193 5
+	ld.u64 	%rd9, [%SP+120];
+	ld.u64 	%rd10, [%SP+128];
+	ld.u64 	%rd11, [%SP+136];
+	ld.u64 	%rd12, [%SP+144];
+	mov.u64 	%rd13, %rd9;
+	st.u64 	[%SP+64], %rd13;
+	mov.u64 	%rd14, %rd10;
+	st.u64 	[%SP+72], %rd14;
+	mov.u64 	%rd15, %rd11;
+	st.u64 	[%SP+80], %rd15;
+	mov.u64 	%rd16, %rd12;
+	st.u64 	[%SP+88], %rd16;
+	.loc	7 193 5
+	bra.uni	tmp69;
+tmp69:
+	.loc	7 226 5
+	ld.u64 	%rd17, [%SP+64];
+	ld.u64 	%rd18, [%SP+72];
+	ld.u64 	%rd19, [%SP+80];
+	ld.u64 	%rd20, [%SP+88];
+	mov.u64 	%rd21, %rd19;
+	st.u64 	[%SP+48], %rd21;
+	mov.u64 	%rd22, %rd20;
+	st.u64 	[%SP+56], %rd22;
+	.loc	7 226 24
+	bra.uni	tmp70;
+tmp70:
+	.loc	9 587 3
+	ld.u64 	%rd23, [%SP+48];
+	ld.f32 	%f1, [%rd23];
+	ld.u64 	%rd24, [%SP+56];
+	ld.f32 	%f2, [%rd24];
+	.loc	9 587 22
+	// Callseq Start 46
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f1;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f2;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f3, [retval0+0];
+	
+	//{
+	}// Callseq End 46
+	ld.u64 	%rd25, [%SP+48];
+	ld.f32 	%f4, [%rd25+4];
+	ld.u64 	%rd26, [%SP+56];
+	ld.f32 	%f5, [%rd26+4];
+	.loc	9 587 38
+	// Callseq Start 47
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f4;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f5;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f6, [retval0+0];
+	
+	//{
+	}// Callseq End 47
+	ld.u64 	%rd27, [%SP+48];
+	ld.f32 	%f7, [%rd27+8];
+	ld.u64 	%rd28, [%SP+56];
+	ld.f32 	%f8, [%rd28+8];
+	.loc	9 587 54
+	// Callseq Start 48
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f7;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f8;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f9, [retval0+0];
+	
+	//{
+	}// Callseq End 48
+	.loc	9 587 10
+	// Callseq Start 49
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f3;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f6;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f9;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f10, [retval0+0];
+	ld.param.f32	%f11, [retval0+4];
+	ld.param.f32	%f12, [retval0+8];
+	
+	//{
+	}// Callseq End 49
+tmp71:
+	.loc	7 226 24
+	st.f32 	[%SP+104], %f12;
+	st.f32 	[%SP+100], %f11;
+	st.f32 	[%SP+96], %f10;
+	mov.u64 	%rd29, %rd18;
+	st.u64 	[%SP+32], %rd29;
+	add.u64 	%rd30, %SP, 96;
+tmp72:
+	mov.u64 	%rd31, %rd30;
+	st.u64 	[%SP+40], %rd31;
+	.loc	7 226 13
+	bra.uni	tmp73;
+tmp73:
+	.loc	9 587 3
+	ld.u64 	%rd32, [%SP+32];
+	ld.f32 	%f13, [%rd32];
+	ld.u64 	%rd33, [%SP+40];
+	ld.f32 	%f14, [%rd33];
+	.loc	9 587 22
+	// Callseq Start 50
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f13;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f14;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f15, [retval0+0];
+	
+	//{
+	}// Callseq End 50
+	ld.u64 	%rd34, [%SP+32];
+	ld.f32 	%f16, [%rd34+4];
+	ld.u64 	%rd35, [%SP+40];
+	ld.f32 	%f17, [%rd35+4];
+	.loc	9 587 38
+	// Callseq Start 51
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f16;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f17;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f18, [retval0+0];
+	
+	//{
+	}// Callseq End 51
+	ld.u64 	%rd36, [%SP+32];
+	ld.f32 	%f19, [%rd36+8];
+	ld.u64 	%rd37, [%SP+40];
+	ld.f32 	%f20, [%rd37+8];
+	.loc	9 587 54
+	// Callseq Start 52
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f19;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f20;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fminf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f21, [retval0+0];
+	
+	//{
+	}// Callseq End 52
+	.loc	9 587 10
+	// Callseq Start 53
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f15;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f18;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f21;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f22, [retval0+0];
+	ld.param.f32	%f23, [retval0+4];
+	ld.param.f32	%f24, [retval0+8];
+	
+	//{
+	}// Callseq End 53
+tmp74:
+	.loc	7 226 13
+	st.f32 	[%rd17+8], %f24;
+	st.f32 	[%rd17+4], %f23;
+	st.f32 	[%rd17], %f22;
+	.loc	7 227 5
+	ld.u64 	%rd38, [%SP+64];
+	add.s64 	%rd39, %rd38, 12;
+	ld.u64 	%rd40, [%SP+72];
+	ld.u64 	%rd41, [%SP+80];
+	ld.u64 	%rd42, [%SP+88];
+	mov.u64 	%rd43, %rd41;
+	st.u64 	[%SP+16], %rd43;
+	mov.u64 	%rd44, %rd42;
+	st.u64 	[%SP+24], %rd44;
+	.loc	7 227 24
+	bra.uni	tmp75;
+tmp75:
+	.loc	9 600 3
+	ld.u64 	%rd45, [%SP+16];
+	ld.f32 	%f25, [%rd45];
+	ld.u64 	%rd46, [%SP+24];
+	ld.f32 	%f26, [%rd46];
+	.loc	9 600 22
+	// Callseq Start 54
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f25;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f26;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f27, [retval0+0];
+	
+	//{
+	}// Callseq End 54
+	ld.u64 	%rd47, [%SP+16];
+	ld.f32 	%f28, [%rd47+4];
+	ld.u64 	%rd48, [%SP+24];
+	ld.f32 	%f29, [%rd48+4];
+	.loc	9 600 38
+	// Callseq Start 55
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f28;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f29;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f30, [retval0+0];
+	
+	//{
+	}// Callseq End 55
+	ld.u64 	%rd49, [%SP+16];
+	ld.f32 	%f31, [%rd49+8];
+	ld.u64 	%rd50, [%SP+24];
+	ld.f32 	%f32, [%rd50+8];
+	.loc	9 600 54
+	// Callseq Start 56
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f31;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f32;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f33, [retval0+0];
+	
+	//{
+	}// Callseq End 56
+	.loc	9 600 10
+	// Callseq Start 57
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f27;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f30;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f33;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f34, [retval0+0];
+	ld.param.f32	%f35, [retval0+4];
+	ld.param.f32	%f36, [retval0+8];
+	
+	//{
+	}// Callseq End 57
+tmp76:
+	.loc	7 227 24
+	st.f32 	[%SP+116], %f36;
+	st.f32 	[%SP+112], %f35;
+	st.f32 	[%SP+108], %f34;
+	mov.u64 	%rd51, %rd40;
+	st.u64 	[%SP+0], %rd51;
+	add.u64 	%rd52, %SP, 108;
+tmp77:
+	mov.u64 	%rd53, %rd52;
+	st.u64 	[%SP+8], %rd53;
+	.loc	7 227 13
+	bra.uni	tmp78;
+tmp78:
+	.loc	9 600 3
+	ld.u64 	%rd54, [%SP+0];
+	ld.f32 	%f37, [%rd54];
+	ld.u64 	%rd55, [%SP+8];
+	ld.f32 	%f38, [%rd55];
+	.loc	9 600 22
+	// Callseq Start 58
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f37;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f38;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f39, [retval0+0];
+	
+	//{
+	}// Callseq End 58
+	ld.u64 	%rd56, [%SP+0];
+	ld.f32 	%f40, [%rd56+4];
+	ld.u64 	%rd57, [%SP+8];
+	ld.f32 	%f41, [%rd57+4];
+	.loc	9 600 38
+	// Callseq Start 59
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f40;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f41;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f42, [retval0+0];
+	
+	//{
+	}// Callseq End 59
+	ld.u64 	%rd58, [%SP+0];
+	ld.f32 	%f43, [%rd58+8];
+	ld.u64 	%rd59, [%SP+8];
+	ld.f32 	%f44, [%rd59+8];
+	.loc	9 600 54
+	// Callseq Start 60
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f43;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f44;
+	.param .b32 retval0;
+	call.uni (retval0), 
+	fmaxf, 
+	(
+	param0, 
+	param1
+	);
+	ld.param.f32	%f45, [retval0+0];
+	
+	//{
+	}// Callseq End 60
+	.loc	9 600 10
+	// Callseq Start 61
+	{
+	.reg .b32 temp_param_reg;
+	// <end>}
+	.param .b32 param0;
+	st.param.f32	[param0+0], %f39;
+	.param .b32 param1;
+	st.param.f32	[param1+0], %f42;
+	.param .b32 param2;
+	st.param.f32	[param2+0], %f45;
+	.param .align 4 .b8 retval0[12];
+	call.uni (retval0), 
+	_ZN65_INTERNAL_43_tmpxft_00004348_00000000_7_geometry_cpp1_ii_9e7416fb11make_float3Efff, 
+	(
+	param0, 
+	param1, 
+	param2
+	);
+	ld.param.f32	%f46, [retval0+0];
+	ld.param.f32	%f47, [retval0+4];
+	ld.param.f32	%f48, [retval0+8];
+	
+	//{
+	}// Callseq End 61
+tmp79:
+	.loc	7 227 13
+	st.f32 	[%rd39+8], %f48;
+	st.f32 	[%rd39+4], %f47;
+	st.f32 	[%rd38+12], %f46;
+	ld.u64 	%rd60, [%SP+64];
+	setp.ne.s64	%p1, %rd60, 0;
+	not.pred 	%p2, %p1;
+	not.pred 	%p3, %p2;
+	@%p3 bra 	BB6_2;
+	bra.uni 	BB6_1;
+
+BB6_1:
+	mov.u32 	%r1, 0;
+	mov.b32 	%r2, %r1;
+tmp80:
+
+BB6_2:
+	.loc	7 194 3
+	ret;
+tmp81:
+func_end6:
+}
+
+.func  (.param .b32 func_retval0) fminf(
+	.param .b32 fminf_param_0,
+	.param .b32 fminf_param_1
+)
+{
+	.reg .f32 	%f<4>;
+
+
+	ld.param.f32 	%f1, [fminf_param_0];
+	ld.param.f32 	%f2, [fminf_param_1];
+	min.f32 	%f3, %f1, %f2;
+	st.param.f32	[func_retval0+0], %f3;
 	ret;
 }
 
+.func  (.param .b32 func_retval0) fmaxf(
+	.param .b32 fmaxf_param_0,
+	.param .b32 fmaxf_param_1
+)
+{
+	.reg .f32 	%f<4>;
 
+
+	ld.param.f32 	%f1, [fmaxf_param_0];
+	ld.param.f32 	%f2, [fmaxf_param_1];
+	max.f32 	%f3, %f1, %f2;
+	st.param.f32	[func_retval0+0], %f3;
+	ret;
+}
+
+	.file	1 "C:/Users/marij/OneDrive/Studie TI/Honours/DaisyRiot/visual studio/geometry.cu", 1522765037, 1143
+	.file	2 "c:\\program files\\nvidia gpu computing toolkit\\cuda\\v9.0\\include\\vector_types.h", 1504359958, 12864
+	.file	3 "c:\\programdata\\nvidia corporation\\optix sdk 4.1.1\\include\\internal/optix_datatypes.h", 1501161294, 5256
+	.file	4 "c:\\programdata\\nvidia corporation\\optix sdk 4.1.1\\include\\internal\\optix_defines.h", 1501161294, 3111
+	.file	5 "c:\\programdata\\nvidia corporation\\optix sdk 4.1.1\\include\\optix_device.h", 1501161294, 116729
+	.file	6 "c:\\program files\\nvidia gpu computing toolkit\\cuda\\v9.0\\include\\vector_functions.hpp", 1504359958, 10427
+	.file	7 "c:\\programdata\\nvidia corporation\\optix sdk 4.1.1\\include\\optixu/optixu_aabb_namespace.h", 1501161294, 12864
+	.file	8 "c:\\programdata\\nvidia corporation\\optix sdk 4.1.1\\include\\internal/optix_internal.h", 1501161294, 15992
+	.file	9 "c:\\programdata\\nvidia corporation\\optix sdk 4.1.1\\include\\optixu/optixu_math_namespace.h", 1501161294, 65597
+
+.section .debug_info {
+ .b32 9422
+ .b8 2
+ .b8 0
+ .b32 .debug_abbrev
+ .b8 8
+ .b8 1
+
+ .b8 108
+ .b8 103
+ .b8 101
+ .b8 110
+ .b8 102
+ .b8 101
+ .b8 58
+ .b8 32
+ .b8 69
+ .b8 68
+ .b8 71
+ .b8 32
+ .b8 52
+ .b8 46
+ .b8 49
+ .b8 50
+
+ .b8 0
+ .b8 4
+ .b8 67
+ .b8 58
+ .b8 47
+ .b8 85
+ .b8 115
+ .b8 101
+ .b8 114
+ .b8 115
+ .b8 47
+ .b8 109
+ .b8 97
+ .b8 114
+ .b8 105
+ .b8 106
+ .b8 47
+ .b8 79
+ .b8 110
+ .b8 101
+ .b8 68
+ .b8 114
+ .b8 105
+ .b8 118
+ .b8 101
+ .b8 47
+ .b8 83
+ .b8 116
+ .b8 117
+ .b8 100
+ .b8 105
+ .b8 101
+ .b8 32
+ .b8 84
+ .b8 73
+ .b8 47
+ .b8 72
+ .b8 111
+ .b8 110
+ .b8 111
+ .b8 117
+ .b8 114
+ .b8 115
+ .b8 47
+ .b8 68
+ .b8 97
+ .b8 105
+ .b8 115
+ .b8 121
+ .b8 82
+ .b8 105
+ .b8 111
+ .b8 116
+ .b8 47
+ .b8 118
+ .b8 105
+ .b8 115
+ .b8 117
+ .b8 97
+ .b8 108
+ .b8 32
+ .b8 115
+ .b8 116
+ .b8 117
+ .b8 100
+ .b8 105
+ .b8 111
+ .b8 47
+ .b8 103
+ .b8 101
+ .b8 111
+ .b8 109
+ .b8 101
+ .b8 116
+ .b8 114
+ .b8 121
+ .b8 46
+ .b8 99
+ .b8 117
+
+ .b8 0
+ .b64 0
+ .b32 .debug_line
+ .b8 67
+ .b8 58
+ .b8 92
+ .b8 85
+ .b8 115
+ .b8 101
+ .b8 114
+ .b8 115
+ .b8 92
+ .b8 109
+ .b8 97
+ .b8 114
+ .b8 105
+ .b8 106
+ .b8 92
+ .b8 79
+ .b8 110
+ .b8 101
+ .b8 68
+ .b8 114
+ .b8 105
+ .b8 118
+ .b8 101
+ .b8 92
+ .b8 83
+ .b8 116
+ .b8 117
+ .b8 100
+ .b8 105
+ .b8 101
+ .b8 32
+ .b8 84
+ .b8 73
+ .b8 92
+ .b8 72
+ .b8 111
+ .b8 110
+ .b8 111
+ .b8 117
+ .b8 114
+ .b8 115
+ .b8 92
+ .b8 68
+ .b8 97
+ .b8 105
+ .b8 115
+ .b8 121
+ .b8 82
+ .b8 105
+ .b8 111
+ .b8 116
+ .b8 92
+ .b8 118
+ .b8 105
+ .b8 115
+ .b8 117
+ .b8 97
+ .b8 108
+ .b8 32
+ .b8 115
+ .b8 116
+ .b8 117
+ .b8 100
+ .b8 105
+ .b8 111
+
+ .b8 0
+ .b8 2
+
+ .b8 95
+ .b8 90
+ .b8 84
+ .b8 86
+ .b8 83
+ .b8 116
+ .b8 49
+ .b8 52
+ .b8 101
+ .b8 114
+ .b8 114
+ .b8 111
+ .b8 114
+ .b8 95
+ .b8 99
+ .b8 97
+ .b8 116
+ .b8 101
+ .b8 103
+ .b8 111
+ .b8 114
+ .b8 121
+
+ .b8 0
+ .b32 215
+ .b8 5
+ .b8 3
+
+ .b32 227
+ .b8 4
+
+ .b32 248
+ .b8 8
+
+ .b8 0
+ .b8 5
+
+ .b32 232
+ .b8 6
+
+ .b8 108
+ .b8 111
+ .b8 110
+ .b8 103
+ .b8 32
+ .b8 108
+ .b8 111
+ .b8 110
+ .b8 103
+
+ .b8 0
+ .b8 5
+ .b32 8
+ .b8 7
+
+ .b8 105
+ .b8 110
+ .b8 116
+
+ .b8 0
+ .b32 4
+ .b8 5
+ .b8 2
+
+ .b8 95
+ .b8 90
+ .b8 84
+ .b8 86
+ .b8 83
+ .b8 116
+ .b8 50
+ .b8 51
+ .b8 95
+ .b8 71
+ .b8 101
+ .b8 110
+ .b8 101
+ .b8 114
+ .b8 105
+ .b8 99
+ .b8 95
+ .b8 101
+ .b8 114
+ .b8 114
+ .b8 111
+ .b8 114
+ .b8 95
+ .b8 99
+ .b8 97
+ .b8 116
+ .b8 101
+ .b8 103
+ .b8 111
+ .b8 114
+ .b8 121
+
+ .b8 0
+ .b32 215
+ .b8 5
+ .b8 2
+
+ .b8 95
+ .b8 90
+ .b8 84
+ .b8 86
+ .b8 83
+ .b8 116
+ .b8 50
+ .b8 52
+ .b8 95
+ .b8 73
+ .b8 111
+ .b8 115
+ .b8 116
+ .b8 114
+ .b8 101
+ .b8 97
+ .b8 109
+ .b8 95
+ .b8 101
+ .b8 114
+ .b8 114
+ .b8 111
+ .b8 114
+ .b8 95
+ .b8 99
+ .b8 97
+ .b8 116
+ .b8 101
+ .b8 103
+ .b8 111
+ .b8 114
+ .b8 121
+
+ .b8 0
+ .b32 215
+ .b8 5
+ .b8 2
+
+ .b8 95
+ .b8 90
+ .b8 84
+ .b8 86
+ .b8 83
+ .b8 116
+ .b8 50
+ .b8 50
+ .b8 95
+ .b8 83
+ .b8 121
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 109
+ .b8 95
+ .b8 101
+ .b8 114
+ .b8 114
+ .b8 111
+ .b8 114
+ .b8 95
+ .b8 99
+ .b8 97
+ .b8 116
+ .b8 101
+ .b8 103
+ .b8 111
+ .b8 114
+ .b8 121
+
+ .b8 0
+ .b32 215
+ .b8 5
+ .b8 8
+
+ .b8 114
+ .b8 97
+ .b8 121
+
+ .b8 0
+ .b32 404
+ .b32 1
+ .b32 10
+ .b8 9
+ .b8 3
+ .b64 ray
+ .b8 114
+ .b8 97
+ .b8 121
+
+ .b8 0
+ .b8 5
+ .b8 9
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 51
+ .b8 82
+ .b8 97
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b32 36
+ .b32 3
+ .b32 120
+ .b8 10
+
+ .b8 111
+ .b8 114
+ .b8 105
+ .b8 103
+ .b8 105
+ .b8 110
+
+ .b8 0
+ .b32 544
+ .b32 3
+ .b32 139
+ .b8 0
+
+ .b8 1
+ .b8 10
+
+ .b8 100
+ .b8 105
+ .b8 114
+ .b8 101
+ .b8 99
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+
+ .b8 0
+ .b32 544
+ .b32 3
+ .b32 141
+ .b8 12
+
+ .b8 1
+ .b8 10
+
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 95
+ .b8 116
+ .b8 121
+ .b8 112
+ .b8 101
+
+ .b8 0
+ .b32 628
+ .b32 3
+ .b32 143
+ .b8 24
+
+ .b8 1
+ .b8 10
+
+ .b8 116
+ .b8 109
+ .b8 105
+ .b8 110
+
+ .b8 0
+ .b32 616
+ .b32 3
+ .b32 145
+ .b8 28
+
+ .b8 1
+ .b8 10
+
+ .b8 116
+ .b8 109
+ .b8 97
+ .b8 120
+
+ .b8 0
+ .b32 616
+ .b32 3
+ .b32 147
+ .b8 32
+
+ .b8 1
+ .b8 0
+ .b8 9
+
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+
+ .b8 0
+ .b32 12
+ .b32 2
+ .b32 274
+ .b8 10
+
+ .b8 120
+
+ .b8 0
+ .b32 616
+ .b32 2
+ .b32 276
+ .b8 0
+
+ .b8 1
+ .b8 10
+
+ .b8 121
+
+ .b8 0
+ .b32 616
+ .b32 2
+ .b32 276
+ .b8 4
+
+ .b8 1
+ .b8 10
+
+ .b8 122
+
+ .b8 0
+ .b32 616
+ .b32 2
+ .b32 276
+ .b8 8
+
+ .b8 1
+ .b8 0
+ .b8 6
+
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+
+ .b8 0
+ .b8 4
+ .b32 4
+ .b8 6
+
+ .b8 117
+ .b8 110
+ .b8 115
+ .b8 105
+ .b8 103
+ .b8 110
+ .b8 101
+ .b8 100
+ .b8 32
+ .b8 105
+ .b8 110
+ .b8 116
+
+ .b8 0
+ .b8 7
+ .b32 4
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 116
+ .b8 121
+ .b8 112
+ .b8 101
+ .b8 105
+ .b8 110
+ .b8 102
+ .b8 111
+ .b8 51
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b32 735
+ .b32 1
+ .b32 10
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_typeinfo3rayE
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 116
+ .b8 121
+ .b8 112
+ .b8 101
+ .b8 105
+ .b8 110
+ .b8 102
+ .b8 111
+ .b8 51
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 9
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 116
+ .b8 121
+ .b8 112
+ .b8 101
+ .b8 105
+ .b8 110
+ .b8 102
+ .b8 111
+ .b8 49
+ .b8 50
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 116
+ .b8 121
+ .b8 112
+ .b8 101
+ .b8 105
+ .b8 110
+ .b8 102
+ .b8 111
+ .b8 69
+
+ .b8 0
+ .b32 8
+ .b32 4
+ .b32 48
+ .b8 10
+
+ .b8 107
+ .b8 105
+ .b8 110
+ .b8 100
+
+ .b8 0
+ .b32 628
+ .b32 4
+ .b32 49
+ .b8 0
+
+ .b8 1
+ .b8 10
+
+ .b8 115
+ .b8 105
+ .b8 122
+ .b8 101
+
+ .b8 0
+ .b32 628
+ .b32 4
+ .b32 50
+ .b8 4
+
+ .b8 1
+ .b8 0
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 48
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 98
+ .b8 105
+ .b8 116
+ .b8 110
+ .b8 101
+ .b8 115
+ .b8 115
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 101
+ .b8 99
+ .b8 116
+ .b8 111
+ .b8 114
+ .b8 69
+
+ .b8 0
+ .b32 955
+ .b32 5
+ .b32 2281
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register20reg_bitness_detectorE
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 48
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 98
+ .b8 105
+ .b8 116
+ .b8 110
+ .b8 101
+ .b8 115
+ .b8 115
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 101
+ .b8 99
+ .b8 116
+ .b8 111
+ .b8 114
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 11
+
+ .b32 961
+ .b8 12
+ .b8 12
+
+ .b8 118
+ .b8 111
+ .b8 105
+ .b8 100
+
+ .b8 0
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 48
+ .b8 69
+
+ .b8 0
+ .b32 1099
+ .b32 5
+ .b32 2282
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register24reg_exception_64_detail0E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 48
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 13
+
+ .b32 1104
+ .b8 6
+
+ .b8 117
+ .b8 110
+ .b8 115
+ .b8 105
+ .b8 103
+ .b8 110
+ .b8 101
+ .b8 100
+ .b8 32
+ .b8 108
+ .b8 111
+ .b8 110
+ .b8 103
+ .b8 32
+ .b8 108
+ .b8 111
+ .b8 110
+ .b8 103
+
+ .b8 0
+ .b8 7
+ .b32 8
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 49
+ .b8 69
+
+ .b8 0
+ .b32 1099
+ .b32 5
+ .b32 2283
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register24reg_exception_64_detail1E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 49
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 50
+ .b8 69
+
+ .b8 0
+ .b32 1099
+ .b32 5
+ .b32 2284
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register24reg_exception_64_detail2E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 50
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 51
+ .b8 69
+
+ .b8 0
+ .b32 1099
+ .b32 5
+ .b32 2285
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register24reg_exception_64_detail3E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 51
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 52
+ .b8 69
+
+ .b8 0
+ .b32 1099
+ .b32 5
+ .b32 2286
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register24reg_exception_64_detail4E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 52
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 53
+ .b8 69
+
+ .b8 0
+ .b32 1099
+ .b32 5
+ .b32 2287
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register24reg_exception_64_detail5E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 53
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 54
+ .b8 69
+
+ .b8 0
+ .b32 1099
+ .b32 5
+ .b32 2288
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register24reg_exception_64_detail6E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 54
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 55
+ .b8 69
+
+ .b8 0
+ .b32 1099
+ .b32 5
+ .b32 2289
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register24reg_exception_64_detail7E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 55
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 56
+ .b8 69
+
+ .b8 0
+ .b32 1099
+ .b32 5
+ .b32 2290
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register24reg_exception_64_detail8E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 56
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 57
+ .b8 69
+
+ .b8 0
+ .b32 1099
+ .b32 5
+ .b32 2291
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register24reg_exception_64_detail9E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 54
+ .b8 52
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 57
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 48
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2292
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register21reg_exception_detail0E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 48
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 13
+
+ .b32 628
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 49
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2293
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register21reg_exception_detail1E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 49
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 50
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2294
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register21reg_exception_detail2E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 50
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 51
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2295
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register21reg_exception_detail3E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 51
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 52
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2296
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register21reg_exception_detail4E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 52
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 53
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2297
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register21reg_exception_detail5E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 53
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 54
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2298
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register21reg_exception_detail6E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 54
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 55
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2299
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register21reg_exception_detail7E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 55
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 56
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2300
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register21reg_exception_detail8E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 56
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 57
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2301
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register21reg_exception_detail9E
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 101
+ .b8 120
+ .b8 99
+ .b8 101
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 95
+ .b8 100
+ .b8 101
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 108
+ .b8 57
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 49
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 73
+ .b8 110
+ .b8 100
+ .b8 101
+ .b8 120
+ .b8 95
+ .b8 120
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2302
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register14reg_rayIndex_xE
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 49
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 73
+ .b8 110
+ .b8 100
+ .b8 101
+ .b8 120
+ .b8 95
+ .b8 120
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 49
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 73
+ .b8 110
+ .b8 100
+ .b8 101
+ .b8 120
+ .b8 95
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2303
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register14reg_rayIndex_yE
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 49
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 73
+ .b8 110
+ .b8 100
+ .b8 101
+ .b8 120
+ .b8 95
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 49
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 73
+ .b8 110
+ .b8 100
+ .b8 101
+ .b8 120
+ .b8 95
+ .b8 122
+ .b8 69
+
+ .b8 0
+ .b32 2443
+ .b32 5
+ .b32 2304
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_register14reg_rayIndex_zE
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 105
+ .b8 115
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 49
+ .b8 52
+ .b8 114
+ .b8 101
+ .b8 103
+ .b8 95
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 73
+ .b8 110
+ .b8 100
+ .b8 101
+ .b8 120
+ .b8 95
+ .b8 122
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 116
+ .b8 121
+ .b8 112
+ .b8 101
+ .b8 110
+ .b8 97
+ .b8 109
+ .b8 101
+ .b8 51
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b32 4006
+ .b32 1
+ .b32 10
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_typename3rayE
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 116
+ .b8 121
+ .b8 112
+ .b8 101
+ .b8 110
+ .b8 97
+ .b8 109
+ .b8 101
+ .b8 51
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 3
+
+ .b32 4018
+ .b8 4
+
+ .b32 248
+ .b8 10
+
+ .b8 0
+ .b8 6
+
+ .b8 99
+ .b8 104
+ .b8 97
+ .b8 114
+
+ .b8 0
+ .b8 6
+ .b32 1
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 116
+ .b8 121
+ .b8 112
+ .b8 101
+ .b8 101
+ .b8 110
+ .b8 117
+ .b8 109
+ .b8 51
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b32 4117
+ .b32 1
+ .b32 10
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_typeenum3rayE
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 116
+ .b8 121
+ .b8 112
+ .b8 101
+ .b8 101
+ .b8 110
+ .b8 117
+ .b8 109
+ .b8 51
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 6
+
+ .b8 105
+ .b8 110
+ .b8 116
+
+ .b8 0
+ .b8 5
+ .b32 4
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 115
+ .b8 101
+ .b8 109
+ .b8 97
+ .b8 110
+ .b8 116
+ .b8 105
+ .b8 99
+ .b8 51
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b32 4215
+ .b32 1
+ .b32 10
+ .b8 9
+ .b8 3
+ .b64 _ZN21rti_internal_semantic3rayE
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 49
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 115
+ .b8 101
+ .b8 109
+ .b8 97
+ .b8 110
+ .b8 116
+ .b8 105
+ .b8 99
+ .b8 51
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 3
+
+ .b32 4018
+ .b8 4
+
+ .b32 248
+ .b8 12
+
+ .b8 0
+ .b8 8
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 51
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 97
+ .b8 110
+ .b8 110
+ .b8 111
+ .b8 116
+ .b8 97
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 51
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b32 4319
+ .b32 1
+ .b32 10
+ .b8 9
+ .b8 3
+ .b64 _ZN23rti_internal_annotation3rayE
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 50
+ .b8 51
+ .b8 114
+ .b8 116
+ .b8 105
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 110
+ .b8 97
+ .b8 108
+ .b8 95
+ .b8 97
+ .b8 110
+ .b8 110
+ .b8 111
+ .b8 116
+ .b8 97
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 51
+ .b8 114
+ .b8 97
+ .b8 121
+ .b8 69
+
+ .b8 0
+ .b8 5
+ .b8 3
+
+ .b32 4018
+ .b8 4
+
+ .b32 248
+ .b8 0
+
+ .b8 0
+ .b8 14
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 54
+ .b8 53
+ .b8 95
+ .b8 73
+ .b8 78
+ .b8 84
+ .b8 69
+ .b8 82
+ .b8 78
+ .b8 65
+ .b8 76
+ .b8 95
+ .b8 52
+ .b8 51
+ .b8 95
+ .b8 116
+ .b8 109
+ .b8 112
+ .b8 120
+ .b8 102
+ .b8 116
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 52
+ .b8 51
+ .b8 52
+ .b8 56
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 95
+ .b8 55
+ .b8 95
+ .b8 103
+ .b8 101
+ .b8 111
+ .b8 109
+ .b8 101
+ .b8 116
+ .b8 114
+ .b8 121
+ .b8 95
+ .b8 99
+ .b8 112
+ .b8 112
+ .b8 49
+ .b8 95
+ .b8 105
+ .b8 105
+ .b8 95
+ .b8 57
+ .b8 101
+ .b8 55
+ .b8 52
+ .b8 49
+ .b8 54
+ .b8 102
+ .b8 98
+ .b8 49
+ .b8 49
+ .b8 109
+ .b8 97
+ .b8 107
+ .b8 101
+ .b8 95
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 69
+ .b8 102
+ .b8 102
+ .b8 102
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 54
+ .b8 53
+ .b8 95
+ .b8 73
+ .b8 78
+ .b8 84
+ .b8 69
+ .b8 82
+ .b8 78
+ .b8 65
+ .b8 76
+ .b8 95
+ .b8 52
+ .b8 51
+ .b8 95
+ .b8 116
+ .b8 109
+ .b8 112
+ .b8 120
+ .b8 102
+ .b8 116
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 52
+ .b8 51
+ .b8 52
+ .b8 56
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 95
+ .b8 55
+ .b8 95
+ .b8 103
+ .b8 101
+ .b8 111
+ .b8 109
+ .b8 101
+ .b8 116
+ .b8 114
+ .b8 121
+ .b8 95
+ .b8 99
+ .b8 112
+ .b8 112
+ .b8 49
+ .b8 95
+ .b8 105
+ .b8 105
+ .b8 95
+ .b8 57
+ .b8 101
+ .b8 55
+ .b8 52
+ .b8 49
+ .b8 54
+ .b8 102
+ .b8 98
+ .b8 49
+ .b8 49
+ .b8 109
+ .b8 97
+ .b8 107
+ .b8 101
+ .b8 95
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 69
+ .b8 102
+ .b8 102
+ .b8 102
+
+ .b8 0
+ .b32 6
+ .b32 245
+ .b32 544
+ .b64 func_begin0
+ .b64 func_end0
+ .b8 1
+ .b8 156
+ .b8 15
+
+ .b8 120
+
+ .b8 0
+ .b32 6
+ .b32 245
+ .b32 616
+ .b8 5
+ .b8 144
+ .b8 177
+ .b8 204
+ .b8 149
+ .b8 1
+ .b8 2
+ .b8 15
+
+ .b8 121
+
+ .b8 0
+ .b32 6
+ .b32 245
+ .b32 616
+ .b8 5
+ .b8 144
+ .b8 178
+ .b8 204
+ .b8 149
+ .b8 1
+ .b8 2
+ .b8 15
+
+ .b8 122
+
+ .b8 0
+ .b32 6
+ .b32 245
+ .b32 616
+ .b8 5
+ .b8 144
+ .b8 179
+ .b8 204
+ .b8 149
+ .b8 1
+ .b8 2
+ .b8 16
+
+ .b64 tmp0
+ .b64 tmp1
+ .b8 17
+
+ .b8 116
+
+ .b8 0
+ .b32 6
+ .b32 247
+ .b32 544
+ .b8 11
+ .b8 3
+ .b64 __local_depot0
+ .b8 35
+ .b8 0
+
+ .b8 6
+ .b8 0
+ .b8 0
+ .b8 14
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 54
+ .b8 53
+ .b8 95
+ .b8 73
+ .b8 78
+ .b8 84
+ .b8 69
+ .b8 82
+ .b8 78
+ .b8 65
+ .b8 76
+ .b8 95
+ .b8 52
+ .b8 51
+ .b8 95
+ .b8 116
+ .b8 109
+ .b8 112
+ .b8 120
+ .b8 102
+ .b8 116
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 52
+ .b8 51
+ .b8 52
+ .b8 56
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 95
+ .b8 55
+ .b8 95
+ .b8 103
+ .b8 101
+ .b8 111
+ .b8 109
+ .b8 101
+ .b8 116
+ .b8 114
+ .b8 121
+ .b8 95
+ .b8 99
+ .b8 112
+ .b8 112
+ .b8 49
+ .b8 95
+ .b8 105
+ .b8 105
+ .b8 95
+ .b8 57
+ .b8 101
+ .b8 55
+ .b8 52
+ .b8 49
+ .b8 54
+ .b8 102
+ .b8 98
+ .b8 56
+ .b8 114
+ .b8 116
+ .b8 80
+ .b8 114
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 102
+ .b8 69
+ .b8 80
+ .b8 75
+ .b8 99
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 54
+ .b8 53
+ .b8 95
+ .b8 73
+ .b8 78
+ .b8 84
+ .b8 69
+ .b8 82
+ .b8 78
+ .b8 65
+ .b8 76
+ .b8 95
+ .b8 52
+ .b8 51
+ .b8 95
+ .b8 116
+ .b8 109
+ .b8 112
+ .b8 120
+ .b8 102
+ .b8 116
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 52
+ .b8 51
+ .b8 52
+ .b8 56
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 95
+ .b8 55
+ .b8 95
+ .b8 103
+ .b8 101
+ .b8 111
+ .b8 109
+ .b8 101
+ .b8 116
+ .b8 114
+ .b8 121
+ .b8 95
+ .b8 99
+ .b8 112
+ .b8 112
+ .b8 49
+ .b8 95
+ .b8 105
+ .b8 105
+ .b8 95
+ .b8 57
+ .b8 101
+ .b8 55
+ .b8 52
+ .b8 49
+ .b8 54
+ .b8 102
+ .b8 98
+ .b8 56
+ .b8 114
+ .b8 116
+ .b8 80
+ .b8 114
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 102
+ .b8 69
+ .b8 80
+ .b8 75
+ .b8 99
+
+ .b8 0
+ .b32 5
+ .b32 2200
+ .b32 961
+ .b64 func_begin1
+ .b64 func_end1
+ .b8 1
+ .b8 156
+ .b8 15
+
+ .b8 102
+ .b8 109
+ .b8 116
+
+ .b8 0
+ .b32 5
+ .b32 2200
+ .b32 9354
+ .b8 6
+ .b8 144
+ .b8 177
+ .b8 200
+ .b8 201
+ .b8 171
+ .b8 2
+ .b8 2
+ .b8 16
+
+ .b64 tmp2
+ .b64 tmp7
+ .b8 18
+
+ .b32 8470
+ .b64 tmp2
+ .b64 tmp4
+ .b32 5
+ .b32 2202
+ .b8 19
+
+ .b32 8677
+ .b8 5
+ .b8 144
+ .b8 177
+ .b8 228
+ .b8 149
+ .b8 1
+ .b8 2
+ .b8 0
+ .b8 0
+ .b8 0
+ .b8 20
+
+ .b8 95
+ .b8 90
+ .b8 49
+ .b8 50
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 115
+ .b8 101
+ .b8 99
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 105
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 49
+ .b8 50
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 115
+ .b8 101
+ .b8 99
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 105
+
+ .b8 0
+ .b32 1
+ .b32 12
+ .b32 961
+ .b8 1
+ .b64 func_begin2
+ .b64 func_end2
+ .b8 1
+ .b8 156
+ .b8 15
+
+ .b8 112
+ .b8 114
+ .b8 105
+ .b8 109
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 100
+ .b8 101
+ .b8 120
+
+ .b8 0
+ .b32 1
+ .b32 12
+ .b32 4117
+ .b8 5
+ .b8 144
+ .b8 178
+ .b8 228
+ .b8 149
+ .b8 1
+ .b8 2
+ .b8 16
+
+ .b64 tmp8
+ .b64 tmp48
+ .b8 21
+
+ .b8 95
+ .b8 95
+ .b8 84
+ .b8 48
+
+ .b8 0
+ .b32 544
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 128
+ .b8 2
+
+ .b8 6
+ .b8 17
+
+ .b8 116
+ .b8 97
+
+ .b8 0
+ .b32 1
+ .b32 13
+ .b32 544
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 140
+ .b8 2
+
+ .b8 6
+ .b8 17
+
+ .b8 116
+ .b8 98
+
+ .b8 0
+ .b32 1
+ .b32 14
+ .b32 544
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 152
+ .b8 2
+
+ .b8 6
+ .b8 17
+
+ .b8 116
+ .b8 99
+
+ .b8 0
+ .b32 1
+ .b32 15
+ .b32 544
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 164
+ .b8 2
+
+ .b8 6
+ .b8 17
+
+ .b8 110
+ .b8 111
+ .b8 114
+ .b8 109
+ .b8 97
+ .b8 108
+
+ .b8 0
+ .b32 1
+ .b32 16
+ .b32 544
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 176
+ .b8 2
+
+ .b8 6
+ .b8 17
+
+ .b8 116
+ .b8 114
+ .b8 105
+ .b8 97
+ .b8 110
+ .b8 103
+ .b8 108
+ .b8 101
+
+ .b8 0
+ .b32 1
+ .b32 17
+ .b32 9282
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 188
+ .b8 2
+
+ .b8 6
+ .b8 17
+
+ .b8 112
+
+ .b8 0
+ .b32 1
+ .b32 24
+ .b32 544
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 212
+ .b8 2
+
+ .b8 6
+ .b8 22
+
+ .b8 116
+
+ .b8 0
+ .b32 1
+ .b32 20
+ .b32 616
+ .b32 .debug_loc
+ .b8 18
+
+ .b32 7343
+ .b64 tmp9
+ .b64 tmp21
+ .b32 1
+ .b32 17
+ .b8 23
+
+ .b32 7423
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 224
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 7433
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 232
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 7449
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 240
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 7465
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 248
+ .b8 1
+
+ .b8 6
+ .b8 18
+
+ .b32 8162
+ .b64 tmp10
+ .b64 tmp21
+ .b32 7
+ .b32 193
+ .b8 23
+
+ .b32 8246
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 168
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 8256
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 176
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 8272
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 184
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 8288
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 192
+ .b8 1
+
+ .b8 6
+ .b8 19
+
+ .b32 8305
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 200
+ .b8 1
+
+ .b8 6
+ .b8 19
+
+ .b32 8315
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 212
+ .b8 1
+
+ .b8 6
+ .b8 19
+
+ .b32 8325
+ .b8 5
+ .b8 144
+ .b8 180
+ .b8 228
+ .b8 149
+ .b8 1
+ .b8 2
+ .b8 18
+
+ .b32 8696
+ .b64 tmp11
+ .b64 tmp12
+ .b32 7
+ .b32 226
+ .b8 23
+
+ .b32 8768
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 152
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 8783
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 160
+ .b8 1
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 8696
+ .b64 tmp14
+ .b64 tmp15
+ .b32 7
+ .b32 226
+ .b8 23
+
+ .b32 8768
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 136
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 8783
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 144
+ .b8 1
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 8799
+ .b64 tmp16
+ .b64 tmp17
+ .b32 7
+ .b32 227
+ .b8 23
+
+ .b32 8871
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 120
+
+ .b8 6
+ .b8 23
+
+ .b32 8886
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 128
+ .b8 1
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 8799
+ .b64 tmp19
+ .b64 tmp20
+ .b32 7
+ .b32 227
+ .b8 23
+
+ .b32 8871
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 104
+
+ .b8 6
+ .b8 23
+
+ .b32 8886
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 112
+
+ .b8 6
+ .b8 0
+ .b8 0
+ .b8 0
+ .b8 18
+
+ .b32 9183
+ .b64 tmp22
+ .b64 tmp23
+ .b32 1
+ .b32 21
+ .b8 23
+
+ .b32 9251
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 88
+
+ .b8 6
+ .b8 23
+
+ .b32 9266
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 96
+
+ .b8 6
+ .b8 0
+ .b8 16
+
+ .b64 tmp25
+ .b64 tmp33
+ .b8 21
+
+ .b8 95
+ .b8 95
+ .b8 84
+ .b8 49
+
+ .b8 0
+ .b32 544
+ .b8 12
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 224
+ .b8 2
+
+ .b8 6
+ .b8 18
+
+ .b32 8997
+ .b64 tmp25
+ .b64 tmp26
+ .b32 1
+ .b32 21
+ .b8 23
+
+ .b32 9061
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 72
+
+ .b8 6
+ .b8 23
+
+ .b32 9076
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 80
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 9183
+ .b64 tmp27
+ .b64 tmp28
+ .b32 1
+ .b32 21
+ .b8 23
+
+ .b32 9251
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 56
+
+ .b8 6
+ .b8 23
+
+ .b32 9266
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 64
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 9183
+ .b64 tmp29
+ .b64 tmp30
+ .b32 1
+ .b32 21
+ .b8 23
+
+ .b32 9251
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 40
+
+ .b8 6
+ .b8 23
+
+ .b32 9266
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 48
+
+ .b8 6
+ .b8 0
+ .b8 0
+ .b8 18
+
+ .b32 9092
+ .b64 tmp39
+ .b64 tmp40
+ .b32 1
+ .b32 24
+ .b8 23
+
+ .b32 9152
+ .b8 7
+ .b8 144
+ .b8 178
+ .b8 226
+ .b8 196
+ .b8 177
+ .b8 214
+ .b8 4
+ .b8 2
+ .b8 23
+
+ .b32 9167
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 32
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 8902
+ .b64 tmp41
+ .b64 tmp42
+ .b32 1
+ .b32 24
+ .b8 23
+
+ .b32 8966
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 16
+
+ .b8 6
+ .b8 23
+
+ .b32 8981
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 24
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 8337
+ .b64 tmp43
+ .b64 tmp45
+ .b32 1
+ .b32 25
+ .b8 23
+
+ .b32 8421
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 0
+
+ .b8 6
+ .b8 23
+
+ .b32 8431
+ .b8 11
+ .b8 3
+ .b64 __local_depot2
+ .b8 35
+ .b8 8
+
+ .b8 6
+ .b8 19
+
+ .b32 8447
+ .b8 5
+ .b8 144
+ .b8 182
+ .b8 228
+ .b8 149
+ .b8 1
+ .b8 2
+ .b8 0
+ .b8 0
+ .b8 0
+ .b8 20
+
+ .b8 95
+ .b8 90
+ .b8 49
+ .b8 49
+ .b8 98
+ .b8 111
+ .b8 117
+ .b8 110
+ .b8 100
+ .b8 105
+ .b8 110
+ .b8 103
+ .b8 98
+ .b8 111
+ .b8 120
+ .b8 105
+ .b8 80
+ .b8 102
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 49
+ .b8 49
+ .b8 98
+ .b8 111
+ .b8 117
+ .b8 110
+ .b8 100
+ .b8 105
+ .b8 110
+ .b8 103
+ .b8 98
+ .b8 111
+ .b8 120
+ .b8 105
+ .b8 80
+ .b8 102
+
+ .b8 0
+ .b32 1
+ .b32 30
+ .b32 961
+ .b8 1
+ .b64 func_begin3
+ .b64 func_end3
+ .b8 1
+ .b8 156
+ .b8 15
+
+ .b8 112
+ .b8 114
+ .b8 105
+ .b8 109
+ .b8 95
+ .b8 105
+ .b8 110
+ .b8 100
+ .b8 101
+ .b8 120
+
+ .b8 0
+ .b32 1
+ .b32 30
+ .b32 4117
+ .b8 5
+ .b8 144
+ .b8 178
+ .b8 228
+ .b8 149
+ .b8 1
+ .b8 2
+ .b8 15
+
+ .b8 114
+ .b8 101
+ .b8 115
+ .b8 117
+ .b8 108
+ .b8 116
+
+ .b8 0
+ .b32 1
+ .b32 30
+ .b32 9408
+ .b8 9
+ .b8 3
+ .b64 _Z11boundingboxiPf_param_1
+ .b8 7
+ .b8 16
+
+ .b64 tmp49
+ .b64 tmp63
+ .b8 17
+
+ .b8 116
+ .b8 97
+
+ .b8 0
+ .b32 1
+ .b32 31
+ .b32 544
+ .b8 12
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 152
+ .b8 1
+
+ .b8 6
+ .b8 17
+
+ .b8 116
+ .b8 98
+
+ .b8 0
+ .b32 1
+ .b32 32
+ .b32 544
+ .b8 12
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 164
+ .b8 1
+
+ .b8 6
+ .b8 17
+
+ .b8 116
+ .b8 99
+
+ .b8 0
+ .b32 1
+ .b32 33
+ .b32 544
+ .b8 12
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 176
+ .b8 1
+
+ .b8 6
+ .b8 17
+
+ .b8 110
+ .b8 111
+ .b8 114
+ .b8 109
+ .b8 97
+ .b8 108
+
+ .b8 0
+ .b32 1
+ .b32 34
+ .b32 544
+ .b8 12
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 188
+ .b8 1
+
+ .b8 6
+ .b8 17
+
+ .b8 116
+ .b8 114
+ .b8 105
+ .b8 97
+ .b8 110
+ .b8 103
+ .b8 108
+ .b8 101
+
+ .b8 0
+ .b32 1
+ .b32 35
+ .b32 9282
+ .b8 12
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 200
+ .b8 1
+
+ .b8 6
+ .b8 18
+
+ .b32 7343
+ .b64 tmp50
+ .b64 tmp62
+ .b32 1
+ .b32 35
+ .b8 23
+
+ .b32 7423
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 120
+
+ .b8 6
+ .b8 23
+
+ .b32 7433
+ .b8 12
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 128
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 7449
+ .b8 12
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 136
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 7465
+ .b8 12
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 144
+ .b8 1
+
+ .b8 6
+ .b8 18
+
+ .b32 8162
+ .b64 tmp51
+ .b64 tmp62
+ .b32 7
+ .b32 193
+ .b8 23
+
+ .b32 8246
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 64
+
+ .b8 6
+ .b8 23
+
+ .b32 8256
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 72
+
+ .b8 6
+ .b8 23
+
+ .b32 8272
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 80
+
+ .b8 6
+ .b8 23
+
+ .b32 8288
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 88
+
+ .b8 6
+ .b8 19
+
+ .b32 8305
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 96
+
+ .b8 6
+ .b8 19
+
+ .b32 8315
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 108
+
+ .b8 6
+ .b8 21
+
+ .b8 95
+ .b8 95
+ .b8 84
+ .b8 52
+
+ .b8 0
+ .b32 4117
+ .b8 5
+ .b8 144
+ .b8 180
+ .b8 228
+ .b8 149
+ .b8 1
+ .b8 2
+ .b8 18
+
+ .b32 8696
+ .b64 tmp52
+ .b64 tmp53
+ .b32 7
+ .b32 226
+ .b8 23
+
+ .b32 8768
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 48
+
+ .b8 6
+ .b8 23
+
+ .b32 8783
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 56
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 8696
+ .b64 tmp55
+ .b64 tmp56
+ .b32 7
+ .b32 226
+ .b8 23
+
+ .b32 8768
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 32
+
+ .b8 6
+ .b8 23
+
+ .b32 8783
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 40
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 8799
+ .b64 tmp57
+ .b64 tmp58
+ .b32 7
+ .b32 227
+ .b8 23
+
+ .b32 8871
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 16
+
+ .b8 6
+ .b8 23
+
+ .b32 8886
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 24
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 8799
+ .b64 tmp60
+ .b64 tmp61
+ .b32 7
+ .b32 227
+ .b8 23
+
+ .b32 8871
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 0
+
+ .b8 6
+ .b8 23
+
+ .b32 8886
+ .b8 11
+ .b8 3
+ .b64 __local_depot3
+ .b8 35
+ .b8 8
+
+ .b8 6
+ .b8 0
+ .b8 0
+ .b8 0
+ .b8 0
+ .b8 0
+ .b8 20
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 51
+ .b8 82
+ .b8 97
+ .b8 121
+ .b8 67
+ .b8 49
+ .b8 69
+ .b8 118
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 51
+ .b8 82
+ .b8 97
+ .b8 121
+ .b8 67
+ .b8 49
+ .b8 69
+ .b8 118
+
+ .b8 0
+ .b32 3
+ .b32 125
+ .b32 961
+ .b8 1
+ .b64 func_begin4
+ .b64 func_end4
+ .b8 1
+ .b8 156
+ .b8 24
+
+ .b8 116
+ .b8 104
+ .b8 105
+ .b8 115
+
+ .b8 0
+ .b32 9414
+ .b8 11
+ .b8 3
+ .b64 __local_depot4
+ .b8 35
+ .b8 0
+
+ .b8 6
+ .b8 0
+ .b8 20
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 51
+ .b8 82
+ .b8 97
+ .b8 121
+ .b8 67
+ .b8 50
+ .b8 69
+ .b8 118
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 51
+ .b8 82
+ .b8 97
+ .b8 121
+ .b8 67
+ .b8 50
+ .b8 69
+ .b8 118
+
+ .b8 0
+ .b32 3
+ .b32 125
+ .b32 961
+ .b8 1
+ .b64 func_begin5
+ .b64 func_end5
+ .b8 1
+ .b8 156
+ .b8 24
+
+ .b8 116
+ .b8 104
+ .b8 105
+ .b8 115
+
+ .b8 0
+ .b32 9414
+ .b8 6
+ .b8 144
+ .b8 177
+ .b8 200
+ .b8 201
+ .b8 171
+ .b8 2
+ .b8 2
+ .b8 0
+ .b8 25
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 67
+ .b8 49
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 83
+ .b8 51
+ .b8 95
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 67
+ .b8 49
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 83
+ .b8 51
+ .b8 95
+
+ .b8 0
+ .b32 7
+ .b32 191
+ .b32 961
+ .b8 1
+ .b8 26
+
+ .b8 116
+ .b8 104
+ .b8 105
+ .b8 115
+
+ .b8 0
+ .b32 9365
+ .b8 27
+
+ .b8 118
+ .b8 48
+
+ .b8 0
+ .b32 7
+ .b32 191
+ .b32 9376
+ .b8 27
+
+ .b8 118
+ .b8 49
+
+ .b8 0
+ .b32 7
+ .b32 191
+ .b32 9376
+ .b8 27
+
+ .b8 118
+ .b8 50
+
+ .b8 0
+ .b32 7
+ .b32 191
+ .b32 9376
+ .b8 0
+ .b8 20
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 67
+ .b8 50
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 83
+ .b8 51
+ .b8 95
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 67
+ .b8 50
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 83
+ .b8 51
+ .b8 95
+
+ .b8 0
+ .b32 7
+ .b32 194
+ .b32 961
+ .b8 1
+ .b64 func_begin6
+ .b64 func_end6
+ .b8 1
+ .b8 156
+ .b8 24
+
+ .b8 116
+ .b8 104
+ .b8 105
+ .b8 115
+
+ .b8 0
+ .b32 9365
+ .b8 6
+ .b8 144
+ .b8 177
+ .b8 200
+ .b8 201
+ .b8 171
+ .b8 2
+ .b8 2
+ .b8 28
+
+ .b32 9376
+ .b8 6
+ .b8 144
+ .b8 178
+ .b8 200
+ .b8 201
+ .b8 171
+ .b8 2
+ .b8 2
+ .b8 28
+
+ .b32 9376
+ .b8 6
+ .b8 144
+ .b8 179
+ .b8 200
+ .b8 201
+ .b8 171
+ .b8 2
+ .b8 2
+ .b8 28
+
+ .b32 9376
+ .b8 6
+ .b8 144
+ .b8 180
+ .b8 200
+ .b8 201
+ .b8 171
+ .b8 2
+ .b8 2
+ .b8 18
+
+ .b32 7343
+ .b64 tmp68
+ .b64 tmp80
+ .b32 7
+ .b32 194
+ .b8 23
+
+ .b32 7423
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 120
+
+ .b8 6
+ .b8 23
+
+ .b32 7433
+ .b8 12
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 128
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 7449
+ .b8 12
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 136
+ .b8 1
+
+ .b8 6
+ .b8 23
+
+ .b32 7465
+ .b8 12
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 144
+ .b8 1
+
+ .b8 6
+ .b8 18
+
+ .b32 8162
+ .b64 tmp69
+ .b64 tmp80
+ .b32 7
+ .b32 193
+ .b8 23
+
+ .b32 8246
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 64
+
+ .b8 6
+ .b8 23
+
+ .b32 8256
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 72
+
+ .b8 6
+ .b8 23
+
+ .b32 8272
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 80
+
+ .b8 6
+ .b8 23
+
+ .b32 8288
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 88
+
+ .b8 6
+ .b8 19
+
+ .b32 8305
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 96
+
+ .b8 6
+ .b8 19
+
+ .b32 8315
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 108
+
+ .b8 6
+ .b8 21
+
+ .b8 95
+ .b8 95
+ .b8 84
+ .b8 52
+
+ .b8 0
+ .b32 4117
+ .b8 5
+ .b8 144
+ .b8 178
+ .b8 228
+ .b8 149
+ .b8 1
+ .b8 2
+ .b8 18
+
+ .b32 8696
+ .b64 tmp70
+ .b64 tmp71
+ .b32 7
+ .b32 226
+ .b8 23
+
+ .b32 8768
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 48
+
+ .b8 6
+ .b8 23
+
+ .b32 8783
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 56
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 8696
+ .b64 tmp73
+ .b64 tmp74
+ .b32 7
+ .b32 226
+ .b8 23
+
+ .b32 8768
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 32
+
+ .b8 6
+ .b8 23
+
+ .b32 8783
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 40
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 8799
+ .b64 tmp75
+ .b64 tmp76
+ .b32 7
+ .b32 227
+ .b8 23
+
+ .b32 8871
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 16
+
+ .b8 6
+ .b8 23
+
+ .b32 8886
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 24
+
+ .b8 6
+ .b8 0
+ .b8 18
+
+ .b32 8799
+ .b64 tmp78
+ .b64 tmp79
+ .b32 7
+ .b32 227
+ .b8 23
+
+ .b32 8871
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 0
+
+ .b8 6
+ .b8 23
+
+ .b32 8886
+ .b8 11
+ .b8 3
+ .b64 __local_depot6
+ .b8 35
+ .b8 8
+
+ .b8 6
+ .b8 0
+ .b8 0
+ .b8 0
+ .b8 0
+ .b8 25
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 51
+ .b8 115
+ .b8 101
+ .b8 116
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 83
+ .b8 51
+ .b8 95
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 51
+ .b8 115
+ .b8 101
+ .b8 116
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 83
+ .b8 51
+ .b8 95
+
+ .b8 0
+ .b32 7
+ .b32 224
+ .b32 961
+ .b8 1
+ .b8 26
+
+ .b8 116
+ .b8 104
+ .b8 105
+ .b8 115
+
+ .b8 0
+ .b32 9365
+ .b8 27
+
+ .b8 118
+ .b8 48
+
+ .b8 0
+ .b32 7
+ .b32 224
+ .b32 9376
+ .b8 27
+
+ .b8 118
+ .b8 49
+
+ .b8 0
+ .b32 7
+ .b32 224
+ .b32 9376
+ .b8 27
+
+ .b8 118
+ .b8 50
+
+ .b8 0
+ .b32 7
+ .b32 224
+ .b32 9376
+ .b8 29
+
+ .b8 30
+
+ .b8 95
+ .b8 95
+ .b8 84
+ .b8 50
+
+ .b8 0
+ .b32 544
+ .b8 30
+
+ .b8 95
+ .b8 95
+ .b8 84
+ .b8 51
+
+ .b8 0
+ .b32 544
+ .b8 30
+
+ .b8 95
+ .b8 95
+ .b8 84
+ .b8 52
+
+ .b8 0
+ .b32 4117
+ .b8 0
+ .b8 0
+ .b8 25
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 75
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 56
+ .b8 99
+ .b8 111
+ .b8 110
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 110
+ .b8 115
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 75
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 56
+ .b8 99
+ .b8 111
+ .b8 110
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 110
+ .b8 115
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+
+ .b8 0
+ .b32 7
+ .b32 243
+ .b32 8459
+ .b8 1
+ .b8 26
+
+ .b8 116
+ .b8 104
+ .b8 105
+ .b8 115
+
+ .b8 0
+ .b32 9392
+ .b8 27
+
+ .b8 112
+
+ .b8 0
+ .b32 7
+ .b32 243
+ .b32 9376
+ .b8 29
+
+ .b8 30
+
+ .b8 95
+ .b8 95
+ .b8 84
+ .b8 53
+
+ .b8 0
+ .b32 4117
+ .b8 0
+ .b8 0
+ .b8 6
+
+ .b8 98
+ .b8 111
+ .b8 111
+ .b8 108
+
+ .b8 0
+ .b8 2
+ .b32 1
+ .b8 25
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 54
+ .b8 53
+ .b8 95
+ .b8 73
+ .b8 78
+ .b8 84
+ .b8 69
+ .b8 82
+ .b8 78
+ .b8 65
+ .b8 76
+ .b8 95
+ .b8 52
+ .b8 51
+ .b8 95
+ .b8 116
+ .b8 109
+ .b8 112
+ .b8 120
+ .b8 102
+ .b8 116
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 52
+ .b8 51
+ .b8 52
+ .b8 56
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 95
+ .b8 55
+ .b8 95
+ .b8 103
+ .b8 101
+ .b8 111
+ .b8 109
+ .b8 101
+ .b8 116
+ .b8 114
+ .b8 121
+ .b8 95
+ .b8 99
+ .b8 112
+ .b8 112
+ .b8 49
+ .b8 95
+ .b8 105
+ .b8 105
+ .b8 95
+ .b8 57
+ .b8 101
+ .b8 55
+ .b8 52
+ .b8 49
+ .b8 54
+ .b8 102
+ .b8 98
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 49
+ .b8 53
+ .b8 114
+ .b8 116
+ .b8 95
+ .b8 112
+ .b8 114
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 95
+ .b8 97
+ .b8 99
+ .b8 116
+ .b8 105
+ .b8 118
+ .b8 101
+ .b8 69
+ .b8 118
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 54
+ .b8 53
+ .b8 95
+ .b8 73
+ .b8 78
+ .b8 84
+ .b8 69
+ .b8 82
+ .b8 78
+ .b8 65
+ .b8 76
+ .b8 95
+ .b8 52
+ .b8 51
+ .b8 95
+ .b8 116
+ .b8 109
+ .b8 112
+ .b8 120
+ .b8 102
+ .b8 116
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 52
+ .b8 51
+ .b8 52
+ .b8 56
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 95
+ .b8 55
+ .b8 95
+ .b8 103
+ .b8 101
+ .b8 111
+ .b8 109
+ .b8 101
+ .b8 116
+ .b8 114
+ .b8 121
+ .b8 95
+ .b8 99
+ .b8 112
+ .b8 112
+ .b8 49
+ .b8 95
+ .b8 105
+ .b8 105
+ .b8 95
+ .b8 57
+ .b8 101
+ .b8 55
+ .b8 52
+ .b8 49
+ .b8 54
+ .b8 102
+ .b8 98
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 49
+ .b8 53
+ .b8 114
+ .b8 116
+ .b8 95
+ .b8 112
+ .b8 114
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 95
+ .b8 97
+ .b8 99
+ .b8 116
+ .b8 105
+ .b8 118
+ .b8 101
+ .b8 69
+ .b8 118
+
+ .b8 0
+ .b32 8
+ .b32 441
+ .b32 4117
+ .b8 1
+ .b8 29
+
+ .b8 31
+
+ .b8 114
+ .b8 101
+ .b8 116
+
+ .b8 0
+ .b32 8
+ .b32 443
+ .b32 4117
+ .b8 0
+ .b8 0
+ .b8 25
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 53
+ .b8 102
+ .b8 109
+ .b8 105
+ .b8 110
+ .b8 102
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 53
+ .b8 102
+ .b8 109
+ .b8 105
+ .b8 110
+ .b8 102
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+
+ .b8 0
+ .b32 9
+ .b32 585
+ .b32 544
+ .b8 1
+ .b8 27
+
+ .b8 97
+
+ .b8 0
+ .b32 9
+ .b32 585
+ .b32 9376
+ .b8 27
+
+ .b8 98
+
+ .b8 0
+ .b32 9
+ .b32 585
+ .b32 9376
+ .b8 0
+ .b8 25
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 53
+ .b8 102
+ .b8 109
+ .b8 97
+ .b8 120
+ .b8 102
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 53
+ .b8 102
+ .b8 109
+ .b8 97
+ .b8 120
+ .b8 102
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+
+ .b8 0
+ .b32 9
+ .b32 598
+ .b32 544
+ .b8 1
+ .b8 27
+
+ .b8 97
+
+ .b8 0
+ .b32 9
+ .b32 598
+ .b32 9376
+ .b8 27
+
+ .b8 98
+
+ .b8 0
+ .b32 9
+ .b32 598
+ .b32 9376
+ .b8 0
+ .b8 25
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 112
+ .b8 108
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 112
+ .b8 108
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+
+ .b8 0
+ .b32 9
+ .b32 611
+ .b32 544
+ .b8 1
+ .b8 27
+
+ .b8 97
+
+ .b8 0
+ .b32 9
+ .b32 611
+ .b32 9376
+ .b8 27
+
+ .b8 98
+
+ .b8 0
+ .b32 9
+ .b32 611
+ .b32 9376
+ .b8 0
+ .b8 25
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 109
+ .b8 105
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 109
+ .b8 105
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+
+ .b8 0
+ .b32 9
+ .b32 632
+ .b32 544
+ .b8 1
+ .b8 27
+
+ .b8 97
+
+ .b8 0
+ .b32 9
+ .b32 632
+ .b32 9376
+ .b8 27
+
+ .b8 98
+
+ .b8 0
+ .b32 9
+ .b32 632
+ .b32 9376
+ .b8 0
+ .b8 25
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 109
+ .b8 108
+ .b8 69
+ .b8 102
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 109
+ .b8 108
+ .b8 69
+ .b8 102
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+
+ .b8 0
+ .b32 9
+ .b32 661
+ .b32 544
+ .b8 1
+ .b8 27
+
+ .b8 115
+
+ .b8 0
+ .b32 9
+ .b32 661
+ .b32 9387
+ .b8 27
+
+ .b8 97
+
+ .b8 0
+ .b32 9
+ .b32 661
+ .b32 9376
+ .b8 0
+ .b8 25
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 51
+ .b8 100
+ .b8 111
+ .b8 116
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+
+ .b8 0
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 51
+ .b8 100
+ .b8 111
+ .b8 116
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+
+ .b8 0
+ .b32 9
+ .b32 726
+ .b32 616
+ .b8 1
+ .b8 27
+
+ .b8 97
+
+ .b8 0
+ .b32 9
+ .b32 726
+ .b32 9376
+ .b8 27
+
+ .b8 98
+
+ .b8 0
+ .b32 9
+ .b32 726
+ .b32 9376
+ .b8 0
+ .b8 9
+
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 69
+
+ .b8 0
+ .b32 24
+ .b32 7
+ .b32 73
+ .b8 10
+
+ .b8 109
+ .b8 95
+ .b8 109
+ .b8 105
+ .b8 110
+
+ .b8 0
+ .b32 544
+ .b32 7
+ .b32 175
+ .b8 0
+
+ .b8 1
+ .b8 10
+
+ .b8 109
+ .b8 95
+ .b8 109
+ .b8 97
+ .b8 120
+
+ .b8 0
+ .b32 544
+ .b32 7
+ .b32 177
+ .b8 12
+
+ .b8 1
+ .b8 0
+ .b8 11
+
+ .b32 9360
+ .b8 12
+ .b8 5
+
+ .b32 4018
+ .b8 5
+
+ .b32 9370
+ .b8 11
+
+ .b32 9282
+ .b8 12
+ .b8 11
+
+ .b32 9382
+ .b8 12
+ .b8 5
+
+ .b32 544
+ .b8 5
+
+ .b32 616
+ .b8 5
+
+ .b32 9397
+ .b8 11
+
+ .b32 9403
+ .b8 12
+ .b8 5
+
+ .b32 9282
+ .b8 11
+
+ .b32 616
+ .b8 12
+ .b8 5
+
+ .b32 9419
+ .b8 11
+
+ .b32 404
+ .b8 12
+ .b8 0
+}
+.section .debug_abbrev {
+ .b8 1
+
+ .b8 17
+
+ .b8 1
+
+ .b8 37
+
+ .b8 8
+
+ .b8 19
+
+ .b8 11
+
+ .b8 3
+
+ .b8 8
+
+ .b8 17
+
+ .b8 1
+
+ .b8 16
+
+ .b8 6
+
+ .b8 27
+
+ .b8 8
+
+ .b8 0
+
+ .b8 0
+
+ .b8 2
+
+ .b8 52
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 73
+
+ .b8 19
+
+ .b8 51
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 3
+
+ .b8 1
+
+ .b8 1
+
+ .b8 73
+
+ .b8 19
+
+ .b8 0
+
+ .b8 0
+
+ .b8 4
+
+ .b8 33
+
+ .b8 0
+
+ .b8 73
+
+ .b8 19
+
+ .b8 47
+
+ .b8 15
+
+ .b8 0
+
+ .b8 0
+
+ .b8 5
+
+ .b8 38
+
+ .b8 0
+
+ .b8 73
+
+ .b8 19
+
+ .b8 0
+
+ .b8 0
+
+ .b8 6
+
+ .b8 36
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 62
+
+ .b8 11
+
+ .b8 11
+
+ .b8 6
+
+ .b8 0
+
+ .b8 0
+
+ .b8 7
+
+ .b8 36
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 11
+
+ .b8 6
+
+ .b8 62
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 8
+
+ .b8 52
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 73
+
+ .b8 19
+
+ .b8 58
+
+ .b8 6
+
+ .b8 59
+
+ .b8 6
+
+ .b8 2
+
+ .b8 10
+
+ .b8 135
+ .b8 64
+
+ .b8 8
+
+ .b8 51
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 9
+
+ .b8 19
+
+ .b8 1
+
+ .b8 3
+
+ .b8 8
+
+ .b8 11
+
+ .b8 6
+
+ .b8 58
+
+ .b8 6
+
+ .b8 59
+
+ .b8 6
+
+ .b8 0
+
+ .b8 0
+
+ .b8 10
+
+ .b8 13
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 73
+
+ .b8 19
+
+ .b8 58
+
+ .b8 6
+
+ .b8 59
+
+ .b8 6
+
+ .b8 56
+
+ .b8 15
+
+ .b8 50
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 11
+
+ .b8 15
+
+ .b8 0
+
+ .b8 73
+
+ .b8 19
+
+ .b8 51
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 12
+
+ .b8 59
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 0
+
+ .b8 0
+
+ .b8 13
+
+ .b8 53
+
+ .b8 0
+
+ .b8 73
+
+ .b8 19
+
+ .b8 0
+
+ .b8 0
+
+ .b8 14
+
+ .b8 46
+
+ .b8 1
+
+ .b8 135
+ .b8 64
+
+ .b8 8
+
+ .b8 3
+
+ .b8 8
+
+ .b8 58
+
+ .b8 6
+
+ .b8 59
+
+ .b8 6
+
+ .b8 73
+
+ .b8 19
+
+ .b8 17
+
+ .b8 1
+
+ .b8 18
+
+ .b8 1
+
+ .b8 64
+
+ .b8 10
+
+ .b8 0
+
+ .b8 0
+
+ .b8 15
+
+ .b8 5
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 58
+
+ .b8 6
+
+ .b8 59
+
+ .b8 6
+
+ .b8 73
+
+ .b8 19
+
+ .b8 2
+
+ .b8 10
+
+ .b8 51
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 16
+
+ .b8 11
+
+ .b8 1
+
+ .b8 17
+
+ .b8 1
+
+ .b8 18
+
+ .b8 1
+
+ .b8 0
+
+ .b8 0
+
+ .b8 17
+
+ .b8 52
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 58
+
+ .b8 6
+
+ .b8 59
+
+ .b8 6
+
+ .b8 73
+
+ .b8 19
+
+ .b8 2
+
+ .b8 10
+
+ .b8 51
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 18
+
+ .b8 29
+
+ .b8 1
+
+ .b8 49
+
+ .b8 19
+
+ .b8 17
+
+ .b8 1
+
+ .b8 18
+
+ .b8 1
+
+ .b8 88
+
+ .b8 6
+
+ .b8 89
+
+ .b8 6
+
+ .b8 0
+
+ .b8 0
+
+ .b8 19
+
+ .b8 52
+
+ .b8 0
+
+ .b8 49
+
+ .b8 19
+
+ .b8 2
+
+ .b8 10
+
+ .b8 51
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 20
+
+ .b8 46
+
+ .b8 1
+
+ .b8 135
+ .b8 64
+
+ .b8 8
+
+ .b8 3
+
+ .b8 8
+
+ .b8 58
+
+ .b8 6
+
+ .b8 59
+
+ .b8 6
+
+ .b8 73
+
+ .b8 19
+
+ .b8 63
+
+ .b8 12
+
+ .b8 17
+
+ .b8 1
+
+ .b8 18
+
+ .b8 1
+
+ .b8 64
+
+ .b8 10
+
+ .b8 0
+
+ .b8 0
+
+ .b8 21
+
+ .b8 52
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 73
+
+ .b8 19
+
+ .b8 2
+
+ .b8 10
+
+ .b8 51
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 22
+
+ .b8 52
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 58
+
+ .b8 6
+
+ .b8 59
+
+ .b8 6
+
+ .b8 73
+
+ .b8 19
+
+ .b8 2
+
+ .b8 6
+
+ .b8 0
+
+ .b8 0
+
+ .b8 23
+
+ .b8 5
+
+ .b8 0
+
+ .b8 49
+
+ .b8 19
+
+ .b8 2
+
+ .b8 10
+
+ .b8 51
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 24
+
+ .b8 5
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 73
+
+ .b8 19
+
+ .b8 2
+
+ .b8 10
+
+ .b8 51
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 25
+
+ .b8 46
+
+ .b8 1
+
+ .b8 135
+ .b8 64
+
+ .b8 8
+
+ .b8 3
+
+ .b8 8
+
+ .b8 58
+
+ .b8 6
+
+ .b8 59
+
+ .b8 6
+
+ .b8 73
+
+ .b8 19
+
+ .b8 32
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 26
+
+ .b8 5
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 73
+
+ .b8 19
+
+ .b8 0
+
+ .b8 0
+
+ .b8 27
+
+ .b8 5
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 58
+
+ .b8 6
+
+ .b8 59
+
+ .b8 6
+
+ .b8 73
+
+ .b8 19
+
+ .b8 0
+
+ .b8 0
+
+ .b8 28
+
+ .b8 5
+
+ .b8 0
+
+ .b8 73
+
+ .b8 19
+
+ .b8 2
+
+ .b8 10
+
+ .b8 51
+
+ .b8 11
+
+ .b8 0
+
+ .b8 0
+
+ .b8 29
+
+ .b8 11
+
+ .b8 1
+
+ .b8 0
+
+ .b8 0
+
+ .b8 30
+
+ .b8 52
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 73
+
+ .b8 19
+
+ .b8 0
+
+ .b8 0
+
+ .b8 31
+
+ .b8 52
+
+ .b8 0
+
+ .b8 3
+
+ .b8 8
+
+ .b8 58
+
+ .b8 6
+
+ .b8 59
+
+ .b8 6
+
+ .b8 73
+
+ .b8 19
+
+ .b8 0
+
+ .b8 0
+
+ .b8 0
+
+}
+.section .debug_loc {
+ .b64 tmp31
+ .b64 tmp32
+ .b8 5
+ .b8 0
+ .b8 144
+ .b8 177
+ .b8 204
+ .b8 149
+ .b8 1
+ .b64 tmp32
+ .b64 tmp35
+ .b8 7
+ .b8 0
+ .b8 144
+ .b8 182
+ .b8 232
+ .b8 196
+ .b8 177
+ .b8 214
+ .b8 4
+ .b64 tmp35
+ .b64 tmp36
+ .b8 5
+ .b8 0
+ .b8 144
+ .b8 178
+ .b8 204
+ .b8 149
+ .b8 1
+ .b64 tmp36
+ .b64 tmp37
+ .b8 7
+ .b8 0
+ .b8 144
+ .b8 182
+ .b8 232
+ .b8 196
+ .b8 177
+ .b8 214
+ .b8 4
+ .b64 tmp37
+ .b64 func_end2
+ .b8 5
+ .b8 0
+ .b8 144
+ .b8 179
+ .b8 204
+ .b8 149
+ .b8 1
+ .b64 0
+ .b64 0
+}
+.section .debug_ranges {
+}
+.section .debug_pubnames {
+ .b32 717
+ .b8 2
+ .b8 0
+ .b32 .debug_info
+ .b32 9422
+ .b32 4331
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 54
+ .b8 53
+ .b8 95
+ .b8 73
+ .b8 78
+ .b8 84
+ .b8 69
+ .b8 82
+ .b8 78
+ .b8 65
+ .b8 76
+ .b8 95
+ .b8 52
+ .b8 51
+ .b8 95
+ .b8 116
+ .b8 109
+ .b8 112
+ .b8 120
+ .b8 102
+ .b8 116
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 52
+ .b8 51
+ .b8 52
+ .b8 56
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 95
+ .b8 55
+ .b8 95
+ .b8 103
+ .b8 101
+ .b8 111
+ .b8 109
+ .b8 101
+ .b8 116
+ .b8 114
+ .b8 121
+ .b8 95
+ .b8 99
+ .b8 112
+ .b8 112
+ .b8 49
+ .b8 95
+ .b8 105
+ .b8 105
+ .b8 95
+ .b8 57
+ .b8 101
+ .b8 55
+ .b8 52
+ .b8 49
+ .b8 54
+ .b8 102
+ .b8 98
+ .b8 49
+ .b8 49
+ .b8 109
+ .b8 97
+ .b8 107
+ .b8 101
+ .b8 95
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 69
+ .b8 102
+ .b8 102
+ .b8 102
+ .b8 0
+
+ .b32 7343
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 67
+ .b8 49
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 0
+
+ .b32 7482
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 67
+ .b8 50
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 0
+
+ .b32 8997
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 109
+ .b8 105
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+ .b8 0
+
+ .b32 8337
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 75
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 56
+ .b8 99
+ .b8 111
+ .b8 110
+ .b8 116
+ .b8 97
+ .b8 105
+ .b8 110
+ .b8 115
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 0
+
+ .b32 9183
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 51
+ .b8 100
+ .b8 111
+ .b8 116
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+ .b8 0
+
+ .b32 9092
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 109
+ .b8 108
+ .b8 69
+ .b8 102
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 0
+
+ .b32 8902
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 112
+ .b8 108
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+ .b8 0
+
+ .b32 8162
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 52
+ .b8 65
+ .b8 97
+ .b8 98
+ .b8 98
+ .b8 51
+ .b8 115
+ .b8 101
+ .b8 116
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 83
+ .b8 51
+ .b8 95
+ .b8 0
+
+ .b32 4651
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 54
+ .b8 53
+ .b8 95
+ .b8 73
+ .b8 78
+ .b8 84
+ .b8 69
+ .b8 82
+ .b8 78
+ .b8 65
+ .b8 76
+ .b8 95
+ .b8 52
+ .b8 51
+ .b8 95
+ .b8 116
+ .b8 109
+ .b8 112
+ .b8 120
+ .b8 102
+ .b8 116
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 52
+ .b8 51
+ .b8 52
+ .b8 56
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 95
+ .b8 55
+ .b8 95
+ .b8 103
+ .b8 101
+ .b8 111
+ .b8 109
+ .b8 101
+ .b8 116
+ .b8 114
+ .b8 121
+ .b8 95
+ .b8 99
+ .b8 112
+ .b8 112
+ .b8 49
+ .b8 95
+ .b8 105
+ .b8 105
+ .b8 95
+ .b8 57
+ .b8 101
+ .b8 55
+ .b8 52
+ .b8 49
+ .b8 54
+ .b8 102
+ .b8 98
+ .b8 56
+ .b8 114
+ .b8 116
+ .b8 80
+ .b8 114
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 102
+ .b8 69
+ .b8 80
+ .b8 75
+ .b8 99
+ .b8 0
+
+ .b32 6329
+ .b8 95
+ .b8 90
+ .b8 49
+ .b8 49
+ .b8 98
+ .b8 111
+ .b8 117
+ .b8 110
+ .b8 100
+ .b8 105
+ .b8 110
+ .b8 103
+ .b8 98
+ .b8 111
+ .b8 120
+ .b8 105
+ .b8 80
+ .b8 102
+ .b8 0
+
+ .b32 8470
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 54
+ .b8 53
+ .b8 95
+ .b8 73
+ .b8 78
+ .b8 84
+ .b8 69
+ .b8 82
+ .b8 78
+ .b8 65
+ .b8 76
+ .b8 95
+ .b8 52
+ .b8 51
+ .b8 95
+ .b8 116
+ .b8 109
+ .b8 112
+ .b8 120
+ .b8 102
+ .b8 116
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 52
+ .b8 51
+ .b8 52
+ .b8 56
+ .b8 95
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 48
+ .b8 95
+ .b8 55
+ .b8 95
+ .b8 103
+ .b8 101
+ .b8 111
+ .b8 109
+ .b8 101
+ .b8 116
+ .b8 114
+ .b8 121
+ .b8 95
+ .b8 99
+ .b8 112
+ .b8 112
+ .b8 49
+ .b8 95
+ .b8 105
+ .b8 105
+ .b8 95
+ .b8 57
+ .b8 101
+ .b8 55
+ .b8 52
+ .b8 49
+ .b8 54
+ .b8 102
+ .b8 98
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 49
+ .b8 53
+ .b8 114
+ .b8 116
+ .b8 95
+ .b8 112
+ .b8 114
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 95
+ .b8 97
+ .b8 99
+ .b8 116
+ .b8 105
+ .b8 118
+ .b8 101
+ .b8 69
+ .b8 118
+ .b8 0
+
+ .b32 8696
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 53
+ .b8 102
+ .b8 109
+ .b8 105
+ .b8 110
+ .b8 102
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+ .b8 0
+
+ .b32 8799
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 53
+ .b8 102
+ .b8 109
+ .b8 97
+ .b8 120
+ .b8 102
+ .b8 69
+ .b8 82
+ .b8 75
+ .b8 54
+ .b8 102
+ .b8 108
+ .b8 111
+ .b8 97
+ .b8 116
+ .b8 51
+ .b8 83
+ .b8 50
+ .b8 95
+ .b8 0
+
+ .b32 4936
+ .b8 95
+ .b8 90
+ .b8 49
+ .b8 50
+ .b8 105
+ .b8 110
+ .b8 116
+ .b8 101
+ .b8 114
+ .b8 115
+ .b8 101
+ .b8 99
+ .b8 116
+ .b8 105
+ .b8 111
+ .b8 110
+ .b8 105
+ .b8 0
+
+ .b32 7164
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 51
+ .b8 82
+ .b8 97
+ .b8 121
+ .b8 67
+ .b8 49
+ .b8 69
+ .b8 118
+ .b8 0
+
+ .b32 7256
+ .b8 95
+ .b8 90
+ .b8 78
+ .b8 53
+ .b8 111
+ .b8 112
+ .b8 116
+ .b8 105
+ .b8 120
+ .b8 51
+ .b8 82
+ .b8 97
+ .b8 121
+ .b8 67
+ .b8 50
+ .b8 69
+ .b8 118
+ .b8 0
+
+ .b32 0
+}

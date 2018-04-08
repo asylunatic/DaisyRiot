@@ -40,13 +40,14 @@ struct Vertex {
 	glm::vec3 pos;
 	glm::vec3 normal;
 };
-std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) }, 
-									{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) }};
+std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
+{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
 
 RTcontext context;
 optix::Context contextH;
 optix::prime::Context contextP;
 optix::prime::Model model;
+std::vector<float> hits;
 
 glm::vec3 rgb2hsv(glm::vec3 in)
 {
@@ -157,7 +158,7 @@ void initOptix(std::vector<Vertex> &vertices) {
 	//initializing context -> holds all programs and variables
 	contextH = optix::Context::create();
 	context = contextH->get();
-	
+
 	//enable printf shit
 	rtContextSetPrintEnabled(context, 1);
 	rtContextSetPrintBufferSize(context, 4096);
@@ -186,12 +187,20 @@ void initOptix(std::vector<Vertex> &vertices) {
 	}
 	rtBufferUnmap(buffer);
 
-	optix::Geometry geometryH = contextH -> createGeometry();
+	optix::Geometry geometryH = contextH->createGeometry();
 	optix::Material materialH = contextH->createMaterial();
 	optix::GeometryInstance geometryInstanceH = contextH->createGeometryInstance();
 	optix::GeometryGroup geometryGroupH = contextH->createGeometryGroup();
-	
-	optix::Program intersection = contextH->createProgramFromPTXFile("ptx\\geometry.ptx", "intersection");
+
+	optix::Program intersection;
+	try {
+		intersection = contextH->createProgramFromPTXFile("ptx\\geometry.ptx", "intersection");
+	}
+	catch (optix::Exception e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
+	}
 	intersection->validate();
 
 	optix::Program boundingbox = contextH->createProgramFromPTXFile("ptx\\geometry.ptx", "boundingbox");
@@ -218,7 +227,7 @@ void initOptix(std::vector<Vertex> &vertices) {
 
 void initOptixPrime(std::vector<Vertex> &vertices) {
 	contextP = optix::prime::Context::create(RTP_CONTEXT_TYPE_CUDA);
-	optix::prime::BufferDesc buffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_VERTEX_FLOAT3, RTP_BUFFER_TYPE_HOST, &vertices);
+	optix::prime::BufferDesc buffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_VERTEX_FLOAT3, RTP_BUFFER_TYPE_HOST, vertices.data());
 	buffer->setRange(1, vertices.size());
 	buffer->setStride(sizeof(Vertex));
 	model = contextP->createModel();
@@ -229,8 +238,8 @@ void initOptixPrime(std::vector<Vertex> &vertices) {
 	}
 	catch (optix::prime::Exception &e) {
 		std::cerr << "An error occurred with error code "
-		<< e.getErrorCode() << " and message "
-		<< e.getErrorString() << std::endl;
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
 	}
 }
 
@@ -238,15 +247,29 @@ void doOptix(double xpos, double ypos) {
 
 	contextH["mousePos"]->setFloat((float)xpos, (float)ypos);
 
-	rtContextLaunch1D(context, 0, 1);
+	//rtContextLaunch1D(context, 0, 1);
+	contextH->launch(0, 1);
 }
 
 void doOptixPrime(double xpos, double ypos) {
+	hits.resize(WIDTH*HEIGHT);
+	optix::float3 origin = optix::make_float3(0.0f, 0.0f, -7.0f);
+	optix::float3 upperLeftCorner = optix::make_float3(3.0f, 3.0f, -3.0f);
+	float step = 6.0f / 100.0f;
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-	std::vector<optix::float3> rays = { optix::make_float3(xpos, ypos, -10), optix::make_float3(0, 0, 1) };
-	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION,RTP_BUFFER_TYPE_HOST, &rays);
-	std::vector<float> hits;
-	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T, RTP_BUFFER_TYPE_HOST, &hits);
+	std::vector<optix::float3> rays;
+	rays.resize(WIDTH*HEIGHT * 2);
+	for (size_t j = 0; j < HEIGHT; j++) {
+		for (size_t i = 0; i < WIDTH; i++) {
+			rays[(j*HEIGHT + i) * 2] = origin;
+			rays[((j*HEIGHT + i) * 2) + 1] = optix::normalize(upperLeftCorner - optix::make_float3(i*6.0f/WIDTH, j*6.0f/HEIGHT, 0) - origin);
+		}
+
+	}
+	query->setRays(WIDTH*HEIGHT, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T, RTP_BUFFER_TYPE_HOST, hits.data());
+	hitBuffer->setRange(0, WIDTH*HEIGHT);
+	query->setHits(hitBuffer);
 	try{
 		query->execute(RTP_QUERY_HINT_NONE);
 	}
@@ -255,8 +278,15 @@ void doOptixPrime(double xpos, double ypos) {
 			<< e.getErrorCode() << " and message "
 			<< e.getErrorString() << std::endl;
 	}
-	if (hits[0] != 0) printf("hit! %f", hits[0]);
-	else printf("miss!");
+	query->finish();
+	for (size_t j = 0; j < HEIGHT; j++) {
+		printf("\n");
+		for (size_t i = 0; i < WIDTH; i++) {
+			int hit = (hits[(j*HEIGHT + i)]>0) ? 1 : 0;
+			printf("%u", hit);
+		}
+
+	}
 }
 
 // Helper function to read a file like a shader
@@ -282,9 +312,10 @@ bool checkShaderErrors(GLuint shader) {
 		glGetShaderInfoLog(shader, logLength, nullptr, logBuffer.data());
 
 		std::cerr << logBuffer.data() << std::endl;
-		
+
 		return false;
-	} else {
+	}
+	else {
 		return true;
 	}
 }
@@ -303,9 +334,10 @@ bool checkProgramErrors(GLuint program) {
 		glGetProgramInfoLog(program, logLength, nullptr, logBuffer.data());
 
 		std::cerr << logBuffer.data() << std::endl;
-		
+
 		return false;
-	} else {
+	}
+	else {
 		return true;
 	}
 }
@@ -359,16 +391,16 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
-		xpos = xpos*2/WIDTH - 1;
-		ypos = 1 - ypos*2/HEIGHT;
+		xpos = xpos * 2 / WIDTH - 1;
+		ypos = 1 - ypos * 2 / HEIGHT;
 		printf("click!: %f %f", xpos, ypos);
 		/*if (debugline.at(0).pos.x == 0.0){
 			debugline.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
 			debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
-		}
-		else debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };*/
-		doOptixPrime(xpos, ypos);
-
+			}
+			else debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };*/
+		//doOptix(xpos, ypos);
+		doOptixPrime(0, 0);
 	}
 
 
@@ -376,7 +408,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo) {
-	glUseProgram(debugprogram); 
+	glUseProgram(debugprogram);
 	glBindVertexArray(linevao);
 	// vao will get info from linevbo now
 	glBindBuffer(GL_ARRAY_BUFFER, linevbo);
@@ -406,7 +438,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "X-Toon shader", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "X-Toon shader", nullptr, nullptr);
 	if (!window) {
 		std::cerr << "Failed to create OpenGL context!" << std::endl;
 		return EXIT_FAILURE;
@@ -549,7 +581,8 @@ int main() {
 
 	//optix stuff
 	initOptixPrime(vertices);
-	
+	//initOptix(vertices);
+
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
@@ -604,9 +637,9 @@ int main() {
 	// Cleanup
 	stbi_image_free(pixels);
 
-    glfwDestroyWindow(window);
-	
+	glfwDestroyWindow(window);
+
 	glfwTerminate();
 
-    return 0;
+	return 0;
 }
