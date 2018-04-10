@@ -48,6 +48,7 @@ optix::Context contextH;
 optix::prime::Context contextP;
 optix::prime::Model model;
 std::vector<float> hits;
+bool left = true; 
 
 glm::vec3 rgb2hsv(glm::vec3 in)
 {
@@ -152,6 +153,74 @@ glm::vec3 hsv2rgb(glm::vec3 in)
 	return out;
 }
 
+// Helper function to read a file like a shader
+std::string readFile(const std::string& path) {
+	std::ifstream file(path, std::ios::binary);
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	std::string R = buffer.str();
+	return R;
+}
+
+bool checkShaderErrors(GLuint shader) {
+	// Check if the shader compiled successfully
+	GLint compileSuccessful;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compileSuccessful);
+
+	// If it didn't, then read and print the compile log
+	if (!compileSuccessful) {
+		GLint logLength;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+
+		std::vector<GLchar> logBuffer(logLength);
+		glGetShaderInfoLog(shader, logLength, nullptr, logBuffer.data());
+
+		std::cerr << logBuffer.data() << std::endl;
+
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+bool checkProgramErrors(GLuint program) {
+	// Check if the program linked successfully
+	GLint linkSuccessful;
+	glGetProgramiv(program, GL_LINK_STATUS, &linkSuccessful);
+
+	// If it didn't, then read and print the link log
+	if (!linkSuccessful) {
+		GLint logLength;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+
+		std::vector<GLchar> logBuffer(logLength);
+		glGetProgramInfoLog(program, logLength, nullptr, logBuffer.data());
+
+		std::cerr << logBuffer.data() << std::endl;
+
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+void loadShader(GLuint &shader, std::string name, GLenum shaderType) {
+	// Load and compile shader
+	std::string shaderCode = readFile(name);
+	const char* shaderCodePtr = shaderCode.data();
+
+	shader = glCreateShader(shaderType);
+	glShaderSource(shader, 1, &shaderCodePtr, nullptr);
+	glCompileShader(shader);
+
+	if (!checkShaderErrors(shader)) {
+		std::cerr << "Shader(s) failed to compile!" << std::endl;
+		//return EXIT_FAILURE;
+	}
+}
+
 void initOptix(std::vector<Vertex> &vertices) {
 
 	/* *******************************************************OPTIX******************************************************* */
@@ -225,6 +294,14 @@ void initOptix(std::vector<Vertex> &vertices) {
 
 }
 
+void doOptix(double xpos, double ypos) {
+
+	contextH["mousePos"]->setFloat((float)xpos, (float)ypos);
+
+	//rtContextLaunch1D(context, 0, 1);
+	contextH->launch(0, 1);
+}
+
 void initOptixPrime(std::vector<Vertex> &vertices) {
 	contextP = optix::prime::Context::create(RTP_CONTEXT_TYPE_CUDA);
 	optix::prime::BufferDesc buffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_VERTEX_FLOAT3, RTP_BUFFER_TYPE_HOST, vertices.data());
@@ -241,14 +318,6 @@ void initOptixPrime(std::vector<Vertex> &vertices) {
 			<< e.getErrorCode() << " and message "
 			<< e.getErrorString() << std::endl;
 	}
-}
-
-void doOptix(double xpos, double ypos) {
-
-	contextH["mousePos"]->setFloat((float)xpos, (float)ypos);
-
-	//rtContextLaunch1D(context, 0, 1);
-	contextH->launch(0, 1);
 }
 
 void doOptixPrime(double xpos, double ypos) {
@@ -280,73 +349,32 @@ void doOptixPrime(double xpos, double ypos) {
 	}
 	query->finish();
 	for (size_t j = 0; j < HEIGHT; j++) {
-		printf("\n");
 		for (size_t i = 0; i < WIDTH; i++) {
-			int hit = (hits[(j*HEIGHT + i)]>0) ? 1 : 0;
-			printf("%u", hit);
+			hits[(j*HEIGHT + i)] = (hits[(j*HEIGHT + i)]>0) ? 1.0f : 0.0f;
 		}
 
 	}
 }
 
-// Helper function to read a file like a shader
-std::string readFile(const std::string& path) {
-	std::ifstream file(path, std::ios::binary);
-	std::stringstream buffer;
-	buffer << file.rdbuf();
-	std::string R = buffer.str();
-	return R;
-}
-
-bool checkShaderErrors(GLuint shader) {
-	// Check if the shader compiled successfully
-	GLint compileSuccessful;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &compileSuccessful);
-
-	// If it didn't, then read and print the compile log
-	if (!compileSuccessful) {
-		GLint logLength;
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
-
-		std::vector<GLchar> logBuffer(logLength);
-		glGetShaderInfoLog(shader, logLength, nullptr, logBuffer.data());
-
-		std::cerr << logBuffer.data() << std::endl;
-
-		return false;
+void intersectMouse(double xpos, double ypos) {
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_ANY);
+	std::vector<optix::float3> ray = { optix::make_float3(xpos, ypos, -7), optix::make_float3(0, 0, 1) };
+	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
+	std::vector<float> hit;
+	hit.resize(1);
+	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T, RTP_BUFFER_TYPE_HOST, hit.data());
+	try{
+		query->execute(RTP_QUERY_HINT_NONE);
 	}
-	else {
-		return true;
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
 	}
-}
+	query->finish();
+	if (hit[0] > 0) printf("hit!");
+	else printf("miss!");
 
-bool checkProgramErrors(GLuint program) {
-	// Check if the program linked successfully
-	GLint linkSuccessful;
-	glGetProgramiv(program, GL_LINK_STATUS, &linkSuccessful);
-
-	// If it didn't, then read and print the link log
-	if (!linkSuccessful) {
-		GLint logLength;
-		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
-
-		std::vector<GLchar> logBuffer(logLength);
-		glGetProgramInfoLog(program, logLength, nullptr, logBuffer.data());
-
-		std::cerr << logBuffer.data() << std::endl;
-
-		return false;
-	}
-	else {
-		return true;
-	}
-}
-
-// OpenGL debug callback
-void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-	if (severity != GL_DEBUG_SEVERITY_NOTIFICATION) {
-		std::cerr << "OpenGL: " << message << std::endl;
-	}
 }
 
 void debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram) {
@@ -356,53 +384,17 @@ void debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram) {
 	// creating vertexbuffer for the vao
 	glGenBuffers(1, &linevbo);
 
-	// Load and compile vertex shader
-	std::string vertexShaderCode = readFile("debugshader.vert");
-	const char* vertexShaderCodePtr = vertexShaderCode.data();
+	GLuint vertexShader;
+	loadShader(vertexShader, "debugshader.vert", GL_VERTEX_SHADER);
 
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
-	glCompileShader(vertexShader);
-
-	// Load and compile fragment shader
-	std::string fragmentShaderCode = readFile("shader.frag");
-	const char* fragmentShaderCodePtr = fragmentShaderCode.data();
-
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
-	glCompileShader(fragmentShader);
-
-	if (!checkShaderErrors(vertexShader) || !checkShaderErrors(fragmentShader)) {
-		std::cerr << "Shader(s) failed to compile!" << std::endl;
-		return;
-	}
+	GLuint fragmentShader;
+	loadShader(fragmentShader, "shader.frag", GL_FRAGMENT_SHADER);
 
 	// Combine vertex and fragment shaders into single shader program
 	shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
-
-
-}
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		double xpos, ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);
-		xpos = xpos * 2 / WIDTH - 1;
-		ypos = 1 - ypos * 2 / HEIGHT;
-		printf("click!: %f %f", xpos, ypos);
-		/*if (debugline.at(0).pos.x == 0.0){
-			debugline.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
-			debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
-			}
-			else debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };*/
-		//doOptix(xpos, ypos);
-		doOptixPrime(0, 0);
-	}
-
 
 
 }
@@ -423,6 +415,227 @@ void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo) {
 	glEnableVertexAttribArray(1);
 	glDrawArrays(GL_LINES, 0, 2);
 }
+
+// OpenGL debug callback
+void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+	if (severity != GL_DEBUG_SEVERITY_NOTIFICATION) {
+		std::cerr << "OpenGL: " << message << std::endl;
+	}
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		xpos = xpos * 2 / WIDTH - 1;
+		ypos = 1 - ypos * 2 / HEIGHT;
+		printf("click!: %f %f", xpos, ypos);
+		if (left){
+			debugline.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+			left = false;
+			}
+		else {
+			debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
+			left = true;
+		}
+		intersectMouse(xpos, ypos);
+		//doOptix(xpos, ypos);
+		//doOptixPrime(0, 0);
+	}
+
+
+
+}
+
+void drawRegular(GLuint &shaderProgram, GLuint &vao, std::vector<Vertex> &vertices) {
+	// Bind the shader
+	glUseProgram(shaderProgram);
+
+	// Set model/view/projection matrix
+	glm::vec3 viewPos = glm::vec3(0.0f, 0.0f, -7.0f);
+	glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
+
+	glm::mat4 view = glm::lookAt(viewPos, glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 proj = glm::perspective(45.0f, WIDTH / static_cast<float>(HEIGHT), 0.1f, 10.0f);
+	glm::mat4 model = glm::mat4();
+	glm::mat4 mvp = proj * view * model;
+
+	glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
+
+	// Set view position
+	GLint loc = glGetUniformLocation(shaderProgram, "viewPos");
+	glUniform3fv(loc, 1, glm::value_ptr(viewPos));
+
+	// Expose current time in shader uniform
+	loc = glGetUniformLocation(shaderProgram, "time");
+	glUniform1f(loc, static_cast<float>(glfwGetTime()));
+
+	// setLightPosition
+	loc = glGetUniformLocation(shaderProgram, "lightPos");
+	glUniform3fv(loc, 1, glm::value_ptr(lightPos));
+
+	// upload texture coordinates
+	loc = glGetUniformLocation(shaderProgram, "texToon");
+	glUniform1i(loc, 0);
+
+	// Bind vertex data
+	glBindVertexArray(vao);
+	// Execute draw command
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+}
+
+void initRegular(GLuint &shaderProgram, GLuint &vao, std::vector<Vertex> &vertices, stbi_uc* &pixels) {
+
+	GLuint vertexShader;
+	loadShader(vertexShader, "shader.vert", GL_VERTEX_SHADER);
+
+	GLuint fragmentShader;
+	loadShader(fragmentShader, "shader.frag", GL_FRAGMENT_SHADER);
+
+	// Combine vertex and fragment shaders into single shader program
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+
+	if (!checkProgramErrors(shaderProgram)) {
+		std::cerr << "Program failed to link!" << std::endl;
+		//return EXIT_FAILURE;
+	}
+
+	// Create Vertex Buffer Object
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	//bind it as (possible) source for the vao
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	//insert data into the current array_buffer: the vbo
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+
+	// Bind vertex data to shader inputs using their index (location)
+	// These bindings are stored in the Vertex Array Object
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
+	// Stride is the distance in bytes between vertices
+	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
+	glEnableVertexAttribArray(0);
+
+	// The normals should be retrieved from the same Vertex Buffer Object (glBindBuffer is optional)
+	// The offset is different and the data should go to input 1 instead of 0
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+	glEnableVertexAttribArray(1);
+
+	// Load image
+	int width, height, channels;
+	pixels = stbi_load("toon_map.png", &width, &height, &channels, 3);
+
+	// Create Texture
+	// everything will now be done in GL_TEXTURE0
+	glActiveTexture(GL_TEXTURE0);
+	GLuint texToon;
+	glGenTextures(1, &texToon);
+	glBindTexture(GL_TEXTURE_2D, texToon);
+
+	// Upload pixels into texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+
+	// Set behaviour for when texture coordinates are outside the [0, 1] range
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// Set interpolation for texture sampling (GL_NEAREST for no interpolation)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// Enable depth testing
+	glEnable(GL_DEPTH_TEST);
+
+}
+
+void initRes(GLuint &shaderProgram, GLuint &vao, GLuint &texToon) {
+	GLuint vertexShader;
+	loadShader(vertexShader, "optixShader.vert", GL_VERTEX_SHADER);
+
+	GLuint fragmentShader;
+	loadShader(fragmentShader, "optixShader.frag", GL_FRAGMENT_SHADER);
+
+	// Combine vertex and fragment shaders into single shader program
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+
+
+	if (!checkProgramErrors(shaderProgram)) {
+		std::cerr << "Program failed to link!" << std::endl;
+		//return EXIT_FAILURE;
+	}
+
+	// Create Vertex Buffer Object
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	//bind it as (possible) source for the vao
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	//insert data into the current array_buffer: the vbo
+	std::vector<glm::vec3> quad = { glm::vec3(-1, 1, -1), glm::vec3(1, 1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, -1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, 1, -1) };
+	glBufferData(GL_ARRAY_BUFFER, quad.size() * sizeof(glm::vec3), quad.data(), GL_STATIC_DRAW);
+
+	// Bind vertex data to shader inputs using their index (location)
+	// These bindings are stored in the Vertex Array Object
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
+	// Stride is the distance in bytes between vertices
+	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// Create Texture
+	// everything will now be done in GL_TEXTURE1
+	glActiveTexture(GL_TEXTURE1);
+	glGenTextures(1, &texToon);
+	glBindTexture(GL_TEXTURE_2D, texToon);
+
+	// Upload pixels into texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WIDTH, HEIGHT, 0, GL_RED, GL_FLOAT, hits.data());
+
+	// Set behaviour for when texture coordinates are outside the [0, 1] range
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// Set interpolation for texture sampling (GL_NEAREST for no interpolation)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// Enable depth testing
+	glEnable(GL_DEPTH_TEST);
+
+}
+
+void drawRes(GLuint &shaderProgram, GLuint &vao, GLuint &texToon) {
+	// Bind the shader
+	glUseProgram(shaderProgram);
+	GLuint loc; 
+
+	// upload texture coordinates
+	loc = glGetUniformLocation(shaderProgram, "texToon");
+	glUniform1i(loc, 1);
+
+	// Bind vertex data
+	glBindVertexArray(vao);
+	// Execute draw command
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+}
+
 
 
 int main() {
@@ -454,38 +667,6 @@ int main() {
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(debugCallback, nullptr);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
-
-	// Load and compile vertex shader
-	std::string vertexShaderCode = readFile("shader.vert");
-	const char* vertexShaderCodePtr = vertexShaderCode.data();
-
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderCodePtr, nullptr);
-	glCompileShader(vertexShader);
-
-	// Load and compile fragment shader
-	std::string fragmentShaderCode = readFile("shader.frag");
-	const char* fragmentShaderCodePtr = fragmentShaderCode.data();
-
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderCodePtr, nullptr);
-	glCompileShader(fragmentShader);
-
-	if (!checkShaderErrors(vertexShader) || !checkShaderErrors(fragmentShader)) {
-		std::cerr << "Shader(s) failed to compile!" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	// Combine vertex and fragment shaders into single shader program
-	GLuint shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	if (!checkProgramErrors(shaderProgram)) {
-		std::cerr << "Program failed to link!" << std::endl;
-		return EXIT_FAILURE;
-	}
 
 	// Load vertices of model
 	tinyobj::attrib_t attrib;
@@ -522,66 +703,22 @@ int main() {
 			vertices.push_back(vertex);
 		}
 	}
+	//initializing optix
+	initOptixPrime(vertices);
 
-	// Create Vertex Buffer Object
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	//bind it as (possible) source for the vao
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	//insert data into the current array_buffer: the vbo
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
+	//initializing regular drawings
+	//GLuint vao, shaderProgram;
+	//stbi_uc* pixels;
+	//initRegular(shaderProgram, vao, vertices, pixels);
 
-	// Bind vertex data to shader inputs using their index (location)
-	// These bindings are stored in the Vertex Array Object
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
-	// Stride is the distance in bytes between vertices
-	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
-	glEnableVertexAttribArray(0);
-
-	// The normals should be retrieved from the same Vertex Buffer Object (glBindBuffer is optional)
-	// The offset is different and the data should go to input 1 instead of 0
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
-	glEnableVertexAttribArray(1);
-
-	// Load image
-	int width, height, channels;
-	stbi_uc* pixels = stbi_load("toon_map.png", &width, &height, &channels, 3);
-
-	// Create Texture
-	// everything will now be done in GL_TEXTURE0
-	glActiveTexture(GL_TEXTURE0);
-	GLuint texToon;
-	glGenTextures(1, &texToon);
-	glBindTexture(GL_TEXTURE_2D, texToon);
-
-	// Upload pixels into texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-
-	// Set behaviour for when texture coordinates are outside the [0, 1] range
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	// Set interpolation for texture sampling (GL_NEAREST for no interpolation)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// Enable depth testing
-	glEnable(GL_DEPTH_TEST);
+	//initializing result optix drawing
+	GLuint optixVao, optixShader, optixTex;
+	doOptixPrime(0, 0);
+	initRes(optixShader, optixVao, optixTex);
 
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
 	debuglineInit(linevao, linevbo, debugprogram);
-
-	//optix stuff
-	initOptixPrime(vertices);
-	//initOptix(vertices);
 
 
 	// Main loop
@@ -592,40 +729,8 @@ int main() {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Bind the shader
-		glUseProgram(shaderProgram);
-
-		// Set model/view/projection matrix
-		glm::vec3 viewPos = glm::vec3(-0.8f, 0.7f, -10.0f);
-		glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
-
-		glm::mat4 view = glm::lookAt(viewPos, glm::vec3(0.0f, -0.05f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 proj = glm::perspective(45.0f, WIDTH / static_cast<float>(HEIGHT), 0.1f, 10.0f);
-		glm::mat4 model = glm::mat4();
-		glm::mat4 mvp = proj * view * model;
-
-		glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
-
-		// Set view position
-		GLint loc = glGetUniformLocation(shaderProgram, "viewPos");
-		glUniform3fv(loc, 1, glm::value_ptr(viewPos));
-
-		// Expose current time in shader uniform
-		loc = glGetUniformLocation(shaderProgram, "time");
-		glUniform1f(loc, static_cast<float>(glfwGetTime()));
-
-		// setLightPosition
-		loc = glGetUniformLocation(shaderProgram, "lightPos");
-		glUniform3fv(loc, 1, glm::value_ptr(lightPos));
-
-		// upload texture coordinates
-		loc = glGetUniformLocation(shaderProgram, "texToon");
-		glUniform1i(loc, 0);
-
-		// Bind vertex data
-		glBindVertexArray(vao);
-		// Execute draw command
-		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+		//drawRegular(shaderProgram, vao, vertices);
+		drawRes(optixShader, optixVao, optixTex);
 
 		//DRAWING DEBUGLINE
 		debuglineDraw(debugprogram, linevao, linevbo);
@@ -635,7 +740,8 @@ int main() {
 	}
 
 	// Cleanup
-	stbi_image_free(pixels);
+	//stbi_image_free(pixels);
+
 
 	glfwDestroyWindow(window);
 
