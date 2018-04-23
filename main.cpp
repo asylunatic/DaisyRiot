@@ -306,7 +306,7 @@ void doOptix(double xpos, double ypos) {
 void initOptixPrime(std::vector<Vertex> &vertices) {
 	contextP = optix::prime::Context::create(RTP_CONTEXT_TYPE_CUDA);
 	optix::prime::BufferDesc buffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_VERTEX_FLOAT3, RTP_BUFFER_TYPE_HOST, vertices.data());
-	buffer->setRange(1, vertices.size());
+	buffer->setRange(0, vertices.size());
 	buffer->setStride(sizeof(Vertex));
 	model = contextP->createModel();
 	model->setTriangles(buffer);
