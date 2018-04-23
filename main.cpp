@@ -1,4 +1,4 @@
-// Library for OpenGL function loading
+﻿// Library for OpenGL function loading
 // Must be included before GLFW
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -28,12 +28,12 @@
 #include <optix_prime\optix_prime.h>
 #include <optix_prime\optix_prime_declarations.h>
 #include <optix_prime\optix_primepp.h>
+#include "lodepng.h"
 
 
 // Configuration
 const int WIDTH = 800;
 const int HEIGHT = 600;
-
 
 // Per-vertex data
 struct Vertex {
@@ -396,8 +396,6 @@ void debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram) {
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
-
-
 }
 
 void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo) {
@@ -421,6 +419,35 @@ void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo) {
 void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	if (severity != GL_DEBUG_SEVERITY_NOTIFICATION) {
 		std::cerr << "OpenGL: " << message << std::endl;
+	}
+}
+
+const int n = 3 * WIDTH * HEIGHT;
+GLubyte pixels[n];
+
+/*
+Encode from raw pixels to disk with a single function call
+The image argument has width * height RGBA pixels or width * height * 4 bytes
+*/
+void encodeOneStep(const char* filename, unsigned width, unsigned height)
+{
+	//glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_INT​, pixels​);
+	glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+	if (GL_NO_ERROR != glGetError()) throw "Error: Unable to read pixels.";
+
+	/*Encode the image*/
+	unsigned error = lodepng_encode24_file(filename, pixels, width, height);
+
+	/*if there's an error, display it*/
+	if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
+}
+
+// key button callback to print screen
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
+	if (key == GLFW_KEY_P && action == GLFW_PRESS){
+		std::cout << "print" << std::endl;
+		// write png image
+		encodeOneStep("output.png", WIDTH, HEIGHT);
 	}
 }
 
@@ -449,115 +476,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 }
 
-void drawRegular(GLuint &shaderProgram, GLuint &vao, std::vector<Vertex> &vertices) {
-	// Bind the shader
-	glUseProgram(shaderProgram);
-
-	// Set model/view/projection matrix
-	glm::vec3 viewPos = glm::vec3(0.0f, 0.0f, -7.0f);
-	glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 0.0f);
-
-	glm::mat4 view = glm::lookAt(viewPos, glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 proj = glm::perspective(45.0f, WIDTH / static_cast<float>(HEIGHT), 0.1f, 10.0f);
-	glm::mat4 model = glm::mat4();
-	glm::mat4 mvp = proj * view * model;
-
-	glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(mvp));
-
-	// Set view position
-	GLint loc = glGetUniformLocation(shaderProgram, "viewPos");
-	glUniform3fv(loc, 1, glm::value_ptr(viewPos));
-
-	// Expose current time in shader uniform
-	loc = glGetUniformLocation(shaderProgram, "time");
-	glUniform1f(loc, static_cast<float>(glfwGetTime()));
-
-	// setLightPosition
-	loc = glGetUniformLocation(shaderProgram, "lightPos");
-	glUniform3fv(loc, 1, glm::value_ptr(lightPos));
-
-	// upload texture coordinates
-	loc = glGetUniformLocation(shaderProgram, "texToon");
-	glUniform1i(loc, 0);
-
-	// Bind vertex data
-	glBindVertexArray(vao);
-	// Execute draw command
-	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-}
-
-void initRegular(GLuint &shaderProgram, GLuint &vao, std::vector<Vertex> &vertices, stbi_uc* &pixels) {
-
-	GLuint vertexShader;
-	loadShader(vertexShader, "shader.vert", GL_VERTEX_SHADER);
-
-	GLuint fragmentShader;
-	loadShader(fragmentShader, "shader.frag", GL_FRAGMENT_SHADER);
-
-	// Combine vertex and fragment shaders into single shader program
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	if (!checkProgramErrors(shaderProgram)) {
-		std::cerr << "Program failed to link!" << std::endl;
-		//return EXIT_FAILURE;
-	}
-
-	// Create Vertex Buffer Object
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	//bind it as (possible) source for the vao
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	//insert data into the current array_buffer: the vbo
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-
-	// Bind vertex data to shader inputs using their index (location)
-	// These bindings are stored in the Vertex Array Object
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
-	// Stride is the distance in bytes between vertices
-	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
-	glEnableVertexAttribArray(0);
-
-	// The normals should be retrieved from the same Vertex Buffer Object (glBindBuffer is optional)
-	// The offset is different and the data should go to input 1 instead of 0
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
-	glEnableVertexAttribArray(1);
-
-	// Load image
-	int width, height, channels;
-	pixels = stbi_load("toon_map.png", &width, &height, &channels, 3);
-
-	// Create Texture
-	// everything will now be done in GL_TEXTURE0
-	glActiveTexture(GL_TEXTURE0);
-	GLuint texToon;
-	glGenTextures(1, &texToon);
-	glBindTexture(GL_TEXTURE_2D, texToon);
-
-	// Upload pixels into texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-
-	// Set behaviour for when texture coordinates are outside the [0, 1] range
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	// Set interpolation for texture sampling (GL_NEAREST for no interpolation)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// Enable depth testing
-	glEnable(GL_DEPTH_TEST);
-
-}
-
 void initRes(GLuint &shaderProgram, GLuint &vao, GLuint &texToon) {
 	GLuint vertexShader;
 	loadShader(vertexShader, "optixShader.vert", GL_VERTEX_SHADER);
@@ -570,7 +488,6 @@ void initRes(GLuint &shaderProgram, GLuint &vao, GLuint &texToon) {
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
-
 
 	if (!checkProgramErrors(shaderProgram)) {
 		std::cerr << "Program failed to link!" << std::endl;
@@ -614,11 +531,9 @@ void initRes(GLuint &shaderProgram, GLuint &vao, GLuint &texToon) {
 	// Set interpolation for texture sampling (GL_NEAREST for no interpolation)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
 }
 
-void drawRes(GLuint &shaderProgram, GLuint &vao, GLuint &texToon) {
+void drawRes(GLuint &shaderProgram, GLuint &vao) {
 	// Bind the shader
 	glUseProgram(shaderProgram);
 	GLuint loc; 
@@ -631,11 +546,7 @@ void drawRes(GLuint &shaderProgram, GLuint &vao, GLuint &texToon) {
 	glBindVertexArray(vao);
 	// Execute draw command
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-
 }
-
-
 
 int main() {
 	if (!glfwInit()) {
@@ -649,7 +560,6 @@ int main() {
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "X-Toon shader", nullptr, nullptr);
 	if (!window) {
 		std::cerr << "Failed to create OpenGL context!" << std::endl;
@@ -666,13 +576,13 @@ int main() {
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(debugCallback, nullptr);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetKeyCallback(window, key_callback);
 
 	// Load vertices of model
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
-
 	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, "balls.obj")) {
 		std::cerr << err << std::endl;
 		return EXIT_FAILURE;
@@ -705,15 +615,11 @@ int main() {
 	//initializing optix
 	initOptixPrime(vertices);
 
-	//initializing regular drawings
-	//GLuint vao, shaderProgram;
-	//stbi_uc* pixels;
-	//initRegular(shaderProgram, vao, vertices, pixels);
-
 	//initializing result optix drawing
-	GLuint optixVao, optixShader, optixTex;
+	GLuint optixTex, optixVao, optixShader;
 	doOptixPrime(0, 0);
 	initRes(optixShader, optixVao, optixTex);
+	std::cout << optixTex << std::endl;
 
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
@@ -729,18 +635,19 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//drawRegular(shaderProgram, vao, vertices);
-		drawRes(optixShader, optixVao, optixTex);
+		drawRes(optixShader, optixVao);
+		//std::cout << "whatever" << std::endl;
 
 		//DRAWING DEBUGLINE
 		debuglineDraw(debugprogram, linevao, linevbo);
 
 		// Present result to the screen
 		glfwSwapBuffers(window);
+
 	}
 
 	// Cleanup
 	//stbi_image_free(pixels);
-
 
 	glfwDestroyWindow(window);
 
