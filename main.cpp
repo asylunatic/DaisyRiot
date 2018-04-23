@@ -429,6 +429,25 @@ inline bool exists(const std::string& name) {
 	return (stat(name.c_str(), &buffer) == 0);
 }
 
+// helper function to ensure we do not overwrite the same file each time we screenshot
+char* findFilename(const char* filename, const char* extension){
+	std::string temp = filename;
+	temp.append(extension);
+
+	// decide upon suitabe outputname:
+	int i = 0;
+	while (exists(temp)) {
+		temp = filename;
+		temp.append(std::to_string(i));
+		temp.append(extension);
+		i++;
+	}
+	// decide upon name
+	char* name = new char[temp.length() + 1];
+	strcpy(name, temp.c_str());
+	return name;
+}
+
 // making these global is a very elegant solution for the stack overflow 
 // that would inevitably follow when declaring it in the function scope where it actually belongs
 GLubyte encodepixels[3 * WIDTH * HEIGHT];
@@ -442,20 +461,8 @@ void encodeOneStep(const char* filename, const char* extension, unsigned width, 
 	glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, encodepixels);
 	if (GL_NO_ERROR != glGetError()) throw "Error: Unable to read pixels.";
 
-	std::string temp = filename;
-	temp.append(extension);
-
-	// decide upon suitabe outputname:
-	int i = 0;
-	while (exists(temp)) {
-		temp = filename;
-		temp.append(std::to_string(i));
-		temp.append(extension);
-		i++;
-	}
-	// decide upon name
-	char * name = new char[temp.length() + 1];
-	strcpy(name, temp.c_str());
+	// find suitabe outputname
+	char* name = findFilename(filename, extension);
 
 	/*Encode the image*/
 	unsigned error = lodepng_encode24_file(name, encodepixels, width, height);
@@ -469,7 +476,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_P && action == GLFW_PRESS){
 		std::cout << "print" << std::endl;
 		// write png image
-		encodeOneStep("output",".png", WIDTH, HEIGHT);
+		encodeOneStep("screenshots/output",".png", WIDTH, HEIGHT);
 	}
 }
 
