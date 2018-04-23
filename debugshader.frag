@@ -1,8 +1,7 @@
 #version 430
 
 // Global variables for lighting calculations
-uniform sampler2D texToon;
-
+uniform bool hit;
 
 // Output for on-screen color
 layout(location = 0) out vec4 outColor;
@@ -11,12 +10,7 @@ layout(location = 0) out vec4 outColor;
 in vec3 fragPos; // World-space position
 in vec3 fragNormal; // World-space normal
 
-
 void main() {
-	vec2 uv = vec2(fragPos.x, fragPos.y);
-	uv = (uv + vec2(1, 1))/2;
-	uv = vec2(uv.x, uv.y*-1+1);
-	
-	// output
-    outColor = texture(texToon, uv);
+    // Output the normal as color
+    outColor = hit?  vec4(0.0, 1.0, 0.0, 1.0) : vec4(1.0, 0.0, 1.0, 1.0) ;
 }

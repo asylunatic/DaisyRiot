@@ -51,6 +51,8 @@ optix::prime::Model model;
 std::vector<float> hits;
 bool left = true; 
 int optixW = 512, optixH = 512;
+float maxDist = 10;
+bool hitB = false;
 
 glm::vec3 rgb2hsv(glm::vec3 in)
 {
@@ -325,15 +327,14 @@ void initOptixPrime(std::vector<Vertex> &vertices) {
 void doOptixPrime(double xpos, double ypos) {
 	hits.resize(optixW*optixH);
 	optix::float3 origin = optix::make_float3(0.0f, 0.0f, -7.0f);
-	optix::float3 upperLeftCorner = optix::make_float3(3.0f, 3.0f, -3.0f);
-	float step = 6.0f / 512.0f;
+	optix::float3 upperLeftCorner = optix::make_float3(-1.0f, 1.0f, -6.0f);
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 	std::vector<optix::float3> rays;
 	rays.resize(optixW*optixH * 2);
 	for (size_t j = 0; j < optixH; j++) {
 		for (size_t i = 0; i < optixW; i++) {
 			rays[(j*optixH + i) * 2] = origin;
-			rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner - optix::make_float3(i*6.0f/optixW, j*6.0f/optixH, 0) - origin);
+			rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner + optix::make_float3(i*2.0f/optixW, -1.0f*(j*2.0f/optixH), 0) - origin);
 		}
 
 	}
@@ -360,7 +361,7 @@ void doOptixPrime(double xpos, double ypos) {
 
 void intersectMouse(double xpos, double ypos) {
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_ANY);
-	std::vector<optix::float3> ray = { optix::make_float3(0, 0, -7), optix::make_float3(xpos*3.0, ypos*3.0, 1) };
+	std::vector<optix::float3> ray = { optix::make_float3(0, 0, -7.0f), optix::normalize(optix::make_float3(xpos, ypos, -6.0f) - optix::make_float3(0, 0, -7.0f)) };
 	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
 	std::vector<float> hit;
 	hit.resize(1);
@@ -374,23 +375,27 @@ void intersectMouse(double xpos, double ypos) {
 			<< e.getErrorString() << std::endl;
 	}
 	query->finish();
-	if (hit[0] > 0) printf("hit!");
-	else printf("miss!");
+	if (hit[0] > 0) { 
+		printf("hit!");
+		hitB = true;
+	}
+	else {
+		printf("miss!");
+		hitB = false;
+	}
 
 }
 
 void debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram) {
 	// creating vao
 	glGenVertexArrays(1, &linevao);
-
 	// creating vertexbuffer for the vao
 	glGenBuffers(1, &linevbo);
 
 	GLuint vertexShader;
 	loadShader(vertexShader, "debugshader.vert", GL_VERTEX_SHADER);
-
 	GLuint fragmentShader;
-	loadShader(fragmentShader, "shader.frag", GL_FRAGMENT_SHADER);
+	loadShader(fragmentShader, "debugshader.frag", GL_FRAGMENT_SHADER);
 
 	// Combine vertex and fragment shaders into single shader program
 	shaderProgram = glCreateProgram();
@@ -413,6 +418,9 @@ void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo) {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
+
+	GLuint hitLoc = glGetUniformLocation(debugprogram, "hit");
+	glUniform1i(hitLoc, hitB);
 	glDrawArrays(GL_LINES, 0, 2);
 }
 
@@ -663,9 +671,8 @@ int main() {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//drawRegular(shaderProgram, vao, vertices);
+		//Drawing result from optix raytracing!
 		drawRes(optixShader, optixVao);
-		//std::cout << "whatever" << std::endl;
 
 		//DRAWING DEBUGLINE
 		debuglineDraw(debugprogram, linevao, linevbo);
