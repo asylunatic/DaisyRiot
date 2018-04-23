@@ -49,6 +49,7 @@ optix::prime::Context contextP;
 optix::prime::Model model;
 std::vector<float> hits;
 bool left = true; 
+int optixW = 512, optixH = 512;
 
 glm::vec3 rgb2hsv(glm::vec3 in)
 {
@@ -321,23 +322,23 @@ void initOptixPrime(std::vector<Vertex> &vertices) {
 }
 
 void doOptixPrime(double xpos, double ypos) {
-	hits.resize(WIDTH*HEIGHT);
+	hits.resize(optixW*optixH);
 	optix::float3 origin = optix::make_float3(0.0f, 0.0f, -7.0f);
 	optix::float3 upperLeftCorner = optix::make_float3(3.0f, 3.0f, -3.0f);
-	float step = 6.0f / 100.0f;
+	float step = 6.0f / 512.0f;
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 	std::vector<optix::float3> rays;
-	rays.resize(WIDTH*HEIGHT * 2);
-	for (size_t j = 0; j < HEIGHT; j++) {
-		for (size_t i = 0; i < WIDTH; i++) {
-			rays[(j*HEIGHT + i) * 2] = origin;
-			rays[((j*HEIGHT + i) * 2) + 1] = optix::normalize(upperLeftCorner - optix::make_float3(i*6.0f/WIDTH, j*6.0f/HEIGHT, 0) - origin);
+	rays.resize(optixW*optixH * 2);
+	for (size_t j = 0; j < optixH; j++) {
+		for (size_t i = 0; i < optixW; i++) {
+			rays[(j*optixH + i) * 2] = origin;
+			rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner - optix::make_float3(i*6.0f/optixW, j*6.0f/optixH, 0) - origin);
 		}
 
 	}
-	query->setRays(WIDTH*HEIGHT, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+	query->setRays(optixW*optixH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
 	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T, RTP_BUFFER_TYPE_HOST, hits.data());
-	hitBuffer->setRange(0, WIDTH*HEIGHT);
+	hitBuffer->setRange(0, optixW*optixH);
 	query->setHits(hitBuffer);
 	try{
 		query->execute(RTP_QUERY_HINT_NONE);
@@ -348,9 +349,9 @@ void doOptixPrime(double xpos, double ypos) {
 			<< e.getErrorString() << std::endl;
 	}
 	query->finish();
-	for (size_t j = 0; j < HEIGHT; j++) {
-		for (size_t i = 0; i < WIDTH; i++) {
-			hits[(j*HEIGHT + i)] = (hits[(j*HEIGHT + i)]>0) ? 1.0f : 0.0f;
+	for (size_t j = 0; j < optixH; j++) {
+		for (size_t i = 0; i < optixW; i++) {
+			hits[(j*optixH + i)] = (hits[(j*optixH + i)]>0) ? 1.0f : 0.0f;
 		}
 
 	}
@@ -358,7 +359,7 @@ void doOptixPrime(double xpos, double ypos) {
 
 void intersectMouse(double xpos, double ypos) {
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_ANY);
-	std::vector<optix::float3> ray = { optix::make_float3(xpos, ypos, -7), optix::make_float3(0, 0, 1) };
+	std::vector<optix::float3> ray = { optix::make_float3(0, 0, -7), optix::make_float3(xpos*3.0, ypos*3.0, 1) };
 	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
 	std::vector<float> hit;
 	hit.resize(1);
@@ -604,7 +605,7 @@ void initRes(GLuint &shaderProgram, GLuint &vao, GLuint &texToon) {
 	glBindTexture(GL_TEXTURE_2D, texToon);
 
 	// Upload pixels into texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WIDTH, HEIGHT, 0, GL_RED, GL_FLOAT, hits.data());
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, optixW, optixH, 0, GL_RED, GL_FLOAT, hits.data());
 
 	// Set behaviour for when texture coordinates are outside the [0, 1] range
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -614,8 +615,6 @@ void initRes(GLuint &shaderProgram, GLuint &vao, GLuint &texToon) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	// Enable depth testing
-	glEnable(GL_DEPTH_TEST);
 
 }
 
