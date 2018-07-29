@@ -41,17 +41,24 @@ struct Vertex {
 	glm::vec3 pos;
 	glm::vec3 normal;
 };
+
+struct Hit {
+	float t;
+	int triangleId;
+	optix::float2 uv;
+};
+
 std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
 { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
 
-RTcontext context;
-optix::Context contextH;
+optix::Context context;
 optix::prime::Context contextP;
 optix::prime::Model model;
-std::vector<float> hits;
+std::vector<Vertex> vertices;
+std::vector<glm::vec3> optixView;
+std::vector<Hit> patches;
 bool left = true; 
 int optixW = 512, optixH = 512;
-float maxDist = 10;
 bool hitB = false;
 
 glm::vec3 rgb2hsv(glm::vec3 in)
@@ -157,6 +164,14 @@ glm::vec3 hsv2rgb(glm::vec3 in)
 	return out;
 }
 
+optix::float3 uv2xyz(int triangleId, optix::float2 uv) {
+	glm::vec3 a = vertices[triangleId * 3].pos;
+	glm::vec3 b = vertices[triangleId * 3 + 1].pos;
+	glm::vec3 c = vertices[triangleId * 3 + 2].pos;
+	glm::vec3 point = glm::vec3(a + uv.x*(b - a) + uv.y*(c - a));
+	return optix::make_float3(point.x, point.y, point.z);
+}
+
 // Helper function to read a file like a shader
 std::string readFile(const std::string& path) {
 	std::ifstream file(path, std::ios::binary);
@@ -225,30 +240,26 @@ void loadShader(GLuint &shader, std::string name, GLenum shaderType) {
 	}
 }
 
-void initOptix(std::vector<Vertex> &vertices) {
+void initOptix() {
 
 	/* *******************************************************OPTIX******************************************************* */
 	//initializing context -> holds all programs and variables
-	contextH = optix::Context::create();
-	context = contextH->get();
+	context = optix::Context::create();
 
 	//enable printf shit
-	rtContextSetPrintEnabled(context, 1);
-	rtContextSetPrintBufferSize(context, 4096);
+	context->setPrintEnabled(true);
+	context->setPrintBufferSize(4096);
 
 	//setting entry point: a ray generationprogram
-	rtContextSetEntryPointCount(context, 1);
-	RTprogram origin;
-	rtProgramCreateFromPTXFile(context, "ptx\\FirstTry.ptx", "raytraceExecution", &origin);
-	if (rtProgramValidate(origin) != RT_SUCCESS) {
-		printf("Program is not complete.");
-	}
-	rtContextSetRayGenerationProgram(context, 0, origin);
+	context->setEntryPointCount(1);
+	optix::Program origin = context->createProgramFromPTXFile("ptx\\FirstTry.ptx", "raytraceExecution");
+	origin->validate();
+	context->setRayGenerationProgram(0, origin);
 
 
 	//initialising buffers and loading normals into buffer
 	RTbuffer buffer;
-	rtBufferCreate(context, RT_BUFFER_INPUT, &buffer);
+	rtBufferCreate(context->get(), RT_BUFFER_INPUT, &buffer);
 	rtBufferSetFormat(buffer, RT_FORMAT_USER);
 	rtBufferSetElementSize(buffer, sizeof(glm::vec3));
 	rtBufferSetSize1D(buffer, vertices.size());
@@ -260,14 +271,14 @@ void initOptix(std::vector<Vertex> &vertices) {
 	}
 	rtBufferUnmap(buffer);
 
-	optix::Geometry geometryH = contextH->createGeometry();
-	optix::Material materialH = contextH->createMaterial();
-	optix::GeometryInstance geometryInstanceH = contextH->createGeometryInstance();
-	optix::GeometryGroup geometryGroupH = contextH->createGeometryGroup();
+	optix::Geometry geometryH = context->createGeometry();
+	optix::Material materialH = context->createMaterial();
+	optix::GeometryInstance geometryInstanceH = context->createGeometryInstance();
+	optix::GeometryGroup geometryGroupH = context->createGeometryGroup();
 
 	optix::Program intersection;
 	try {
-		intersection = contextH->createProgramFromPTXFile("ptx\\geometry.ptx", "intersection");
+		intersection = context->createProgramFromPTXFile("ptx\\geometry.ptx", "intersection");
 	}
 	catch (optix::Exception e) {
 		std::cerr << "An error occurred with error code "
@@ -276,7 +287,7 @@ void initOptix(std::vector<Vertex> &vertices) {
 	}
 	intersection->validate();
 
-	optix::Program boundingbox = contextH->createProgramFromPTXFile("ptx\\geometry.ptx", "boundingbox");
+	optix::Program boundingbox = context->createProgramFromPTXFile("ptx\\geometry.ptx", "boundingbox");
 	boundingbox->validate();
 
 	geometryH->setPrimitiveCount(1);
@@ -289,9 +300,9 @@ void initOptix(std::vector<Vertex> &vertices) {
 
 	geometryGroupH->setChildCount(1);
 	geometryGroupH->setChild(0, geometryInstanceH);
-	geometryGroupH->setAcceleration(contextH->createAcceleration("NoAccel"));
+	geometryGroupH->setAcceleration(context->createAcceleration("NoAccel"));
 
-	contextH["top_object"]->set(geometryGroupH);
+	context["top_object"]->set(geometryGroupH);
 
 	printf("check");
 	/* *******************************************************OPTIX******************************************************* */
@@ -300,13 +311,12 @@ void initOptix(std::vector<Vertex> &vertices) {
 
 void doOptix(double xpos, double ypos) {
 
-	contextH["mousePos"]->setFloat((float)xpos, (float)ypos);
+	context["mousePos"]->setFloat((float)xpos, (float)ypos);
 
-	//rtContextLaunch1D(context, 0, 1);
-	contextH->launch(0, 1);
+	context->launch(0, 1);
 }
 
-void initOptixPrime(std::vector<Vertex> &vertices) {
+void initOptixPrime() {
 	contextP = optix::prime::Context::create(RTP_CONTEXT_TYPE_CUDA);
 	optix::prime::BufferDesc buffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_VERTEX_FLOAT3, RTP_BUFFER_TYPE_HOST, vertices.data());
 	buffer->setRange(0, vertices.size());
@@ -325,7 +335,9 @@ void initOptixPrime(std::vector<Vertex> &vertices) {
 }
 
 void doOptixPrime(double xpos, double ypos) {
+	std::vector<Hit> hits;
 	hits.resize(optixW*optixH);
+	optixView.resize(optixW*optixH);
 	optix::float3 origin = optix::make_float3(0.0f, 0.0f, -7.0f);
 	optix::float3 upperLeftCorner = optix::make_float3(-1.0f, 1.0f, -6.0f);
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
@@ -339,7 +351,7 @@ void doOptixPrime(double xpos, double ypos) {
 
 	}
 	query->setRays(optixW*optixH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
-	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T, RTP_BUFFER_TYPE_HOST, hits.data());
+	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
 	hitBuffer->setRange(0, optixW*optixH);
 	query->setHits(hitBuffer);
 	try{
@@ -353,19 +365,44 @@ void doOptixPrime(double xpos, double ypos) {
 	query->finish();
 	for (size_t j = 0; j < optixH; j++) {
 		for (size_t i = 0; i < optixW; i++) {
-			hits[(j*optixH + i)] = (hits[(j*optixH + i)]>0) ? 1.0f : 0.0f;
+			optixView[(j*optixH + i)] = (hits[(j*optixH + i)].t>0) ? glm::vec3(glm::abs(vertices[hits[(j*optixH + i)].triangleId * 3].normal)) : glm::vec3(0.0f, 0.0f, 0.0f);
 		}
 
 	}
 }
 
+bool shootPatchRay() {
+	optix::float3  pointA = uv2xyz(patches[0].triangleId, patches[0].uv);
+	optix::float3  pointB = uv2xyz(patches[1].triangleId, patches[1].uv);
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+	std::vector<optix::float3> ray = { pointA + optix::normalize(pointB - pointA)*0.000001f, optix::normalize(pointB - pointA) };
+	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
+	Hit hit;
+	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
+	try{
+		query->execute(RTP_QUERY_HINT_NONE);
+	}
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
+	}
+	printf("hit t value: %f", hit.t);
+	printf("\nclosest hit was: %i", hit.triangleId);
+	printf("\npatch 1 was: %i", patches[0].triangleId);
+	printf("\npatch 2 was: %i", patches[1].triangleId);
+	if (hit.triangleId == patches[1].triangleId) {
+		return true;
+	}
+	else return false;
+}
+
 void intersectMouse(double xpos, double ypos) {
-	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_ANY);
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 	std::vector<optix::float3> ray = { optix::make_float3(0, 0, -7.0f), optix::normalize(optix::make_float3(xpos, ypos, -6.0f) - optix::make_float3(0, 0, -7.0f)) };
 	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
-	std::vector<float> hit;
-	hit.resize(1);
-	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T, RTP_BUFFER_TYPE_HOST, hit.data());
+	Hit hit;
+	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
 	try{
 		query->execute(RTP_QUERY_HINT_NONE);
 	}
@@ -375,13 +412,26 @@ void intersectMouse(double xpos, double ypos) {
 			<< e.getErrorString() << std::endl;
 	}
 	query->finish();
-	if (hit[0] > 0) { 
-		printf("hit!");
-		hitB = true;
+	if (hit.t > 0) { 
+		printf("\nhit triangle: %i ", hit.triangleId);
+		if (left) patches[0] = hit;
+		else {
+			patches[1] = hit;
+			printf("\nshoot ray between patches \n");
+			printf("patch triangle 1: %i \n", patches[0].triangleId);
+			printf("patch triangle 2: %i \n", patches[1].triangleId);
+			hitB = shootPatchRay();
+			printf("\ndid it hit? %i", hitB);
+		}
+		left = !left;
+
 	}
 	else {
 		printf("miss!");
 		hitB = false;
+		patches.clear();
+		patches.resize(2);
+		left = true; 
 	}
 
 }
@@ -498,11 +548,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		printf("click!: %f %f", xpos, ypos);
 		if (left){
 			debugline.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
-			left = false;
 			}
 		else {
 			debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
-			left = true;
 		}
 		intersectMouse(xpos, ypos);
 		//doOptix(xpos, ypos);
@@ -559,7 +607,7 @@ void initRes(GLuint &shaderProgram, GLuint &vao, GLuint &texToon) {
 	glBindTexture(GL_TEXTURE_2D, texToon);
 
 	// Upload pixels into texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, optixW, optixH, 0, GL_RED, GL_FLOAT, hits.data());
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
 
 	// Set behaviour for when texture coordinates are outside the [0, 1] range
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -625,8 +673,6 @@ int main() {
 		return EXIT_FAILURE;
 	}
 
-	std::vector<Vertex> vertices;
-
 	// Read triangle vertices from OBJ file
 	for (const auto& shape : shapes) {
 		for (const auto& index : shape.mesh.indices) {
@@ -650,7 +696,7 @@ int main() {
 		}
 	}
 	//initializing optix
-	initOptixPrime(vertices);
+	initOptixPrime();
 
 	//initializing result optix drawing
 	GLuint optixTex, optixVao, optixShader;
@@ -662,6 +708,7 @@ int main() {
 	GLuint linevao, linevbo, debugprogram;
 	debuglineInit(linevao, linevbo, debugprogram);
 
+	patches.resize(2);
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
