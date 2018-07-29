@@ -29,15 +29,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\shader.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\shader.frag">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include\cctype" />
-    <None Include="..\marijnShader.frag" />
-    <None Include="..\marijnShader.vert" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="FirstTry.cu">
@@ -46,10 +38,10 @@
     <CudaCompile Include="geometry.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\lodepng.h">
+    <ClInclude Include="..\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\stdafx.h">
+    <ClInclude Include="..\lodepng.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

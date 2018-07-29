@@ -51,6 +51,8 @@ struct Hit {
 std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
 { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
 
+optix::float3 eye = optix::make_float3(0.0f, 0.0f, -7.0f);
+optix::float3 viewDirection = optix::make_float3(0.0f, 0.0f, 1.0f);
 optix::Context context;
 optix::prime::Context contextP;
 optix::prime::Model model;
@@ -60,6 +62,7 @@ std::vector<Hit> patches;
 bool left = true; 
 int optixW = 512, optixH = 512;
 bool hitB = false;
+GLuint optixTex, optixVao;
 
 glm::vec3 rgb2hsv(glm::vec3 in)
 {
@@ -334,19 +337,18 @@ void initOptixPrime() {
 	}
 }
 
-void doOptixPrime(double xpos, double ypos) {
+void doOptixPrime() {
 	std::vector<Hit> hits;
 	hits.resize(optixW*optixH);
 	optixView.resize(optixW*optixH);
-	optix::float3 origin = optix::make_float3(0.0f, 0.0f, -7.0f);
-	optix::float3 upperLeftCorner = optix::make_float3(-1.0f, 1.0f, -6.0f);
+	optix::float3 upperLeftCorner = eye + viewDirection + optix::make_float3(-1.0f, 1.0f, 0.0f);
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 	std::vector<optix::float3> rays;
 	rays.resize(optixW*optixH * 2);
 	for (size_t j = 0; j < optixH; j++) {
 		for (size_t i = 0; i < optixW; i++) {
-			rays[(j*optixH + i) * 2] = origin;
-			rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner + optix::make_float3(i*2.0f/optixW, -1.0f*(j*2.0f/optixH), 0) - origin);
+			rays[(j*optixH + i) * 2] = eye;
+			rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner + optix::make_float3(i*2.0f/optixW, -1.0f*(j*2.0f/optixH), 0) - eye);
 		}
 
 	}
@@ -397,9 +399,9 @@ bool shootPatchRay() {
 	else return false;
 }
 
-void intersectMouse(double xpos, double ypos) {
+ void intersectMouse(double xpos, double ypos) {
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-	std::vector<optix::float3> ray = { optix::make_float3(0, 0, -7.0f), optix::normalize(optix::make_float3(xpos, ypos, -6.0f) - optix::make_float3(0, 0, -7.0f)) };
+	std::vector<optix::float3> ray = { eye, optix::normalize(optix::make_float3(xpos + viewDirection.x, ypos + viewDirection.y, viewDirection.z)) };
 	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
 	Hit hit;
 	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
@@ -443,9 +445,9 @@ void debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram) {
 	glGenBuffers(1, &linevbo);
 
 	GLuint vertexShader;
-	loadShader(vertexShader, "debugshader.vert", GL_VERTEX_SHADER);
+	loadShader(vertexShader, "shaders/debugshader.vert", GL_VERTEX_SHADER);
 	GLuint fragmentShader;
-	loadShader(fragmentShader, "debugshader.frag", GL_FRAGMENT_SHADER);
+	loadShader(fragmentShader, "shaders/debugshader.frag", GL_FRAGMENT_SHADER);
 
 	// Combine vertex and fragment shaders into single shader program
 	shaderProgram = glCreateProgram();
@@ -529,12 +531,103 @@ void encodeOneStep(const char* filename, const char* extension, unsigned width, 
 	if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
 }
 
+void setResDrawing() {
+	// Create Vertex Buffer Object
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	//bind it as (possible) source for the vao
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	//insert data into the current array_buffer: the vbo
+	std::vector<glm::vec3> quad = { glm::vec3(-1, 1, -1), glm::vec3(1, 1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, -1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, 1, -1) };
+	glBufferData(GL_ARRAY_BUFFER, quad.size() * sizeof(glm::vec3), quad.data(), GL_STATIC_DRAW);
+
+	// Bind vertex data to shader inputs using their index (location)
+	// These bindings are stored in the Vertex Array Object
+	glGenVertexArrays(1, &optixVao);
+	glBindVertexArray(optixVao);
+
+	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
+	// Stride is the distance in bytes between vertices
+	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	// Create Texture
+	// everything will now be done in GL_TEXTURE1
+	glActiveTexture(GL_TEXTURE1);
+	glGenTextures(1, &optixTex);
+	glBindTexture(GL_TEXTURE_2D, optixTex);
+
+	// Upload pixels into texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
+}
+
+void initRes(GLuint &shaderProgram) {
+	GLuint vertexShader;
+	loadShader(vertexShader, "shaders/optixShader.vert", GL_VERTEX_SHADER);
+
+	GLuint fragmentShader;
+	loadShader(fragmentShader, "shaders/optixShader.frag", GL_FRAGMENT_SHADER);
+
+	// Combine vertex and fragment shaders into single shader program
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+
+	if (!checkProgramErrors(shaderProgram)) {
+		std::cerr << "Program failed to link!" << std::endl;
+		//return EXIT_FAILURE;
+	}
+
+	setResDrawing();
+
+	// Set behaviour for when texture coordinates are outside the [0, 1] range
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// Set interpolation for texture sampling (GL_NEAREST for no interpolation)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void drawRes(GLuint &shaderProgram, GLuint &vao) {
+	// Bind the shader
+	glUseProgram(shaderProgram);
+	GLuint loc;
+
+	// upload texture coordinates
+	loc = glGetUniformLocation(shaderProgram, "texToon");
+	glUniform1i(loc, 1);
+
+	// Bind vertex data
+	glBindVertexArray(vao);
+	// Execute draw command
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
 // key button callback to print screen
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
 	if (key == GLFW_KEY_P && action == GLFW_PRESS){
 		std::cout << "print" << std::endl;
 		// write png image
 		encodeOneStep("screenshots/output",".png", WIDTH, HEIGHT);
+	}
+	if (key == GLFW_KEY_LEFT) {
+		std::cout << "move left" << std::endl;
+		//eye = eye - optix::make_float3(0.0005f, 0.0f, 0.0f);
+		//viewDirection = viewDirection - optix::make_float3(0.0005f, 0.0f, 0.0f);
+		doOptixPrime();
+		setResDrawing();
+	}
+
+	if (key == GLFW_KEY_RIGHT) {
+		std::cout << "move right" << std::endl;
+		eye = eye + optix::make_float3(0.0005f, 0.0f, 0.0f);
+		viewDirection = viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
+		doOptixPrime();
+		setResDrawing();
 	}
 }
 
@@ -559,78 +652,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 
 
-}
-
-void initRes(GLuint &shaderProgram, GLuint &vao, GLuint &texToon) {
-	GLuint vertexShader;
-	loadShader(vertexShader, "optixShader.vert", GL_VERTEX_SHADER);
-
-	GLuint fragmentShader;
-	loadShader(fragmentShader, "optixShader.frag", GL_FRAGMENT_SHADER);
-
-	// Combine vertex and fragment shaders into single shader program
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	if (!checkProgramErrors(shaderProgram)) {
-		std::cerr << "Program failed to link!" << std::endl;
-		//return EXIT_FAILURE;
-	}
-
-	// Create Vertex Buffer Object
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	//bind it as (possible) source for the vao
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	//insert data into the current array_buffer: the vbo
-	std::vector<glm::vec3> quad = { glm::vec3(-1, 1, -1), glm::vec3(1, 1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, -1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, 1, -1) };
-	glBufferData(GL_ARRAY_BUFFER, quad.size() * sizeof(glm::vec3), quad.data(), GL_STATIC_DRAW);
-
-	// Bind vertex data to shader inputs using their index (location)
-	// These bindings are stored in the Vertex Array Object
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
-	// Stride is the distance in bytes between vertices
-	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	// Create Texture
-	// everything will now be done in GL_TEXTURE1
-	glActiveTexture(GL_TEXTURE1);
-	glGenTextures(1, &texToon);
-	glBindTexture(GL_TEXTURE_2D, texToon);
-
-	// Upload pixels into texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
-
-	// Set behaviour for when texture coordinates are outside the [0, 1] range
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	// Set interpolation for texture sampling (GL_NEAREST for no interpolation)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-}
-
-void drawRes(GLuint &shaderProgram, GLuint &vao) {
-	// Bind the shader
-	glUseProgram(shaderProgram);
-	GLuint loc; 
-
-	// upload texture coordinates
-	loc = glGetUniformLocation(shaderProgram, "texToon");
-	glUniform1i(loc, 1);
-
-	// Bind vertex data
-	glBindVertexArray(vao);
-	// Execute draw command
-	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 int main() {
@@ -699,9 +720,9 @@ int main() {
 	initOptixPrime();
 
 	//initializing result optix drawing
-	GLuint optixTex, optixVao, optixShader;
-	doOptixPrime(0, 0);
-	initRes(optixShader, optixVao, optixTex);
+	GLuint optixShader;
+	doOptixPrime();
+	initRes(optixShader);
 	std::cout << optixTex << std::endl;
 
 	//initializing debugline
