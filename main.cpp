@@ -31,7 +31,7 @@
 #include <optix_prime\optix_primepp.h>
 #include "lodepng.h"
 #include "visual studio\ImageExporter.h"
-
+#include "visual studio\ShaderLoader.h"
 
 // Configuration
 const int WIDTH = 800;
@@ -74,72 +74,72 @@ optix::float3 uv2xyz(int triangleId, optix::float2 uv) {
 }
 
 // Helper function to read a file like a shader
-std::string readFile(const std::string& path) {
-	std::ifstream file(path, std::ios::binary);
-	std::stringstream buffer;
-	buffer << file.rdbuf();
-	std::string R = buffer.str();
-	return R;
-}
+//std::string readFile(const std::string& path) {
+//	std::ifstream file(path, std::ios::binary);
+//	std::stringstream buffer;
+//	buffer << file.rdbuf();
+//	std::string R = buffer.str();
+//	return R;
+//}
 
-bool checkShaderErrors(GLuint shader) {
-	// Check if the shader compiled successfully
-	GLint compileSuccessful;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &compileSuccessful);
+//bool checkShaderErrors(GLuint shader) {
+//	// Check if the shader compiled successfully
+//	GLint compileSuccessful;
+//	glGetShaderiv(shader, GL_COMPILE_STATUS, &compileSuccessful);
+//
+//	// If it didn't, then read and print the compile log
+//	if (!compileSuccessful) {
+//		GLint logLength;
+//		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+//
+//		std::vector<GLchar> logBuffer(logLength);
+//		glGetShaderInfoLog(shader, logLength, nullptr, logBuffer.data());
+//
+//		std::cerr << logBuffer.data() << std::endl;
+//
+//		return false;
+//	}
+//	else {
+//		return true;
+//	}
+//}
 
-	// If it didn't, then read and print the compile log
-	if (!compileSuccessful) {
-		GLint logLength;
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+//bool checkProgramErrors(GLuint program) {
+//	// Check if the program linked successfully
+//	GLint linkSuccessful;
+//	glGetProgramiv(program, GL_LINK_STATUS, &linkSuccessful);
+//
+//	// If it didn't, then read and print the link log
+//	if (!linkSuccessful) {
+//		GLint logLength;
+//		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+//
+//		std::vector<GLchar> logBuffer(logLength);
+//		glGetProgramInfoLog(program, logLength, nullptr, logBuffer.data());
+//
+//		std::cerr << logBuffer.data() << std::endl;
+//
+//		return false;
+//	}
+//	else {
+//		return true;
+//	}
+//}
 
-		std::vector<GLchar> logBuffer(logLength);
-		glGetShaderInfoLog(shader, logLength, nullptr, logBuffer.data());
-
-		std::cerr << logBuffer.data() << std::endl;
-
-		return false;
-	}
-	else {
-		return true;
-	}
-}
-
-bool checkProgramErrors(GLuint program) {
-	// Check if the program linked successfully
-	GLint linkSuccessful;
-	glGetProgramiv(program, GL_LINK_STATUS, &linkSuccessful);
-
-	// If it didn't, then read and print the link log
-	if (!linkSuccessful) {
-		GLint logLength;
-		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
-
-		std::vector<GLchar> logBuffer(logLength);
-		glGetProgramInfoLog(program, logLength, nullptr, logBuffer.data());
-
-		std::cerr << logBuffer.data() << std::endl;
-
-		return false;
-	}
-	else {
-		return true;
-	}
-}
-
-void loadShader(GLuint &shader, std::string name, GLenum shaderType) {
-	// Load and compile shader
-	std::string shaderCode = readFile(name);
-	const char* shaderCodePtr = shaderCode.data();
-
-	shader = glCreateShader(shaderType);
-	glShaderSource(shader, 1, &shaderCodePtr, nullptr);
-	glCompileShader(shader);
-
-	if (!checkShaderErrors(shader)) {
-		std::cerr << "Shader(s) failed to compile!" << std::endl;
-		//return EXIT_FAILURE;
-	}
-}
+//void loadShader(GLuint &shader, std::string name, GLenum shaderType) {
+//	// Load and compile shader
+//	std::string shaderCode = readFile(name);
+//	const char* shaderCodePtr = shaderCode.data();
+//
+//	shader = glCreateShader(shaderType);
+//	glShaderSource(shader, 1, &shaderCodePtr, nullptr);
+//	glCompileShader(shader);
+//
+//	if (!checkShaderErrors(shader)) {
+//		std::cerr << "Shader(s) failed to compile!" << std::endl;
+//		//return EXIT_FAILURE;
+//	}
+//}
 
 void initOptix() {
 
@@ -343,9 +343,9 @@ void debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram) {
 	glGenBuffers(1, &linevbo);
 
 	GLuint vertexShader;
-	loadShader(vertexShader, "shaders/debugshader.vert", GL_VERTEX_SHADER);
+	ShaderLoader::loadShader(vertexShader, "shaders/debugshader.vert", GL_VERTEX_SHADER);
 	GLuint fragmentShader;
-	loadShader(fragmentShader, "shaders/debugshader.frag", GL_FRAGMENT_SHADER);
+	ShaderLoader::loadShader(fragmentShader, "shaders/debugshader.frag", GL_FRAGMENT_SHADER);
 
 	// Combine vertex and fragment shaders into single shader program
 	shaderProgram = glCreateProgram();
@@ -415,10 +415,10 @@ void setResDrawing() {
 
 void initRes(GLuint &shaderProgram) {
 	GLuint vertexShader;
-	loadShader(vertexShader, "shaders/optixShader.vert", GL_VERTEX_SHADER);
+	ShaderLoader::loadShader(vertexShader, "shaders/optixShader.vert", GL_VERTEX_SHADER);
 
 	GLuint fragmentShader;
-	loadShader(fragmentShader, "shaders/optixShader.frag", GL_FRAGMENT_SHADER);
+	ShaderLoader::loadShader(fragmentShader, "shaders/optixShader.frag", GL_FRAGMENT_SHADER);
 
 	// Combine vertex and fragment shaders into single shader program
 	shaderProgram = glCreateProgram();
@@ -426,7 +426,7 @@ void initRes(GLuint &shaderProgram) {
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
 
-	if (!checkProgramErrors(shaderProgram)) {
+	if (!ShaderLoader::checkProgramErrors(shaderProgram)) {
 		std::cerr << "Program failed to link!" << std::endl;
 		//return EXIT_FAILURE;
 	}
