@@ -22,6 +22,7 @@
     <ClCompile Include="..\lodepng.cpp" />
     <ClCompile Include="..\main.cpp" />
     <ClCompile Include="..\stdafx.cpp" />
+    <ClCompile Include="ImageExporter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include\cctype" />
@@ -46,6 +47,7 @@
   <ItemGroup>
     <ClInclude Include="..\lodepng.h" />
     <ClInclude Include="..\stdafx.h" />
+    <ClInclude Include="ImageExporter.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F108EF87-748D-44F4-8D03-92EF4625363D}</ProjectGuid>

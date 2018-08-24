@@ -30,6 +30,7 @@
 #include <optix_prime\optix_prime_declarations.h>
 #include <optix_prime\optix_primepp.h>
 #include "lodepng.h"
+#include "visual studio\ImageExporter.h"
 
 
 // Configuration
@@ -63,109 +64,6 @@ bool left = true;
 int optixW = 512, optixH = 512;
 bool hitB = false;
 GLuint optixTex, optixVao;
-
-glm::vec3 rgb2hsv(glm::vec3 in)
-{
-	glm::vec3         out;
-	double      min, max, delta;
-
-	min = in.r < in.g ? in.r : in.g;
-	min = min  < in.b ? min : in.b;
-
-	max = in.r > in.g ? in.r : in.g;
-	max = max > in.b ? max : in.b;
-
-	out.z = max;                                // v
-	delta = max - min;
-	if (delta < 0.00001)
-	{
-		out.y = 0;
-		out.x = 0; // undefined, maybe nan?
-		return out;
-	}
-	if (max > 0.0) { // NOTE: if Max is == 0, this divide would cause a crash
-		out.y = (delta / max);                  // s
-	}
-	else {
-		// if max is 0, then r = g = b = 0              
-		// s = 0, h is undefined
-		out.y = 0.0;
-		out.x = NAN;                            // its now undefined
-		return out;
-	}
-	if (in.r >= max)                           // > is bogus, just keeps compilor happy
-		out.x = (in.g - in.b) / delta;        // between yellow & magenta
-	else
-		if (in.g >= max)
-			out.x = 2.0 + (in.b - in.r) / delta;  // between cyan & yellow
-		else
-			out.x = 4.0 + (in.r - in.g) / delta;  // between magenta & cyan
-
-	out.x *= 60.0;                              // degrees
-
-	if (out.x < 0.0)
-		out.x += 360.0;
-
-	return out;
-}
-
-glm::vec3 hsv2rgb(glm::vec3 in)
-{
-	double      hh, p, q, t, ff;
-	long        i;
-	glm::vec3   out;
-
-	if (in.s <= 0.0) {       // < is bogus, just shuts up warnings
-		out.r = in.z;
-		out.g = in.z;
-		out.b = in.z;
-		return out;
-	}
-	hh = in.x;
-	if (hh >= 360.0) hh = 0.0;
-	hh /= 60.0;
-	i = (long)hh;
-	ff = hh - i;
-	p = in.z * (1.0 - in.y);
-	q = in.z * (1.0 - (in.y * ff));
-	t = in.z * (1.0 - (in.y * (1.0 - ff)));
-
-	switch (i) {
-	case 0:
-		out.r = in.z;
-		out.g = t;
-		out.b = p;
-		break;
-	case 1:
-		out.r = q;
-		out.g = in.z;
-		out.b = p;
-		break;
-	case 2:
-		out.r = p;
-		out.g = in.z;
-		out.b = t;
-		break;
-
-	case 3:
-		out.r = p;
-		out.g = q;
-		out.b = in.z;
-		break;
-	case 4:
-		out.r = t;
-		out.g = p;
-		out.b = in.z;
-		break;
-	case 5:
-	default:
-		out.r = in.z;
-		out.g = p;
-		out.b = q;
-		break;
-	}
-	return out;
-}
 
 optix::float3 uv2xyz(int triangleId, optix::float2 uv) {
 	glm::vec3 a = vertices[triangleId * 3].pos;
@@ -399,7 +297,7 @@ bool shootPatchRay() {
 	else return false;
 }
 
- void intersectMouse(double xpos, double ypos) {
+void intersectMouse(double xpos, double ypos) {
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 	std::vector<optix::float3> ray = { eye, optix::normalize(optix::make_float3(xpos + viewDirection.x, ypos + viewDirection.y, viewDirection.z)) };
 	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
@@ -483,54 +381,6 @@ void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severi
 	}
 }
 
-// helper function to check if file exists
-inline bool exists(const std::string& name) {
-	struct stat buffer;
-	return (stat(name.c_str(), &buffer) == 0);
-}
-
-// helper function to ensure we do not overwrite the same file each time we screenshot
-char* findFilename(const char* filename, const char* extension){
-	std::string temp = filename;
-	temp.append(extension);
-
-	// decide upon suitabe outputname:
-	int i = 0;
-	while (exists(temp)) {
-		temp = filename;
-		temp.append(std::to_string(i));
-		temp.append(extension);
-		i++;
-	}
-	// decide upon name
-	char* name = new char[temp.length() + 1];
-	strcpy(name, temp.c_str());
-	return name;
-}
-
-// making these global is a very elegant solution for the stack overflow 
-// that would inevitably follow when declaring it in the function scope where it actually belongs
-GLubyte encodepixels[3 * WIDTH * HEIGHT];
-
-/*
-Encode from raw pixels to disk with a single function call
-The image argument has width * height RGBA pixels or width * height * 4 bytes
-*/
-void encodeOneStep(const char* filename, const char* extension, unsigned width, unsigned height)
-{
-	glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, encodepixels);
-	if (GL_NO_ERROR != glGetError()) throw "Error: Unable to read pixels.";
-
-	// find suitabe outputname
-	char* name = findFilename(filename, extension);
-
-	/*Encode the image*/
-	unsigned error = lodepng_encode24_file(name, encodepixels, width, height);
-
-	/*if there's an error, display it*/
-	if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
-}
-
 void setResDrawing() {
 	// Create Vertex Buffer Object
 	GLuint vbo;
@@ -612,7 +462,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_P && action == GLFW_PRESS){
 		std::cout << "print" << std::endl;
 		// write png image
-		encodeOneStep("screenshots/output",".png", WIDTH, HEIGHT);
+		ImageExporter ie = ImageExporter(WIDTH, HEIGHT);
+		glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, ie.encodepixels);
+		if (GL_NO_ERROR != glGetError()) throw "Error: Unable to read pixels.";
+		ie.encodeOneStep("screenshots/output",".png", WIDTH, HEIGHT);
 	}
 	if (key == GLFW_KEY_LEFT) {
 		std::cout << "move left" << std::endl;
