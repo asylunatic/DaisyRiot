@@ -21,21 +21,34 @@
     <ClCompile Include="..\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\lodepng.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageExporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\shader.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\shader.frag">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include\cctype" />
-    <None Include="..\marijnShader.frag" />
-    <None Include="..\marijnShader.vert" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="FirstTry.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="geometry.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageExporter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lodepng.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
