@@ -24,6 +24,7 @@
 #include <sstream>
 #include <vector>
 #include <ctime>
+#include <algorithm>
 #include <sys/stat.h>
 
 #include <OptiX_world.h>
@@ -65,6 +66,12 @@ bool left = true;
 int optixW = 512, optixH = 512;
 bool hitB = false;
 GLuint optixTex, optixVao;
+std::vector<float> rands;
+int raysPerPatch = 100;
+
+glm::vec3 optix2glmf3(optix::float3 v) {
+	return glm::vec3(v.x, v.y, v.z);
+}
 
 optix::float3 uv2xyz(int triangleId, optix::float2 uv) {
 	glm::vec3 a = vertices[triangleId * 3].pos;
@@ -233,15 +240,54 @@ bool shootPatchRay() {
 		std::cerr << "An error occurred with error code "
 			<< e.getErrorCode() << " and message "
 			<< e.getErrorString() << std::endl;
-	}
+	}/*
 	printf("hit t value: %f", hit.t);
 	printf("\nclosest hit was: %i", hit.triangleId);
 	printf("\npatch 1 was: %i", patches[0].triangleId);
-	printf("\npatch 2 was: %i", patches[1].triangleId);
+	printf("\npatch 2 was: %i", patches[1].triangleId);*/
 	if (hit.triangleId == patches[1].triangleId) {
 		return true;
 	}
 	else return false;
+}
+
+float p2pViewFactor(int originPatch, int destPatch) {
+	optix::prime::Query query;
+	Hit hit;
+	std::vector<optix::float3> ray;
+	optix::float3 origin;
+	optix::float3 dest;
+	float viewfactors = 0;
+
+	for (int i = 0; i < raysPerPatch; i++) {
+		origin = uv2xyz(originPatch, optix::make_float2(rands[i * 2], rands[i * 2 + 1]));
+		dest = uv2xyz(destPatch, optix::make_float2(rands[i * 2], rands[i * 2 + 1]));
+		query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+		ray = { origin + optix::normalize(dest - origin)*0.000001f, optix::normalize(dest - origin) };
+		query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
+		query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
+		try{
+			query->execute(RTP_QUERY_HINT_NONE);
+		}
+		catch (optix::prime::Exception &e) {
+			std::cerr << "An error occurred with error code "
+				<< e.getErrorCode() << " and message "
+				<< e.getErrorString() << std::endl;
+		}
+		float dot1 = glm::dot(vertices[originPatch * 3].normal, glm::normalize(optix2glmf3(dest - origin)));
+		float dot2 = glm::dot(vertices[destPatch * 3].normal, glm::normalize(optix2glmf3(origin - dest)));
+		if (hit.t > 0 && hit.triangleId == destPatch && dot1 > 0 && dot2 > 0) {
+			float theta1 = glm::acos( dot1/ hit.t) * 180.0 / M_PIf;
+			float theta2 = glm::acos( dot2/ hit.t) * 180.0 / M_PIf;
+			printf("\n theta's: %f, %f, %f, %f", theta1, theta2, dot2 / hit.t, hit.t);
+			float angleratio = glm::dot(vertices[originPatch * 3].normal, glm::normalize(optix2glmf3(dest - origin)))
+				*glm::dot(vertices[destPatch * 3].normal, glm::normalize(optix2glmf3(origin - dest)));
+			viewfactors += angleratio / std::powf(hit.t, 4)*M_PIf;
+		}
+	}
+	printf("\nviewfactors: %f \n", viewfactors);
+	return viewfactors / raysPerPatch;
+
 }
 
 void intersectMouse(double xpos, double ypos) {
@@ -321,7 +367,6 @@ void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo) {
 	glDrawArrays(GL_LINES, 0, 2);
 }
 
-// OpenGL debug callback
 void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	if (severity != GL_DEBUG_SEVERITY_NOTIFICATION) {
 		std::cerr << "OpenGL: " << message << std::endl;
@@ -450,6 +495,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		doOptixPrime();
 		refreshTexture();
 	}
+
+	if (key == GLFW_KEY_B) {
+		if (shootPatchRay()) {
+			float viewfactor = p2pViewFactor(patches[0].triangleId, patches[1].triangleId);
+			printf("viewfactor is: %f", viewfactor);
+		}
+	}
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -537,6 +589,14 @@ int main() {
 			vertices.push_back(vertex);
 		}
 	}
+
+	rands.resize(2*raysPerPatch);
+	std::srand(std::time(nullptr)); // use current time as seed for random generator
+
+	for (size_t i = 0; i < 2*raysPerPatch; i++) {
+		rands[i] = ((float) (rand() % RAND_MAX)) / RAND_MAX;
+	}
+
 	//initializing optix
 	initOptixPrime();
 
