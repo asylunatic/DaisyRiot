@@ -33,16 +33,12 @@
 #include "lodepng.h"
 #include "visual studio\ImageExporter.h"
 #include "visual studio\ShaderLoader.h"
+#include "visual studio\Drawer.h"
+#include "visual studio\Vertex.h"
 
 // Configuration
 const int WIDTH = 800;
 const int HEIGHT = 600;
-
-// Per-vertex data
-struct Vertex {
-	glm::vec3 pos;
-	glm::vec3 normal;
-};
 
 struct Hit {
 	float t;
@@ -283,133 +279,6 @@ void intersectMouse(double xpos, double ypos) {
 
 }
 
-void debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram) {
-	// creating vao
-	glGenVertexArrays(1, &linevao);
-	// creating vertexbuffer for the vao
-	glGenBuffers(1, &linevbo);
-
-	GLuint vertexShader;
-	ShaderLoader::loadShader(vertexShader, "shaders/debugshader.vert", GL_VERTEX_SHADER);
-	GLuint fragmentShader;
-	ShaderLoader::loadShader(fragmentShader, "shaders/debugshader.frag", GL_FRAGMENT_SHADER);
-
-	// Combine vertex and fragment shaders into single shader program
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-}
-
-void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo) {
-	glUseProgram(debugprogram);
-	glBindVertexArray(linevao);
-	// vao will get info from linevbo now
-	glBindBuffer(GL_ARRAY_BUFFER, linevbo);
-	//insert data into the current array_buffer: the vbo
-	glBufferData(GL_ARRAY_BUFFER, debugline.size()*sizeof(Vertex), debugline.data(), GL_STREAM_DRAW);
-	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
-	// Stride is the distance in bytes between vertices
-	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the current VertexArray
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-
-	GLuint hitLoc = glGetUniformLocation(debugprogram, "hit");
-	glUniform1i(hitLoc, hitB);
-	glDrawArrays(GL_LINES, 0, 2);
-}
-
-// OpenGL debug callback
-void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-	if (severity != GL_DEBUG_SEVERITY_NOTIFICATION) {
-		std::cerr << "OpenGL: " << message << std::endl;
-	}
-}
-
-void setResDrawing() {
-	// Create Vertex Buffer Object
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	//bind it as (possible) source for the vao
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	//insert data into the current array_buffer: the vbo
-	std::vector<glm::vec3> quad = { glm::vec3(-1, 1, -1), glm::vec3(1, 1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, -1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, 1, -1) };
-	glBufferData(GL_ARRAY_BUFFER, quad.size() * sizeof(glm::vec3), quad.data(), GL_STATIC_DRAW);
-
-	// Bind vertex data to shader inputs using their index (location)
-	// These bindings are stored in the Vertex Array Object
-	glGenVertexArrays(1, &optixVao);
-	glBindVertexArray(optixVao);
-
-	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
-	// Stride is the distance in bytes between vertices
-	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	// Create Texture
-	// everything will now be done in GL_TEXTURE1
-	glActiveTexture(GL_TEXTURE1);
-	glGenTextures(1, &optixTex);
-	glBindTexture(GL_TEXTURE_2D, optixTex);
-
-	// Upload pixels into texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
-}
-
-void refreshTexture() {
-	glActiveTexture(GL_TEXTURE1);
-	// Upload pixels into texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
-}
-
-void initRes(GLuint &shaderProgram) {
-	GLuint vertexShader;
-	ShaderLoader::loadShader(vertexShader, "shaders/optixShader.vert", GL_VERTEX_SHADER);
-
-	GLuint fragmentShader;
-	ShaderLoader::loadShader(fragmentShader, "shaders/optixShader.frag", GL_FRAGMENT_SHADER);
-
-	// Combine vertex and fragment shaders into single shader program
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	if (!ShaderLoader::checkProgramErrors(shaderProgram)) {
-		std::cerr << "Program failed to link!" << std::endl;
-		//return EXIT_FAILURE;
-	}
-
-	setResDrawing();
-
-	// Set behaviour for when texture coordinates are outside the [0, 1] range
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	// Set interpolation for texture sampling (GL_NEAREST for no interpolation)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-}
-
-void drawRes(GLuint &shaderProgram, GLuint &vao) {
-	// Bind the shader
-	glUseProgram(shaderProgram);
-	GLuint loc;
-
-	// upload texture coordinates
-	loc = glGetUniformLocation(shaderProgram, "texToon");
-	glUniform1i(loc, 1);
-
-	// Bind vertex data
-	glBindVertexArray(vao);
-	// Execute draw command
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-}
-
 // key button callback to print screen
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
 	if (key == GLFW_KEY_P && action == GLFW_PRESS){
@@ -424,14 +293,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		eye = eye - optix::make_float3(0.5f, 0.0f, 0.0f);
 		viewDirection = viewDirection - optix::make_float3(0.0005f, 0.0f, 0.0f);
 		doOptixPrime();
-		refreshTexture();
+		Drawer::refreshTexture(optixW,  optixH, optixView);
 	}
 
 	if (key == GLFW_KEY_RIGHT) {
 		eye = eye + optix::make_float3(0.5f, 0.0f, 0.0f);
 		viewDirection = viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
 		doOptixPrime();
-		refreshTexture();
+		Drawer::refreshTexture(optixW, optixH, optixView);
 	}
 
 	if (key == GLFW_KEY_UP) {
@@ -440,7 +309,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 		doOptixPrime();
 
-		refreshTexture();
+		Drawer::refreshTexture(optixW, optixH, optixView);
 
 	}
 
@@ -448,7 +317,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		eye = eye - optix::make_float3(0.0f, 0.5f, 0.0f);
 		viewDirection = viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
 		doOptixPrime();
-		refreshTexture();
+		Drawer::refreshTexture(optixW, optixH, optixView);
 	}
 }
 
@@ -476,32 +345,16 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 int main() {
-	if (!glfwInit()) {
-		std::cerr << "Failed to initialize GLFW!" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	// Create window and OpenGL 4.3 debug context
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "X-Toon shader", nullptr, nullptr);
-	if (!window) {
-		std::cerr << "Failed to create OpenGL context!" << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	// Activate the OpenGL context
-	glfwMakeContextCurrent(window);
+	
+	//initialize window
+	GLFWwindow* window = Drawer::initWindow(WIDTH, HEIGHT);
 
 	// Initialize GLEW extension loader
 	glewExperimental = GL_TRUE;
 	glewInit();
 
 	// Set up OpenGL debug callback
-	glDebugMessageCallback(debugCallback, nullptr);
+	glDebugMessageCallback(Drawer::debugCallback, nullptr);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetKeyCallback(window, key_callback);
 
@@ -543,12 +396,12 @@ int main() {
 	//initializing result optix drawing
 	GLuint optixShader;
 	doOptixPrime();
-	initRes(optixShader);
+	Drawer::initRes(optixShader, optixVao, optixTex, optixW, optixH, optixView);
 	std::cout << optixTex << std::endl;
 
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
-	debuglineInit(linevao, linevbo, debugprogram);
+	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
 	patches.resize(2);
 
@@ -556,18 +409,7 @@ int main() {
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
-		// Clear the framebuffer to black and depth to maximum value
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		//Drawing result from optix raytracing!
-		drawRes(optixShader, optixVao);
-
-		//DRAWING DEBUGLINE
-		debuglineDraw(debugprogram, linevao, linevbo);
-
-		// Present result to the screen
-		glfwSwapBuffers(window);
+		Drawer::draw(window, optixShader, optixVao, debugprogram, linevao, linevbo, debugline, hitB);
 
 	}
 
