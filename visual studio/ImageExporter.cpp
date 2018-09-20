@@ -1,5 +1,6 @@
 #include "ImageExporter.h"
 #include "lodepng.h"
+#include <iostream>
 
 
 
@@ -46,4 +47,6 @@ void ImageExporter::encodeOneStep(const char* filename, const char* extension, u
 
 ImageExporter::~ImageExporter()
 {
+	delete encodepixels;
+	std::cout << "cleaned up encodepixels"  << std::endl;
 }
