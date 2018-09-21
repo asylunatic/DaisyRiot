@@ -13,7 +13,6 @@
 
 // Library for loading .OBJ model
 #define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
 
 // Library for loading an image
 #define STB_IMAGE_IMPLEMENTATION
@@ -39,6 +38,8 @@
 // Configuration
 const int WIDTH = 800;
 const int HEIGHT = 600;
+
+const char * filepath = "balls.obj";
 
 struct Hit {
 	float t;
@@ -336,8 +337,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 			debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
 		}
 		intersectMouse(xpos, ypos);
-		//doOptix(xpos, ypos);
-		//doOptixPrime(0, 0);
 	}
 
 
@@ -358,38 +357,8 @@ int main() {
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetKeyCallback(window, key_callback);
 
-	// Load vertices of model
-	tinyobj::attrib_t attrib;
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-	std::string err;
-	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, "balls.obj")) {
-		std::cerr << err << std::endl;
-		return EXIT_FAILURE;
-	}
+	Vertex::loadVertices(vertices, filepath);
 
-	// Read triangle vertices from OBJ file
-	for (const auto& shape : shapes) {
-		for (const auto& index : shape.mesh.indices) {
-			Vertex vertex = {};
-
-			// Retrieve coordinates for vertex by index
-			vertex.pos = {
-				attrib.vertices[3 * index.vertex_index + 0],
-				attrib.vertices[3 * index.vertex_index + 1],
-				attrib.vertices[3 * index.vertex_index + 2]
-			};
-
-			// Retrieve components of normal by index
-			vertex.normal = {
-				attrib.normals[3 * index.normal_index + 0],
-				attrib.normals[3 * index.normal_index + 1],
-				attrib.normals[3 * index.normal_index + 2]
-			};
-
-			vertices.push_back(vertex);
-		}
-	}
 	//initializing optix
 	initOptixPrime();
 
@@ -407,17 +376,15 @@ int main() {
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
+
 		glfwPollEvents();
 
 		Drawer::draw(window, optixShader, optixVao, debugprogram, linevao, linevbo, debugline, hitB);
 
 	}
 
-	// Cleanup
-	//stbi_image_free(pixels);
-
+	// clean up
 	glfwDestroyWindow(window);
-
 	glfwTerminate();
 
 	return 0;
