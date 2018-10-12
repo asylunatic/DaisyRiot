@@ -508,9 +508,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 
 	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
-		if (shootPatchRay()) {
-			float formfactor = p2pFormfactor2(patches[0].triangleId, patches[1].triangleId);
-		}
+		float formfactor = p2pFormfactor2(patches[0].triangleId, patches[1].triangleId);
 	}
 
 	if (key == GLFW_KEY_F && action == GLFW_PRESS) {
