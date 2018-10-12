@@ -23,6 +23,7 @@
     <ClCompile Include="..\main.cpp" />
     <ClCompile Include="..\stdafx.cpp" />
     <ClCompile Include="ImageExporter.cpp" />
+    <ClCompile Include="ShaderLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include\cctype" />
@@ -48,6 +49,7 @@
     <ClInclude Include="..\lodepng.h" />
     <ClInclude Include="..\stdafx.h" />
     <ClInclude Include="ImageExporter.h" />
+    <ClInclude Include="ShaderLoader.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F108EF87-748D-44F4-8D03-92EF4625363D}</ProjectGuid>
@@ -108,7 +110,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\ProgramData\NVIDIA Corporation\OptiX SDK 4.1.1\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCInstallDir)UnitTest\include;$(IncludePath);C:\ProgramData\NVIDIA Corporation\OptiX SDK 4.1.1\include</IncludePath>
+    <LibraryPath>$(VCInstallDir)UnitTest\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -116,7 +119,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\ProgramData\NVIDIA Corporation\OptiX SDK 4.1.1\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCInstallDir)UnitTest\include;$(IncludePath);C:\ProgramData\NVIDIA Corporation\OptiX SDK 4.1.1\include</IncludePath>
+    <LibraryPath>$(VCInstallDir)UnitTest\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

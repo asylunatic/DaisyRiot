@@ -51,6 +51,11 @@ struct Hit {
 	optix::float2 uv;
 };
 
+struct MatrixIndex {
+	int col;
+	int row;
+};
+
 std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
 { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
 
@@ -61,6 +66,7 @@ optix::prime::Context contextP;
 optix::prime::Model model;
 std::vector<Vertex> vertices;
 std::vector<glm::vec3> optixView;
+std::vector<std::vector<MatrixIndex>> trianglesonScreen;
 std::vector<Hit> patches;
 bool left = true; 
 int optixW = 512, optixH = 512;
@@ -73,12 +79,22 @@ glm::vec3 optix2glmf3(optix::float3 v) {
 	return glm::vec3(v.x, v.y, v.z);
 }
 
+optix::float3 glm2optixf3(glm::vec3 v) {
+	return optix::make_float3(v.x, v.y, v.z);
+}
+
 optix::float3 uv2xyz(int triangleId, optix::float2 uv) {
 	glm::vec3 a = vertices[triangleId * 3].pos;
 	glm::vec3 b = vertices[triangleId * 3 + 1].pos;
 	glm::vec3 c = vertices[triangleId * 3 + 2].pos;
-	glm::vec3 point = glm::vec3(a + uv.x*(b - a) + uv.y*(c - a));
+	glm::vec3 point = a  + uv.x*(b - a) + uv.y*(c - a);
 	return optix::make_float3(point.x, point.y, point.z);
+}
+
+void refreshTexture() {
+	glActiveTexture(GL_TEXTURE1);
+	// Upload pixels into texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
 }
 
 void initOptix() {
@@ -216,13 +232,29 @@ void doOptixPrime() {
 	}
 	query->finish();
 
+	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+	std::cout << "optix rayshooting " << duration << '\n';
+	start = std::clock();
 
-	for (size_t j = 0; j < optixH; j++) {
-		for (size_t i = 0; i < optixW; i++) {
+	trianglesonScreen.clear();
+	trianglesonScreen.resize(vertices.size()/3);
+
+	for (int j = 0; j < optixH; j++) {
+		for (int i = 0; i < optixW; i++) {
 			optixView[(j*optixH + i)] = (hits[(j*optixH + i)].t>0) ? glm::vec3(glm::abs(vertices[hits[(j*optixH + i)].triangleId * 3].normal)) : glm::vec3(0.0f, 0.0f, 0.0f);
+			if (hits[(j*optixH + i)].t>0) {
+				MatrixIndex index = {};
+				index.col = i;
+				index.row = j;
+				trianglesonScreen[hits[(j*optixH + i)].triangleId].push_back(index);
+			}
 		}
 
 	}
+
+	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+	std::cout << "for looping again: " << duration << '\n';
+	start = std::clock();
 }
 
 bool shootPatchRay() {
@@ -251,42 +283,139 @@ bool shootPatchRay() {
 	else return false;
 }
 
-float p2pViewFactor(int originPatch, int destPatch) {
-	optix::prime::Query query;
-	Hit hit;
-	std::vector<optix::float3> ray;
+glm::vec3 calculateCentre(float triangleId) {
+	glm::vec3 centre = (vertices[triangleId * 3].pos + vertices[triangleId * 3 + 1].pos + vertices[triangleId * 3 + 2].pos);
+	return glm::vec3(centre.x / 3, centre.y / 3, centre.z / 3);
+}
+
+float calculateSurface(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
+	glm::vec3 ab = b - a;
+	glm::vec3 ac = c - a;
+	float theta = glm::acos(glm::dot(ab, ac) / (glm::length(ab)*glm::length(ac)));
+	float surface = 0.5 * glm::length(ab)*glm::length(ac) + glm::sin(theta);
+	printf("\nsurface area is: %f", surface);
+	return surface;
+}
+
+float p2pFormfactor(int originPatch, int destPatch) {
+
+	glm::vec3 centreOrig = calculateCentre(originPatch);
+	glm::vec3 centreDest = calculateCentre(destPatch);
+
+	float formfactor = 0;
+	float dot1 = glm::dot(vertices[originPatch * 3].normal, glm::normalize(centreDest - centreOrig));
+	float dot2 = glm::dot(vertices[destPatch * 3].normal, glm::normalize(centreOrig - centreDest));
+	if (dot1 > 0 && dot2 > 0) {
+		float length = glm::sqrt(glm::dot(centreDest - centreOrig, centreDest - centreOrig));
+		float theta1 = glm::acos(dot1 / length) * 180.0 / M_PIf;
+		float theta2 = glm::acos(dot2 / length) * 180.0 / M_PIf;
+		printf("\n theta's: %f, %f \nlength: %f \ndots: %f, %f", theta1, theta2, length, dot1, dot2);
+		formfactor = dot1*dot2 / std::powf(length, 4)*M_PIf;
+	}
+
+	std::vector<optix::float3> rays;
+	rays.resize(2 * raysPerPatch);
+
+	std::vector<Hit> hits;
+	hits.resize(raysPerPatch);
+
 	optix::float3 origin;
 	optix::float3 dest;
-	float viewfactors = 0;
-
 	for (int i = 0; i < raysPerPatch; i++) {
 		origin = uv2xyz(originPatch, optix::make_float2(rands[i * 2], rands[i * 2 + 1]));
 		dest = uv2xyz(destPatch, optix::make_float2(rands[i * 2], rands[i * 2 + 1]));
-		query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-		ray = { origin + optix::normalize(dest - origin)*0.000001f, optix::normalize(dest - origin) };
-		query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
-		query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
-		try{
-			query->execute(RTP_QUERY_HINT_NONE);
-		}
-		catch (optix::prime::Exception &e) {
-			std::cerr << "An error occurred with error code "
-				<< e.getErrorCode() << " and message "
-				<< e.getErrorString() << std::endl;
-		}
-		float dot1 = glm::dot(vertices[originPatch * 3].normal, glm::normalize(optix2glmf3(dest - origin)));
-		float dot2 = glm::dot(vertices[destPatch * 3].normal, glm::normalize(optix2glmf3(origin - dest)));
-		if (hit.t > 0 && hit.triangleId == destPatch && dot1 > 0 && dot2 > 0) {
-			float theta1 = glm::acos( dot1/ hit.t) * 180.0 / M_PIf;
-			float theta2 = glm::acos( dot2/ hit.t) * 180.0 / M_PIf;
-			printf("\n theta's: %f, %f, %f, %f", theta1, theta2, dot2 / hit.t, hit.t);
-			float angleratio = glm::dot(vertices[originPatch * 3].normal, glm::normalize(optix2glmf3(dest - origin)))
-				*glm::dot(vertices[destPatch * 3].normal, glm::normalize(optix2glmf3(origin - dest)));
-			viewfactors += angleratio / std::powf(hit.t, 4)*M_PIf;
-		}
+
+		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
+		rays[i * 2 + 1] = optix::normalize(dest - origin);
 	}
-	printf("\nviewfactors: %f \n", viewfactors);
-	return viewfactors / raysPerPatch;
+
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+	query->setRays(raysPerPatch, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
+	hitBuffer->setRange(0, raysPerPatch);
+	query->setHits(hitBuffer);
+	try{
+		query->execute(RTP_QUERY_HINT_NONE);
+	}
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
+	}
+
+	float visibility = 0;
+
+	for (Hit hit : hits) {
+		visibility += hit.t > 0 ? 1 : 0;
+	}
+	visibility = visibility / raysPerPatch;
+	printf("\nformfactor: %f \nvisibility: %f\%", formfactor, visibility);
+	return formfactor*visibility;
+
+}
+
+float p2pFormfactor2(int originPatch, int destPatch) {
+	glm::vec3 centreOrig = calculateCentre(originPatch);
+	//    A___B<------centreOrig
+	//     \ /    ----/
+	//      C<---/
+	
+	std::vector<glm::vec3> hemitriangle;
+	std::vector<glm::vec3> projtriangle;
+
+	projtriangle.resize(3);
+	hemitriangle.resize(3);
+
+	for (int i = 0; i < 2; i++) {
+		hemitriangle[i] = glm::normalize(vertices[destPatch * 3 + i].pos - centreOrig);
+		projtriangle[i] = hemitriangle[i] - glm::dot(vertices[originPatch * 3].normal, hemitriangle[i])*vertices[originPatch * 3].normal;
+	}
+
+	std::vector<optix::float3> rays;
+	rays.resize(2 * raysPerPatch);
+
+	std::vector<Hit> hits;
+	hits.resize(raysPerPatch);
+
+	optix::float3 origin;
+	optix::float3 dest;
+	for (int i = 0; i < raysPerPatch; i++) {
+		origin = uv2xyz(originPatch, optix::make_float2(rands[i * 2], rands[i * 2 + 1]));
+		dest = uv2xyz(destPatch, optix::make_float2(rands[i * 2], rands[i * 2 + 1]));
+		printf("\n%f", rands[i*2]);
+		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
+		rays[i * 2 + 1] = optix::normalize(dest - origin);
+	}
+
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+	query->setRays(raysPerPatch, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
+	hitBuffer->setRange(0, raysPerPatch);
+	query->setHits(hitBuffer);
+	try{
+		query->execute(RTP_QUERY_HINT_NONE);
+	}
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
+	}
+
+	float visibility = 0;
+
+
+	for (Hit hit : hits) {
+		printf("\n%f", hit.t);
+		float newT = hit.t > 0 && hit.triangleId == destPatch ? 1 : 0;
+		visibility += newT;
+		printf(" newT: %f triangle: %i", newT, hit.triangleId);
+	}
+	printf("rays hit: %f", visibility);
+	visibility = visibility / raysPerPatch;
+	float formfactor = calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
+	printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
+
+	return formfactor*visibility;
 
 }
 
@@ -317,6 +446,10 @@ void intersectMouse(double xpos, double ypos) {
 			printf("\ndid it hit? %i", hitB);
 		}
 		left = !left;
+		for (MatrixIndex index : trianglesonScreen[hit.triangleId]) {
+			optixView[(index.row*optixH + index.col)] = glm::vec3(1.0, 1.0, 1.0);
+		}
+		refreshTexture();
 
 	}
 	else {
@@ -405,12 +538,6 @@ void setResDrawing() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
 }
 
-void refreshTexture() {
-	glActiveTexture(GL_TEXTURE1);
-	// Upload pixels into texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
-}
-
 void initRes(GLuint &shaderProgram) {
 	GLuint vertexShader;
 	ShaderLoader::loadShader(vertexShader, "shaders/optixShader.vert", GL_VERTEX_SHADER);
@@ -465,42 +592,55 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		if (GL_NO_ERROR != glGetError()) throw "Error: Unable to read pixels.";
 		ie.encodeOneStep("screenshots/output",".png", WIDTH, HEIGHT);
 	}
-	if (key == GLFW_KEY_LEFT) {
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+		std::cout << "left" << std::endl;
 		eye = eye - optix::make_float3(0.5f, 0.0f, 0.0f);
 		viewDirection = viewDirection - optix::make_float3(0.0005f, 0.0f, 0.0f);
 		doOptixPrime();
 		refreshTexture();
 	}
 
-	if (key == GLFW_KEY_RIGHT) {
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+		std::cout << "right" << std::endl;
 		eye = eye + optix::make_float3(0.5f, 0.0f, 0.0f);
 		viewDirection = viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
 		doOptixPrime();
 		refreshTexture();
 	}
 
-	if (key == GLFW_KEY_UP) {
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		std::cout << "up" << std::endl;
 		eye = eye + optix::make_float3(0.0f, 0.5f, 0.0f);
 		viewDirection = viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
 
 		doOptixPrime();
-
 		refreshTexture();
 
 	}
 
-	if (key == GLFW_KEY_DOWN) {
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+		std::cout << "down" << std::endl;
 		eye = eye - optix::make_float3(0.0f, 0.5f, 0.0f);
 		viewDirection = viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
 		doOptixPrime();
 		refreshTexture();
 	}
 
-	if (key == GLFW_KEY_B) {
+	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
 		if (shootPatchRay()) {
-			float viewfactor = p2pViewFactor(patches[0].triangleId, patches[1].triangleId);
-			printf("viewfactor is: %f", viewfactor);
+			float formfactor = p2pFormfactor2(patches[0].triangleId, patches[1].triangleId);
 		}
+	}
+
+	if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+		int id;
+		std::cout << "\nenter the id of the triangle you want to find" << std::endl;
+		std::cin >> id;
+		for (MatrixIndex index : trianglesonScreen[id]) {
+			optixView[(index.row*optixH + index.col)] = glm::vec3(0.0, 1.0, 0.0);
+		}
+		refreshTexture();
+
 	}
 }
 
@@ -511,7 +651,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		glfwGetCursorPos(window, &xpos, &ypos);
 		xpos = xpos * 2 / WIDTH - 1;
 		ypos = 1 - ypos * 2 / HEIGHT;
-		printf("click!: %f %f", xpos, ypos);
+		printf("\nclick!: %f %f", xpos, ypos);
 		if (left){
 			debugline.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
 			}
@@ -592,10 +732,11 @@ int main() {
 
 	rands.resize(2*raysPerPatch);
 	std::srand(std::time(nullptr)); // use current time as seed for random generator
-
-	for (size_t i = 0; i < 2*raysPerPatch; i++) {
+	printf("\nrands: ");
+ 	for (size_t i = 0; i < 2*raysPerPatch; i++) {
 		rands[i] = ((float) (rand() % RAND_MAX)) / RAND_MAX;
 	}
+
 
 	//initializing optix
 	initOptixPrime();
