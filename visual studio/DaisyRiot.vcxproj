@@ -22,6 +22,8 @@
     <ClCompile Include="..\lodepng.cpp" />
     <ClCompile Include="..\main.cpp" />
     <ClCompile Include="..\stdafx.cpp" />
+    <ClCompile Include="Drawer.cpp" />
+    <ClCompile Include="DrawingFunctionality.cpp" />
     <ClCompile Include="ImageExporter.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
   </ItemGroup>
@@ -48,6 +50,8 @@
   <ItemGroup>
     <ClInclude Include="..\lodepng.h" />
     <ClInclude Include="..\stdafx.h" />
+    <ClInclude Include="Drawer.h" />
+    <ClInclude Include="DrawingFunctionality.h" />
     <ClInclude Include="ImageExporter.h" />
     <ClInclude Include="ShaderLoader.h" />
   </ItemGroup>
