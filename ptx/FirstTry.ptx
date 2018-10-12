@@ -70,10 +70,10 @@
 .global .align 1 .b8 _ZN23rti_internal_annotation10top_objectE[1];
 .global .align 1 .b8 $str[30] = {84, 72, 73, 83, 46, 32, 73, 83, 46, 32, 67, 85, 68, 65, 65, 65, 65, 65, 65, 65, 65, 65, 33, 32, 37, 102, 32, 37, 102, 0};
 
-.func  (.param .align 4 .b8 func_retval0[12]) _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff(
-	.param .b32 _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_0,
-	.param .b32 _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_1,
-	.param .b32 _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_2
+.func  (.param .align 4 .b8 func_retval0[12]) _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff(
+	.param .b32 _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_0,
+	.param .b32 _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_1,
+	.param .b32 _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_2
 )
 {
 	.local .align 4 .b8 	__local_depot0[12];
@@ -91,9 +91,9 @@ func_begin0:
 
 	mov.u64 	%rd1, __local_depot0;
 	cvta.local.u64 	%SP, %rd1;
-	ld.param.f32 	%f1, [_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_0];
-	ld.param.f32 	%f2, [_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_1];
-	ld.param.f32 	%f3, [_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_2];
+	ld.param.f32 	%f1, [_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_0];
+	ld.param.f32 	%f2, [_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_1];
+	ld.param.f32 	%f3, [_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff_param_2];
 tmp0:
 func_exec_begin0:
 	.loc	5 247 13
@@ -114,10 +114,10 @@ tmp1:
 func_end0:
 }
 
-.func _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0_(
-	.param .b64 _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_0,
-	.param .b32 _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_1,
-	.param .b32 _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_2
+.func _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0_(
+	.param .b64 _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_0,
+	.param .b32 _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_1,
+	.param .b32 _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_2
 )
 {
 	.local .align 8 .b8 	__local_depot1[16];
@@ -138,9 +138,9 @@ func_begin1:
 
 	mov.u64 	%rd3, __local_depot1;
 	cvta.local.u64 	%SP, %rd3;
-	ld.param.u64 	%rd1, [_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_0];
-	ld.param.f32 	%f1, [_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_1];
-	ld.param.f32 	%f2, [_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_2];
+	ld.param.u64 	%rd1, [_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_0];
+	ld.param.f32 	%f1, [_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_1];
+	ld.param.f32 	%f2, [_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0__param_2];
 func_exec_begin1:
 	.loc	3 2214 8
 	bra.uni	tmp2;
@@ -200,10 +200,10 @@ tmp7:
 func_end1:
 }
 
-.func _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT_(
-	.param .align 4 .b8 _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_0[4],
-	.param .b64 _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_1,
-	.param .b64 _ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_2
+.func _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT_(
+	.param .align 4 .b8 _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_0[4],
+	.param .b64 _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_1,
+	.param .b64 _ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_2
 )
 {
 	.local .align 4 .b8 	__local_depot2[28];
@@ -222,9 +222,9 @@ func_begin2:
 
 	mov.u64 	%rd5, __local_depot2;
 	cvta.local.u64 	%SP, %rd5;
-	ld.param.u32 	%r1, [_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_0];
-	ld.param.u64 	%rd1, [_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_1];
-	ld.param.u64 	%rd2, [_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_2];
+	ld.param.u32 	%r1, [_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_0];
+	ld.param.u64 	%rd1, [_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_1];
+	ld.param.u64 	%rd2, [_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT__param_2];
 	st.u32 	[%SP+24], %r1;
 func_exec_begin2:
 	.loc	3 1814 3
@@ -339,7 +339,7 @@ func_exec_begin3:
 	.param .b32 param2;
 	st.param.f32	[param2+0], %f2;
 	call.uni 
-	_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0_, 
+	_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7038rtPrintfIffEEvPKcT_T0_, 
 	(
 	param0, 
 	param1, 
@@ -365,7 +365,7 @@ func_exec_begin3:
 	st.param.f32	[param2+0], %f5;
 	.param .align 4 .b8 retval0[12];
 	call.uni (retval0), 
-	_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff, 
+	_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff, 
 	(
 	param0, 
 	param1, 
@@ -395,7 +395,7 @@ func_exec_begin3:
 	st.param.f32	[param2+0], %f10;
 	.param .align 4 .b8 retval0[12];
 	call.uni (retval0), 
-	_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff, 
+	_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef70311make_float3Efff, 
 	(
 	param0, 
 	param1, 
@@ -491,7 +491,7 @@ func_exec_begin3:
 	.param .b64 param2;
 	st.param.b64	[param2+0], %rd9;
 	call.uni 
-	_ZN65_INTERNAL_43_tmpxft_00000414_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT_, 
+	_ZN65_INTERNAL_43_tmpxft_00002d30_00000000_7_FirstTry_cpp1_ii_60eef7037rtTraceIbEEv8rtObjectN5optix3RayERT_, 
 	(
 	param0, 
 	param1, 
@@ -5089,10 +5089,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -5178,10 +5178,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -5389,10 +5389,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -5484,10 +5484,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -5666,10 +5666,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -5775,10 +5775,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -6844,10 +6844,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -6949,10 +6949,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -7221,10 +7221,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -7318,10 +7318,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -8393,10 +8393,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -8525,10 +8525,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -8646,10 +8646,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -8804,10 +8804,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48
@@ -8894,10 +8894,10 @@ func_end7:
  .b8 48
  .b8 48
  .b8 48
+ .b8 50
+ .b8 100
+ .b8 51
  .b8 48
- .b8 52
- .b8 49
- .b8 52
  .b8 95
  .b8 48
  .b8 48

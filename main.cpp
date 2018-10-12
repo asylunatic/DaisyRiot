@@ -53,6 +53,11 @@ struct MatrixIndex {
 	int row;
 };
 
+struct UV {
+	float u;
+	float v;
+};
+
 std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
 { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
 
@@ -69,7 +74,7 @@ bool left = true;
 int optixW = 512, optixH = 512;
 bool hitB = false;
 GLuint optixTex, optixVao;
-std::vector<float> rands;
+std::vector<UV> rands;
 int raysPerPatch = 100;
 
 glm::vec3 optix2glmf3(optix::float3 v) {
@@ -319,8 +324,8 @@ float p2pFormfactor(int originPatch, int destPatch) {
 	optix::float3 origin;
 	optix::float3 dest;
 	for (int i = 0; i < raysPerPatch; i++) {
-		origin = uv2xyz(originPatch, optix::make_float2(rands[i * 2], rands[i * 2 + 1]));
-		dest = uv2xyz(destPatch, optix::make_float2(rands[i * 2], rands[i * 2 + 1]));
+		origin = uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v));
+		dest = uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v));
 
 		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
 		rays[i * 2 + 1] = optix::normalize(dest - origin);
@@ -377,11 +382,11 @@ float p2pFormfactor2(int originPatch, int destPatch) {
 	optix::float3 origin;
 	optix::float3 dest;
 	for (int i = 0; i < raysPerPatch; i++) {
-		origin = uv2xyz(originPatch, optix::make_float2(rands[i * 2], rands[i * 2 + 1]));
-		dest = uv2xyz(destPatch, optix::make_float2(rands[i * 2], rands[i * 2 + 1]));
-		printf("\n%f", rands[i*2]);
+		origin = uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v));
+		dest = uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v));
 		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
 		rays[i * 2 + 1] = optix::normalize(dest - origin);
+		//printf("\nuv = %f, %f");
 	}
 
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
@@ -557,11 +562,16 @@ int main() {
 
 	Vertex::loadVertices(vertices, filepath);
 
-	rands.resize(2*raysPerPatch);
+	rands.resize(raysPerPatch);
 	std::srand(std::time(nullptr)); // use current time as seed for random generator
 	printf("\nrands: ");
- 	for (size_t i = 0; i < 2*raysPerPatch; i++) {
-		rands[i] = ((float) (rand() % RAND_MAX)) / RAND_MAX;
+ 	for (size_t i = 0; i < raysPerPatch; i++) {
+		UV uv = UV();
+		uv.u = ((float)(rand() % RAND_MAX)) / RAND_MAX;
+		uv.v = ((float)(rand() % RAND_MAX)) / RAND_MAX;
+		uv.v = uv.v * (1 - uv.u);
+		printf("\nsum uv : %f", uv.v + uv.u);
+		rands[i] = uv;
 	}
 
 	//initializing optix
