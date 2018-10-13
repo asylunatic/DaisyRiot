@@ -123,24 +123,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	/*if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		double xpos, ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);
-		xpos = xpos * 2 / WIDTH - 1;
-		ypos = 1 - ypos * 2 / HEIGHT;
-		printf("\nclick!: %f %f", xpos, ypos);
-		if (left){
-			debugline.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
-			}
-		else {
-			debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
-		}
-		hitB = OptixPrimeFunctionality::intersectMouse(left, xpos, ypos, optixW, optixH, viewDirection, eye, trianglesonScreen,
-			model, optixView, patches, vertices);
-	}*/
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		InputHandler::leftclick(window, left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen,
-			model, optixView, patches, vertices);
+		//InputHandler::leftclick(window, left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen,
+		//	model, optixView, patches, vertices);
+		InputHandler::leftclick(window);
 	}
 }
 
@@ -157,6 +143,9 @@ int main() {
 	glDebugMessageCallback(Drawer::debugCallback, nullptr);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetKeyCallback(window, key_callback);
+	// set up callback context
+	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, model, optixView, patches, vertices);
+	glfwSetWindowUserPointer(window, &cbc);
 
 	Vertex::loadVertices(vertices, obj_filepath);
 
