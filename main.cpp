@@ -42,7 +42,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * filepath = "balls.obj";
+const char * obj_filepath = "balls.obj";
 
 std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
 { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
@@ -94,7 +94,6 @@ void intersectMouse(double xpos, double ypos) {
 			optixView[(index.row*optixH + index.col)] = glm::vec3(1.0, 1.0, 1.0);
 		}
 		Drawer::refreshTexture(optixW, optixH, optixView);
-
 	}
 	else {
 		printf("miss!");
@@ -180,9 +179,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		}
 		intersectMouse(xpos, ypos);
 	}
-
-
-
 }
 
 int main() {
@@ -199,7 +195,7 @@ int main() {
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetKeyCallback(window, key_callback);
 
-	Vertex::loadVertices(vertices, filepath);
+	Vertex::loadVertices(vertices, obj_filepath);
 
 	rands.resize(raysPerPatch);
 	std::srand(std::time(nullptr)); // use current time as seed for random generator

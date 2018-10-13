@@ -9,10 +9,10 @@
 #include "OptixFunctionality.h"
 #include "Defines.h"
 
-class OptixPrimeFunctionality
+class OptixPrimeFunctionality : public OptixFunctionality
 {
 public:
-	static bool shootPatchRay(std::vector<OptixFunctionality::Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Model &model);
+	static bool shootPatchRay(std::vector<Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Model &model);
 	static float p2pFormfactor(int originPatch, int destPatch, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<Vertex> &vertices, std::vector<UV> &rands);
 	static float p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands);
 	static void initOptixPrime(optix::prime::Context &contextP, optix::prime::Model &model, std::vector<Vertex> &vertices);

@@ -21,7 +21,7 @@ void OptixPrimeFunctionality::initOptixPrime(optix::prime::Context &contextP, op
 void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, optix::prime::Context &contextP, std::vector<glm::vec3> &optixView,
 		optix::float3 &eye, optix::float3 &viewDirection, optix::prime::Model &model, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, std::vector<Vertex> &vertices) {
 
-	std::vector<OptixFunctionality::Hit> hits;
+	std::vector<Hit> hits;
 	hits.resize(optixW*optixH);
 	optixView.resize(optixW*optixH);
 	optix::float3 upperLeftCorner = eye + viewDirection + optix::make_float3(-1.0f, 1.0f, 0.0f);
@@ -88,8 +88,8 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, optix::prime
 float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 	int raysPerPatch = RAYS_PER_PATCH;
 
-	glm::vec3 centreOrig = OptixFunctionality::TriangleMath::calculateCentre(originPatch, vertices);
-	glm::vec3 centreDest = OptixFunctionality::TriangleMath::calculateCentre(destPatch, vertices);
+	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
+	glm::vec3 centreDest = TriangleMath::calculateCentre(destPatch, vertices);
 
 	float formfactor = 0;
 	float dot1 = glm::dot(vertices[originPatch * 3].normal, glm::normalize(centreDest - centreOrig));
@@ -105,14 +105,14 @@ float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, opt
 	std::vector<optix::float3> rays;
 	rays.resize(2 * raysPerPatch);
 
-	std::vector<OptixFunctionality::Hit> hits;
+	std::vector<Hit> hits;
 	hits.resize(raysPerPatch);
 
 	optix::float3 origin;
 	optix::float3 dest;
 	for (int i = 0; i < raysPerPatch; i++) {
-		origin = OptixFunctionality::TriangleMath::uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
-		dest = OptixFunctionality::TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		origin = TriangleMath::uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		dest = TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
 
 		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
 		rays[i * 2 + 1] = optix::normalize(dest - origin);
@@ -134,7 +134,7 @@ float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, opt
 
 	float visibility = 0;
 
-	for (OptixFunctionality::Hit hit : hits) {
+	for (Hit hit : hits) {
 		visibility += hit.t > 0 ? 1 : 0;
 	}
 	visibility = visibility / raysPerPatch;
@@ -145,7 +145,7 @@ float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, opt
 
 float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
 	int raysPerPatch = RAYS_PER_PATCH;
-	glm::vec3 centreOrig = OptixFunctionality::TriangleMath::calculateCentre(originPatch, vertices);
+	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
 	//    A___B<------centreOrig
 	//     \ /    ----/
 	//      C<---/
@@ -164,14 +164,14 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 	std::vector<optix::float3> rays;
 	rays.resize(2 * raysPerPatch);
 
-	std::vector<OptixFunctionality::Hit> hits;
+	std::vector<Hit> hits;
 	hits.resize(raysPerPatch);
 
 	optix::float3 origin;
 	optix::float3 dest;
 	for (int i = 0; i < raysPerPatch; i++) {
-		origin = OptixFunctionality::TriangleMath::uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
-		dest = OptixFunctionality::TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		origin = TriangleMath::uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		dest = TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
 		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
 		rays[i * 2 + 1] = optix::normalize(dest - origin);
 		//printf("\nuv = %f, %f");
@@ -194,7 +194,7 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 	float visibility = 0;
 
 
-	for (OptixFunctionality::Hit hit : hits) {
+	for (Hit hit : hits) {
 		printf("\n%f", hit.t);
 		float newT = hit.t > 0 && hit.triangleId == destPatch ? 1 : 0;
 		visibility += newT;
@@ -202,20 +202,20 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 	}
 	printf("rays hit: %f", visibility);
 	visibility = visibility / raysPerPatch;
-	float formfactor = OptixFunctionality::TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
+	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
 	printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
 
 	return formfactor * visibility;
 
 }
 
-bool OptixPrimeFunctionality::shootPatchRay(std::vector<OptixFunctionality::Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Model &model) {
-	optix::float3  pointA = OptixFunctionality::TriangleMath::uv2xyz(patches[0].triangleId, patches[0].uv, vertices);
-	optix::float3  pointB = OptixFunctionality::TriangleMath::uv2xyz(patches[1].triangleId, patches[1].uv, vertices);
+bool OptixPrimeFunctionality::shootPatchRay(std::vector<Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Model &model) {
+	optix::float3  pointA = TriangleMath::uv2xyz(patches[0].triangleId, patches[0].uv, vertices);
+	optix::float3  pointB = TriangleMath::uv2xyz(patches[1].triangleId, patches[1].uv, vertices);
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 	std::vector<optix::float3> ray = { pointA + optix::normalize(pointB - pointA)*0.000001f, optix::normalize(pointB - pointA) };
 	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
-	OptixFunctionality::Hit hit;
+	Hit hit;
 	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
 	try {
 		query->execute(RTP_QUERY_HINT_NONE);
