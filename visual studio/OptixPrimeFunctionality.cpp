@@ -85,11 +85,149 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, optix::prime
 	start = std::clock();
 }
 
-OptixPrimeFunctionality::OptixPrimeFunctionality()
-{
+float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
+	int raysPerPatch = RAYS_PER_PATCH;
+
+	glm::vec3 centreOrig = OptixFunctionality::TriangleMath::calculateCentre(originPatch, vertices);
+	glm::vec3 centreDest = OptixFunctionality::TriangleMath::calculateCentre(destPatch, vertices);
+
+	float formfactor = 0;
+	float dot1 = glm::dot(vertices[originPatch * 3].normal, glm::normalize(centreDest - centreOrig));
+	float dot2 = glm::dot(vertices[destPatch * 3].normal, glm::normalize(centreOrig - centreDest));
+	if (dot1 > 0 && dot2 > 0) {
+		float length = glm::sqrt(glm::dot(centreDest - centreOrig, centreDest - centreOrig));
+		float theta1 = glm::acos(dot1 / length) * 180.0 / M_PIf;
+		float theta2 = glm::acos(dot2 / length) * 180.0 / M_PIf;
+		printf("\n theta's: %f, %f \nlength: %f \ndots: %f, %f", theta1, theta2, length, dot1, dot2);
+		formfactor = dot1 * dot2 / std::powf(length, 4)*M_PIf;
+	}
+
+	std::vector<optix::float3> rays;
+	rays.resize(2 * raysPerPatch);
+
+	std::vector<OptixFunctionality::Hit> hits;
+	hits.resize(raysPerPatch);
+
+	optix::float3 origin;
+	optix::float3 dest;
+	for (int i = 0; i < raysPerPatch; i++) {
+		origin = OptixFunctionality::TriangleMath::uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		dest = OptixFunctionality::TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+
+		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
+		rays[i * 2 + 1] = optix::normalize(dest - origin);
+	}
+
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+	query->setRays(raysPerPatch, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
+	hitBuffer->setRange(0, raysPerPatch);
+	query->setHits(hitBuffer);
+	try {
+		query->execute(RTP_QUERY_HINT_NONE);
+	}
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
+	}
+
+	float visibility = 0;
+
+	for (OptixFunctionality::Hit hit : hits) {
+		visibility += hit.t > 0 ? 1 : 0;
+	}
+	visibility = visibility / raysPerPatch;
+	printf("\nformfactor: %f \nvisibility: %f\%", formfactor, visibility);
+	return formfactor * visibility;
+
 }
 
+float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
+	int raysPerPatch = RAYS_PER_PATCH;
+	glm::vec3 centreOrig = OptixFunctionality::TriangleMath::calculateCentre(originPatch, vertices);
+	//    A___B<------centreOrig
+	//     \ /    ----/
+	//      C<---/
 
-OptixPrimeFunctionality::~OptixPrimeFunctionality()
-{
+	std::vector<glm::vec3> hemitriangle;
+	std::vector<glm::vec3> projtriangle;
+
+	projtriangle.resize(3);
+	hemitriangle.resize(3);
+
+	for (int i = 0; i < 2; i++) {
+		hemitriangle[i] = glm::normalize(vertices[destPatch * 3 + i].pos - centreOrig);
+		projtriangle[i] = hemitriangle[i] - glm::dot(vertices[originPatch * 3].normal, hemitriangle[i])*vertices[originPatch * 3].normal;
+	}
+
+	std::vector<optix::float3> rays;
+	rays.resize(2 * raysPerPatch);
+
+	std::vector<OptixFunctionality::Hit> hits;
+	hits.resize(raysPerPatch);
+
+	optix::float3 origin;
+	optix::float3 dest;
+	for (int i = 0; i < raysPerPatch; i++) {
+		origin = OptixFunctionality::TriangleMath::uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		dest = OptixFunctionality::TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
+		rays[i * 2 + 1] = optix::normalize(dest - origin);
+		//printf("\nuv = %f, %f");
+	}
+
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+	query->setRays(raysPerPatch, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
+	hitBuffer->setRange(0, raysPerPatch);
+	query->setHits(hitBuffer);
+	try {
+		query->execute(RTP_QUERY_HINT_NONE);
+	}
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
+	}
+
+	float visibility = 0;
+
+
+	for (OptixFunctionality::Hit hit : hits) {
+		printf("\n%f", hit.t);
+		float newT = hit.t > 0 && hit.triangleId == destPatch ? 1 : 0;
+		visibility += newT;
+		printf(" newT: %f triangle: %i", newT, hit.triangleId);
+	}
+	printf("rays hit: %f", visibility);
+	visibility = visibility / raysPerPatch;
+	float formfactor = OptixFunctionality::TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
+	printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
+
+	return formfactor * visibility;
+
 }
+
+bool OptixPrimeFunctionality::shootPatchRay(std::vector<OptixFunctionality::Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Model &model) {
+	optix::float3  pointA = OptixFunctionality::TriangleMath::uv2xyz(patches[0].triangleId, patches[0].uv, vertices);
+	optix::float3  pointB = OptixFunctionality::TriangleMath::uv2xyz(patches[1].triangleId, patches[1].uv, vertices);
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+	std::vector<optix::float3> ray = { pointA + optix::normalize(pointB - pointA)*0.000001f, optix::normalize(pointB - pointA) };
+	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
+	OptixFunctionality::Hit hit;
+	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
+	try {
+		query->execute(RTP_QUERY_HINT_NONE);
+	}
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
+	}
+	if (hit.triangleId == patches[1].triangleId) {
+		return true;
+	}
+	else return false;
+}
+

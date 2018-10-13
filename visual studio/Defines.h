@@ -9,3 +9,5 @@ struct UV {
 	float u;
 	float v;
 };
+
+#define RAYS_PER_PATCH 100;
