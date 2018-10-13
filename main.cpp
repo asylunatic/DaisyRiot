@@ -61,7 +61,6 @@ int optixW = 512, optixH = 512;
 bool hitB = false;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
-int raysPerPatch = RAYS_PER_PATCH;
 
 void intersectMouse(double xpos, double ypos) {
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
@@ -177,7 +176,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		else {
 			debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
 		}
-		intersectMouse(xpos, ypos);
+		//intersectMouse(xpos, ypos);
+		hitB = OptixPrimeFunctionality::intersectMouse(left, xpos, ypos, optixW, optixH, viewDirection, eye, trianglesonScreen,
+			model, optixView, patches, vertices);
 	}
 }
 
@@ -197,10 +198,10 @@ int main() {
 
 	Vertex::loadVertices(vertices, obj_filepath);
 
-	rands.resize(raysPerPatch);
+	rands.resize(RAYS_PER_PATCH);
 	std::srand(std::time(nullptr)); // use current time as seed for random generator
 	printf("\nrands: ");
- 	for (size_t i = 0; i < raysPerPatch; i++) {
+ 	for (size_t i = 0; i < RAYS_PER_PATCH; i++) {
 		UV uv = UV();
 		uv.u = ((float)(rand() % RAND_MAX)) / RAND_MAX;
 		uv.v = ((float)(rand() % RAND_MAX)) / RAND_MAX;
