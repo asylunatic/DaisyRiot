@@ -63,64 +63,6 @@ bool hitB = false;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
 
-// key button callback to print screen
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
-	if (key == GLFW_KEY_P && action == GLFW_PRESS){
-		std::cout << "print" << std::endl;
-		// write png image
-		ImageExporter ie = ImageExporter(WIDTH, HEIGHT);
-		glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, ie.encodepixels);
-		if (GL_NO_ERROR != glGetError()) throw "Error: Unable to read pixels.";
-		ie.encodeOneStep("screenshots/output",".png", WIDTH, HEIGHT);
-	}
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
-		std::cout << "left" << std::endl;
-		eye = eye - optix::make_float3(0.5f, 0.0f, 0.0f);
-		viewDirection = viewDirection - optix::make_float3(0.0005f, 0.0f, 0.0f);
-		OptixPrimeFunctionality::doOptixPrime(optixW, optixH, contextP, optixView, eye, viewDirection, model, trianglesonScreen, vertices);
-		Drawer::refreshTexture(optixW,  optixH, optixView);
-	}
-
-	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
-		std::cout << "right" << std::endl;
-		eye = eye + optix::make_float3(0.5f, 0.0f, 0.0f);
-		viewDirection = viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
-		OptixPrimeFunctionality::doOptixPrime(optixW, optixH, contextP, optixView, eye, viewDirection, model, trianglesonScreen, vertices);
-		Drawer::refreshTexture(optixW, optixH, optixView);
-	}
-
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		std::cout << "up" << std::endl;
-		eye = eye + optix::make_float3(0.0f, 0.5f, 0.0f);
-		viewDirection = viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
-
-		OptixPrimeFunctionality::doOptixPrime(optixW, optixH, contextP, optixView, eye, viewDirection, model, trianglesonScreen, vertices);
-		Drawer::refreshTexture(optixW, optixH, optixView);
-	}
-
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-		std::cout << "down" << std::endl;
-		eye = eye - optix::make_float3(0.0f, 0.5f, 0.0f);
-		viewDirection = viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
-		OptixPrimeFunctionality::doOptixPrime(optixW, optixH, contextP, optixView, eye, viewDirection, model, trianglesonScreen, vertices);
-		Drawer::refreshTexture(optixW, optixH, optixView);
-	}
-
-	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
-		float formfactor = OptixPrimeFunctionality::p2pFormfactor2(patches[0].triangleId, patches[1].triangleId, vertices, contextP, model, rands);
-	}
-
-	if (key == GLFW_KEY_F && action == GLFW_PRESS) {
-		int id;
-		std::cout << "\nenter the id of the triangle you want to find" << std::endl;
-		std::cin >> id;
-		for (MatrixIndex index : trianglesonScreen[id]) {
-			optixView[(index.row*optixH + index.col)] = glm::vec3(0.0, 1.0, 0.0);
-		}
-		Drawer::refreshTexture(optixW, optixH, optixView);
-	}
-}
-
 int main() {
 	
 	//initialize window
@@ -133,9 +75,9 @@ int main() {
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(Drawer::debugCallback, nullptr);
 	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
-	glfwSetKeyCallback(window, key_callback);
+	glfwSetKeyCallback(window, InputHandler::key_callback);
 	// set up callback context
-	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, model, optixView, patches, vertices);
+	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, model, optixView, patches, vertices, contextP, rands);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	Vertex::loadVertices(vertices, obj_filepath);
