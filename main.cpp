@@ -121,15 +121,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		//InputHandler::leftclick(window, left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen,
-		//	model, optixView, patches, vertices);
-		InputHandler::leftclick(window);
-	}
-}
-
 int main() {
 	
 	//initialize window
@@ -141,7 +132,7 @@ int main() {
 
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(Drawer::debugCallback, nullptr);
-	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
 	glfwSetKeyCallback(window, key_callback);
 	// set up callback context
 	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, model, optixView, patches, vertices);
