@@ -37,6 +37,7 @@
 #include "visual studio\Vertex.h"
 #include "visual studio\OptixPrimeFunctionality.h"
 #include "visual studio\Defines.h"
+#include "visual studio\InputHandler.h"
 
 // Configuration
 const int WIDTH = 800;
@@ -61,48 +62,6 @@ int optixW = 512, optixH = 512;
 bool hitB = false;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
-
-void intersectMouse(double xpos, double ypos) {
-	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-	std::vector<optix::float3> ray = { eye, optix::normalize(optix::make_float3(xpos + viewDirection.x, ypos + viewDirection.y, viewDirection.z)) };
-	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
-	OptixFunctionality::Hit hit;
-	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
-	try{
-		query->execute(RTP_QUERY_HINT_NONE);
-	}
-	catch (optix::prime::Exception &e) {
-		std::cerr << "An error occurred with error code "
-			<< e.getErrorCode() << " and message "
-			<< e.getErrorString() << std::endl;
-	}
-	query->finish();
-	if (hit.t > 0) { 
-		printf("\nhit triangle: %i ", hit.triangleId);
-		if (left) patches[0] = hit;
-		else {
-			patches[1] = hit;
-			printf("\nshoot ray between patches \n");
-			printf("patch triangle 1: %i \n", patches[0].triangleId);
-			printf("patch triangle 2: %i \n", patches[1].triangleId);
-			hitB = OptixPrimeFunctionality::shootPatchRay(patches, vertices, model);
-			printf("\ndid it hit? %i", hitB);
-		}
-		left = !left;
-		for (MatrixIndex index : trianglesonScreen[hit.triangleId]) {
-			optixView[(index.row*optixH + index.col)] = glm::vec3(1.0, 1.0, 1.0);
-		}
-		Drawer::refreshTexture(optixW, optixH, optixView);
-	}
-	else {
-		printf("miss!");
-		hitB = false;
-		patches.clear();
-		patches.resize(2);
-		left = true; 
-	}
-
-}
 
 // key button callback to print screen
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
@@ -164,7 +123,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+	/*if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
 		xpos = xpos * 2 / WIDTH - 1;
@@ -176,8 +135,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		else {
 			debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
 		}
-		//intersectMouse(xpos, ypos);
 		hitB = OptixPrimeFunctionality::intersectMouse(left, xpos, ypos, optixW, optixH, viewDirection, eye, trianglesonScreen,
+			model, optixView, patches, vertices);
+	}*/
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		InputHandler::leftclick(window, left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen,
 			model, optixView, patches, vertices);
 	}
 }
