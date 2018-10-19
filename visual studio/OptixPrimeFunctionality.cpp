@@ -206,6 +206,26 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 
 }
 
+void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
+	for (int row = 0; row < patches.size()-1; row++) {
+		// calulate form factors current patch to all other patches (that have not been calculated already)
+		for (int col = (row +1); col < patches.size(); col++) {
+			float formfactorRC = p2pFormfactor2(row, col, vertices, contextP, model, rands);
+			if (formfactorRC != 0) {
+				RadMat.insert(row, col) = formfactorRC;
+				// The reciprocity theorem for view factors allows one to calculate F_c->r if one already knows F_r->c.
+				// Using the areas of the two surfaces A_a and A_b:
+				// A_r*F_r->c = A_c*F_c->r
+				// ( A_r*F_r->c)/A_c = F_c->r
+				float area_r = TriangleMath::calculateSurface(vertices[row * 3].pos, vertices[row * 3 + 1].pos, vertices[row * 3 + 2].pos);
+				float area_c = TriangleMath::calculateSurface(vertices[col * 3].pos, vertices[col * 3 + 1].pos, vertices[col * 3 + 2].pos);
+				float formfactorCR = (area_r * formfactorRC) / area_c;
+				RadMat.insert(col, row) = formfactorCR;
+			}
+		}
+	}
+}
+
 bool OptixPrimeFunctionality::shootPatchRay(std::vector<Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Model &model) {
 	optix::float3  pointA = TriangleMath::uv2xyz(patches[0].triangleId, patches[0].uv, vertices);
 	optix::float3  pointB = TriangleMath::uv2xyz(patches[1].triangleId, patches[1].uv, vertices);

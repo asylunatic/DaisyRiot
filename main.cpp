@@ -30,6 +30,8 @@
 #include <optix_prime\optix_prime.h>
 #include <optix_prime\optix_prime_declarations.h>
 #include <optix_prime\optix_primepp.h>
+#include <Eigen/Sparse>
+
 #include "lodepng.h"
 #include "visual studio\ImageExporter.h"
 #include "visual studio\ShaderLoader.h"
@@ -38,6 +40,7 @@
 #include "visual studio\OptixPrimeFunctionality.h"
 #include "visual studio\Defines.h"
 #include "visual studio\InputHandler.h"
+
 
 // Configuration
 const int WIDTH = 800;
@@ -63,6 +66,9 @@ bool hitB = false;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
 
+// The Matrix
+typedef Eigen::SparseMatrix<float> SpMat;
+
 int main() {
 	
 	//initialize window
@@ -77,7 +83,7 @@ int main() {
 	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
 	glfwSetKeyCallback(window, InputHandler::key_callback);
 	// set up callback context
-	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, model, optixView, patches, vertices, contextP, rands);
+	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye, trianglesonScreen, model, optixView, patches, vertices, contextP, rands);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	Vertex::loadVertices(vertices, obj_filepath);
@@ -102,6 +108,11 @@ int main() {
 	OptixPrimeFunctionality::doOptixPrime(optixW, optixH, contextP, optixView, eye, viewDirection, model,  trianglesonScreen, vertices);
 	Drawer::initRes(optixShader, optixVao, optixTex, optixW, optixH, optixView);
 	std::cout << optixTex << std::endl;
+
+	// initialize matrix
+	SpMat RadMat(patches.size(), patches.size());
+	OptixPrimeFunctionality::calculateRadiosityMatrix(RadMat, patches, vertices, contextP, model, rands);
+
 
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
