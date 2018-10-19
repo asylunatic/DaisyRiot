@@ -109,16 +109,21 @@ int main() {
 	Drawer::initRes(optixShader, optixVao, optixTex, optixW, optixH, optixView);
 	std::cout << optixTex << std::endl;
 
-	// initialize matrix
-	SpMat RadMat(patches.size(), patches.size());
-	OptixPrimeFunctionality::calculateRadiosityMatrix(RadMat, patches, vertices, contextP, model, rands);
-
-
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
 	patches.resize(2);
+
+	// initialize matrix
+	int numtriangles = vertices.size() / 3;
+	SpMat RadMat(numtriangles, numtriangles);
+	OptixPrimeFunctionality::calculateRadiosityMatrix(RadMat, vertices, contextP, model, rands);
+	// little debug output to check something happened while calculating the matrix:
+	std::cout << "total entries in matriex = " << numtriangles*numtriangles << std::endl;
+	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
+	std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
+
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {

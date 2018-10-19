@@ -192,26 +192,30 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 
 
 	for (Hit hit : hits) {
-		printf("\n%f", hit.t);
+		//printf("\n%f", hit.t);
 		float newT = hit.t > 0 && hit.triangleId == destPatch ? 1 : 0;
 		visibility += newT;
-		printf(" newT: %f triangle: %i", newT, hit.triangleId);
+		//printf(" newT: %f triangle: %i", newT, hit.triangleId);
 	}
-	printf("rays hit: %f", visibility);
+	//printf("rays hit: %f", visibility);
 	visibility = visibility / RAYS_PER_PATCH;
 	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
-	printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
+	//printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
 
 	return formfactor * visibility;
 
 }
 
-void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
-	for (int row = 0; row < patches.size()-1; row++) {
+// TODO: optimize insertion, this is probably best done with triplets, as explained on:
+// https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
+void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
+	int numtriangles = vertices.size() / 3;
+	for (int row = 0; row < numtriangles -1; row++) {
 		// calulate form factors current patch to all other patches (that have not been calculated already)
-		for (int col = (row +1); col < patches.size(); col++) {
+		for (int col = (row +1); col < numtriangles; col++) {
 			float formfactorRC = p2pFormfactor2(row, col, vertices, contextP, model, rands);
 			if (formfactorRC != 0) {
+				//std::cout << "non zero entry should be set: " << formfactorRC << std::endl;
 				RadMat.insert(row, col) = formfactorRC;
 				// The reciprocity theorem for view factors allows one to calculate F_c->r if one already knows F_r->c.
 				// Using the areas of the two surfaces A_a and A_b:
