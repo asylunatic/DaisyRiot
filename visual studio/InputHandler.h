@@ -11,7 +11,7 @@ class InputHandler
 public:
 	struct callback_context {
 		callback_context(bool &left, bool &hitB, std::vector<Vertex> &debugline, int optixW, int optixH, optix::float3 &viewDirection, optix::float3 &eye, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
-			optix::prime::Model &model, std::vector<glm::vec3> &optixView, std::vector<OptixFunctionality::Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Context &contextP, std::vector<UV> &rands);
+			std::vector<glm::vec3> &optixView, std::vector<OptixFunctionality::Hit> &patches, std::vector<Vertex> &vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP);
 		bool &left;
 		bool &hitB;
 		std::vector<Vertex> &debugline;
@@ -20,12 +20,11 @@ public:
 		optix::float3 &viewDirection;
 		optix::float3 &eye;
 		std::vector<std::vector<MatrixIndex>> &trianglesonScreen;
-		optix::prime::Model &model;
 		std::vector<glm::vec3> &optixView;
 		std::vector<OptixFunctionality::Hit> &patches;
 		std::vector<Vertex> &vertices;
-		optix::prime::Context &contextP;
 		std::vector<UV> &rands;
+		OptixPrimeFunctionality optixP;
 	};
 	
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);

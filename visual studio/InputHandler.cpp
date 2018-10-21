@@ -6,10 +6,10 @@ InputHandler::callback_context* InputHandler::get_context(GLFWwindow* w) {
 }
 
 InputHandler::callback_context::callback_context(bool & left, bool & hitB, std::vector<Vertex>& debugline, int optixW, int optixH, optix::float3 & viewDirection, 
-	optix::float3 & eye, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, optix::prime::Model & model, std::vector<glm::vec3>& optixView, std::vector<OptixFunctionality::Hit>& patches, 
-	std::vector<Vertex>& vertices, optix::prime::Context &contextP, std::vector<UV> &rands) :
-	left(left), hitB(hitB), debugline(debugline),optixW(optixW),optixH(optixH),viewDirection(viewDirection),eye(eye),trianglesonScreen(trianglesonScreen),model(model),optixView(optixView),
-	patches(patches), vertices(vertices), contextP(contextP), rands(rands)
+	optix::float3 & eye, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView, std::vector<OptixFunctionality::Hit>& patches, 
+	std::vector<Vertex>& vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP) :
+	left(left), hitB(hitB), debugline(debugline),optixW(optixW),optixH(optixH),viewDirection(viewDirection),eye(eye),trianglesonScreen(trianglesonScreen), optixView(optixView),
+	patches(patches), vertices(vertices), rands(rands), optixP(optixP)
 {
 	
 }
@@ -37,7 +37,7 @@ void InputHandler::move_left(GLFWwindow* window){
 	std::cout << "left" << std::endl;
 	cbc_ptr->eye = cbc_ptr->eye - optix::make_float3(0.5f, 0.0f, 0.0f);
 	cbc_ptr->viewDirection = cbc_ptr->viewDirection - optix::make_float3(0.0005f, 0.0f, 0.0f);
-	OptixPrimeFunctionality::doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->contextP, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->model, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
 
@@ -46,7 +46,7 @@ void InputHandler::move_right(GLFWwindow *window){
 	std::cout << "right" << std::endl;
 	cbc_ptr->eye = cbc_ptr->eye + optix::make_float3(0.5f, 0.0f, 0.0f);
 	cbc_ptr->viewDirection = cbc_ptr->viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
-	OptixPrimeFunctionality::doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->contextP, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->model, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
 
@@ -55,7 +55,7 @@ void InputHandler::move_up(GLFWwindow* window){
 	std::cout << "up" << std::endl;
 	cbc_ptr->eye = cbc_ptr->eye + optix::make_float3(0.0f, 0.5f, 0.0f);
 	cbc_ptr->viewDirection = cbc_ptr->viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
-	OptixPrimeFunctionality::doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->contextP, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->model, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
 
@@ -64,13 +64,13 @@ void InputHandler::move_down(GLFWwindow* window){
 	std::cout << "down" << std::endl;
 	cbc_ptr->eye = cbc_ptr->eye - optix::make_float3(0.0f, 0.5f, 0.0f);
 	cbc_ptr->viewDirection = cbc_ptr->viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
-	OptixPrimeFunctionality::doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->contextP, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->model, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
 
 void InputHandler::calculate_form_vector(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
-	OptixPrimeFunctionality::p2pFormfactor2(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->vertices, cbc_ptr->contextP, cbc_ptr->model, cbc_ptr->rands);
+	cbc_ptr->optixP.p2pFormfactor2(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->vertices, cbc_ptr->rands);
 }
 
 void InputHandler::find_triangle_by_id(GLFWwindow* window){
@@ -130,6 +130,6 @@ void InputHandler::leftclick(GLFWwindow* window)
 	else {
 		cbc_ptr->debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
 	}
-	cbc_ptr->hitB = OptixPrimeFunctionality::intersectMouse(cbc_ptr->left, xpos, ypos, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->viewDirection, cbc_ptr->eye, cbc_ptr->trianglesonScreen,
-		cbc_ptr->model, cbc_ptr->optixView, cbc_ptr->patches, cbc_ptr->vertices);
+	cbc_ptr->hitB = cbc_ptr->optixP.intersectMouse(cbc_ptr->left, xpos, ypos, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->viewDirection, cbc_ptr->eye, cbc_ptr->trianglesonScreen,
+		cbc_ptr->optixView, cbc_ptr->patches, cbc_ptr->vertices);
 }

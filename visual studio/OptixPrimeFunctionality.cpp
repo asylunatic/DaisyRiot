@@ -1,6 +1,6 @@
 #include "OptixPrimeFunctionality.h"
 
-void OptixPrimeFunctionality::initOptixPrime(optix::prime::Context &contextP, optix::prime::Model &model, std::vector<Vertex> &vertices) {
+void OptixPrimeFunctionality::initOptixPrime(std::vector<Vertex> &vertices) {
 	contextP = optix::prime::Context::create(RTP_CONTEXT_TYPE_CUDA);
 	optix::prime::BufferDesc buffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_VERTEX_FLOAT3, RTP_BUFFER_TYPE_HOST, vertices.data());
 	buffer->setRange(0, vertices.size());
@@ -18,8 +18,8 @@ void OptixPrimeFunctionality::initOptixPrime(optix::prime::Context &contextP, op
 	}
 }
 
-void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, optix::prime::Context &contextP, std::vector<glm::vec3> &optixView,
-		optix::float3 &eye, optix::float3 &viewDirection, optix::prime::Model &model, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, std::vector<Vertex> &vertices) {
+void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<glm::vec3> &optixView,
+		optix::float3 &eye, optix::float3 &viewDirection, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, std::vector<Vertex> &vertices) {
 
 	std::vector<Hit> hits;
 	hits.resize(optixW*optixH);
@@ -85,7 +85,7 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, optix::prime
 	start = std::clock();
 }
 
-float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
+float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
 	glm::vec3 centreDest = TriangleMath::calculateCentre(destPatch, vertices);
 
@@ -141,7 +141,7 @@ float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, opt
 
 }
 
-float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
+float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
 	//    A___B<------centreOrig
 	//     \ /    ----/
@@ -206,7 +206,7 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 
 }
 
-bool OptixPrimeFunctionality::shootPatchRay(std::vector<Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Model &model) {
+bool OptixPrimeFunctionality::shootPatchRay(std::vector<Hit> &patches, std::vector<Vertex> &vertices) {
 	optix::float3  pointA = TriangleMath::uv2xyz(patches[0].triangleId, patches[0].uv, vertices);
 	optix::float3  pointB = TriangleMath::uv2xyz(patches[1].triangleId, patches[1].uv, vertices);
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
@@ -229,7 +229,7 @@ bool OptixPrimeFunctionality::shootPatchRay(std::vector<Hit> &patches, std::vect
 }
 
 bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypos, int optixW, int optixH, optix::float3 &viewDirection, optix::float3 &eye, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
-	optix::prime::Model &model, std::vector<glm::vec3> &optixView, std::vector<Hit> &patches, std::vector<Vertex> &vertices) {
+	std::vector<glm::vec3> &optixView, std::vector<Hit> &patches, std::vector<Vertex> &vertices) {
 	bool hitB = true;
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 	std::vector<optix::float3> ray = { eye, optix::normalize(optix::make_float3(xpos + viewDirection.x, ypos + viewDirection.y, viewDirection.z)) };
@@ -253,7 +253,7 @@ bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypo
 			printf("\nshoot ray between patches \n");
 			printf("patch triangle 1: %i \n", patches[0].triangleId);
 			printf("patch triangle 2: %i \n", patches[1].triangleId);
-			hitB = OptixPrimeFunctionality::shootPatchRay(patches, vertices, model);
+			hitB = shootPatchRay(patches, vertices);
 			printf("\ndid it hit? %i", hitB);
 		}
 		left = !left;

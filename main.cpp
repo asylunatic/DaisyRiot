@@ -51,8 +51,7 @@ std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,
 optix::float3 eye = optix::make_float3(0.0f, 0.0f, -7.0f);
 optix::float3 viewDirection = optix::make_float3(0.0f, 0.0f, 1.0f);
 optix::Context context;
-optix::prime::Context contextP;
-optix::prime::Model model;
+OptixPrimeFunctionality optixP;
 std::vector<Vertex> vertices;
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
@@ -77,7 +76,7 @@ int main() {
 	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
 	glfwSetKeyCallback(window, InputHandler::key_callback);
 	// set up callback context
-	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, model, optixView, patches, vertices, contextP, rands);
+	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, optixView, patches, vertices, rands, optixP);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	Vertex::loadVertices(vertices, obj_filepath);
@@ -95,11 +94,12 @@ int main() {
 	}
 
 	//initializing optix
-	OptixPrimeFunctionality::initOptixPrime(contextP, model, vertices);
+	optixP = OptixPrimeFunctionality();
+	optixP.initOptixPrime(vertices);
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	OptixPrimeFunctionality::doOptixPrime(optixW, optixH, contextP, optixView, eye, viewDirection, model,  trianglesonScreen, vertices);
+	optixP.doOptixPrime(optixW, optixH, optixView, eye, viewDirection, trianglesonScreen, vertices);
 	Drawer::initRes(optixShader, optixVao, optixTex, optixW, optixH, optixView);
 	std::cout << optixTex << std::endl;
 
