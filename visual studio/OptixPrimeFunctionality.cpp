@@ -206,6 +206,46 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 
 }
 
+// a first implementation for the visibility of the point light
+float OptixPrimeFunctionality::calculatePointLightVisibility(optix::float3 &lightpos, int patch, std::vector<Vertex> &vertices, optix::prime::Context &contextP,
+		optix::prime::Model &model, std::vector<UV> &rands) {
+
+	std::vector<optix::float3> rays;
+	rays.resize(RAYS_PER_PATCH);
+	std::vector<Hit> hits;
+	hits.resize(RAYS_PER_PATCH);
+
+	optix::float3 origin = lightpos;
+	optix::float3 dest;
+	for (int i = 0; i < RAYS_PER_PATCH; i++) {
+		dest = TriangleMath::uv2xyz(patch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		rays[i] = optix::normalize(dest - origin);
+	}
+
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+	query->setRays(RAYS_PER_PATCH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
+	hitBuffer->setRange(0, RAYS_PER_PATCH);
+	query->setHits(hitBuffer);
+	try {
+		query->execute(RTP_QUERY_HINT_NONE);
+	}
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
+	}
+
+	float visibility = 0;
+
+	for (Hit hit : hits) {
+		float newT = hit.t > 0 && hit.triangleId == patch ? 1 : 0;
+		visibility += newT;
+	}
+	visibility = visibility / RAYS_PER_PATCH;
+	return visibility;
+}
+
 // TODO: optimize insertion, this is probably best done with triplets, as explained on:
 // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
 void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {

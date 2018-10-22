@@ -31,6 +31,7 @@
 #include <optix_prime\optix_prime_declarations.h>
 #include <optix_prime\optix_primepp.h>
 #include <Eigen/Sparse>
+#include <Eigen/Dense>
 
 #include "lodepng.h"
 #include "visual studio\ImageExporter.h"
@@ -47,6 +48,9 @@ const int WIDTH = 800;
 const int HEIGHT = 600;
 
 const char * obj_filepath = "balls.obj";
+
+// The Matrix
+typedef Eigen::SparseMatrix<float> SpMat;
 
 std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
 { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
@@ -65,9 +69,6 @@ int optixW = 512, optixH = 512;
 bool hitB = false;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
-
-// The Matrix
-typedef Eigen::SparseMatrix<float> SpMat;
 
 int main() {
 	
@@ -115,7 +116,7 @@ int main() {
 
 	patches.resize(2);
 
-	// initialize matrix
+	// initialize radiosity matrix
 	int numtriangles = vertices.size() / 3;
 	SpMat RadMat(numtriangles, numtriangles);
 	OptixPrimeFunctionality::calculateRadiosityMatrix(RadMat, vertices, contextP, model, rands);
@@ -123,6 +124,17 @@ int main() {
 	std::cout << "total entries in matriex = " << numtriangles*numtriangles << std::endl;
 	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
 	std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
+
+	// add light & calculate visibility to all patches in visibility vector
+	Eigen::VectorXf visibility = Eigen::VectorXf::Zero(numtriangles);
+	optix::float3 pointlight = optix::make_float3(4.f, 0.f, 3.f);
+	for (int i = 0; i < numtriangles; i++) {
+		visibility(i) = OptixPrimeFunctionality::calculatePointLightVisibility(pointlight, i, vertices, contextP, model, rands);
+	}
+
+	// calculate first pass into lightningvalues vector
+	Eigen::VectorXf lightningvalues = Eigen::VectorXf::Zero(numtriangles);
+	lightningvalues = RadMat * visibility;
 
 
 	// Main loop

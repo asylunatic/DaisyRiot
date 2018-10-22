@@ -17,8 +17,6 @@
 class Drawer
 {
 public:
-	Drawer();
-	~Drawer();
 	static GLFWwindow* initWindow(int width, int height);
 	static void debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram);
 	static void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<Vertex> &debugline, bool hitB);
@@ -28,6 +26,5 @@ public:
 	static void initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, int optixW, int optixH, std::vector<glm::vec3> &optixView);
 	static void drawRes(GLuint &shaderProgram, GLuint &vao);
 	static void draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<Vertex> &debugline, bool hitB);
-
 };
 
