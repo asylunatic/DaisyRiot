@@ -71,7 +71,8 @@ void InputHandler::move_down(GLFWwindow* window){
 
 void InputHandler::calculate_form_vector(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
-	OptixPrimeFunctionality::p2pFormfactor2(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->vertices, cbc_ptr->contextP, cbc_ptr->model, cbc_ptr->rands);
+	float ff = OptixPrimeFunctionality::p2pFormfactor2(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->vertices, cbc_ptr->contextP, cbc_ptr->model, cbc_ptr->rands);
+	std::cout << "Form factor = " << ff << std::endl;
 }
 
 void InputHandler::find_triangle_by_id(GLFWwindow* window){
