@@ -85,62 +85,6 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	start = std::clock();
 }
 
-float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
-	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
-	glm::vec3 centreDest = TriangleMath::calculateCentre(destPatch, vertices);
-
-	float formfactor = 0;
-	float dot1 = glm::dot(vertices[originPatch * 3].normal, glm::normalize(centreDest - centreOrig));
-	float dot2 = glm::dot(vertices[destPatch * 3].normal, glm::normalize(centreOrig - centreDest));
-	if (dot1 > 0 && dot2 > 0) {
-		float length = glm::sqrt(glm::dot(centreDest - centreOrig, centreDest - centreOrig));
-		float theta1 = glm::acos(dot1 / length) * 180.0 / M_PIf;
-		float theta2 = glm::acos(dot2 / length) * 180.0 / M_PIf;
-		printf("\n theta's: %f, %f \nlength: %f \ndots: %f, %f", theta1, theta2, length, dot1, dot2);
-		formfactor = dot1 * dot2 / std::powf(length, 4)*M_PIf;
-	}
-
-	std::vector<optix::float3> rays;
-	rays.resize(2 * RAYS_PER_PATCH);
-
-	std::vector<Hit> hits;
-	hits.resize(RAYS_PER_PATCH);
-
-	optix::float3 origin;
-	optix::float3 dest;
-	for (int i = 0; i < RAYS_PER_PATCH; i++) {
-		origin = TriangleMath::uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
-		dest = TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
-
-		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
-		rays[i * 2 + 1] = optix::normalize(dest - origin);
-	}
-
-	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-	query->setRays(RAYS_PER_PATCH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
-	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
-	hitBuffer->setRange(0, RAYS_PER_PATCH);
-	query->setHits(hitBuffer);
-	try {
-		query->execute(RTP_QUERY_HINT_NONE);
-	}
-	catch (optix::prime::Exception &e) {
-		std::cerr << "An error occurred with error code "
-			<< e.getErrorCode() << " and message "
-			<< e.getErrorString() << std::endl;
-	}
-
-	float visibility = 0;
-
-	for (Hit hit : hits) {
-		visibility += hit.t > 0 ? 1 : 0;
-	}
-	visibility = visibility / RAYS_PER_PATCH;
-	printf("\nformfactor: %f \nvisibility: %f\%", formfactor, visibility);
-	return formfactor * visibility;
-
-}
-
 float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
 	//    A___B<------centreOrig

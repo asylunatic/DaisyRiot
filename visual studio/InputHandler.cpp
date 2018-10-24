@@ -116,6 +116,7 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
 
 void InputHandler::leftclick(GLFWwindow* window)
 {
+	std::cout << "u clicked" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);

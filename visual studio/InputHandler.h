@@ -24,7 +24,7 @@ public:
 		std::vector<OptixFunctionality::Hit> &patches;
 		std::vector<Vertex> &vertices;
 		std::vector<UV> &rands;
-		OptixPrimeFunctionality optixP;
+		OptixPrimeFunctionality &optixP;
 	};
 	
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
