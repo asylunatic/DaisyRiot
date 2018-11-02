@@ -21,7 +21,7 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
 	}
 }
 
-void InputHandler::save_image(GLFWwindow* window){
+void InputHandler::save_screenshot(GLFWwindow* window){
 	std::cout << "print" << std::endl;
 	// write png image
 	int WIDTH, HEIGHT;
@@ -31,6 +31,7 @@ void InputHandler::save_image(GLFWwindow* window){
 	if (GL_NO_ERROR != glGetError()) throw "Error: Unable to read pixels.";
 	ie.encodeOneStep("screenshots/output", ".png", WIDTH, HEIGHT);
 }
+
 
 void InputHandler::move_left(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
@@ -70,7 +71,8 @@ void InputHandler::move_down(GLFWwindow* window){
 
 void InputHandler::calculate_form_vector(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
-	OptixPrimeFunctionality::p2pFormfactor2(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->vertices, cbc_ptr->contextP, cbc_ptr->model, cbc_ptr->rands);
+	float ff = OptixPrimeFunctionality::p2pFormfactor2(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->vertices, cbc_ptr->contextP, cbc_ptr->model, cbc_ptr->rands);
+	std::cout << "Form factor = " << ff << std::endl;
 }
 
 void InputHandler::find_triangle_by_id(GLFWwindow* window){
@@ -87,7 +89,7 @@ void InputHandler::find_triangle_by_id(GLFWwindow* window){
 // key button callback to print screen
 void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
 	if (key == GLFW_KEY_P && action == GLFW_PRESS){
-		save_image(window);
+		save_screenshot(window);
 	}
 	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
 		move_left(window);

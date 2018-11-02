@@ -192,18 +192,82 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 
 
 	for (Hit hit : hits) {
-		printf("\n%f", hit.t);
+		//printf("\n%f", hit.t);
 		float newT = hit.t > 0 && hit.triangleId == destPatch ? 1 : 0;
 		visibility += newT;
-		printf(" newT: %f triangle: %i", newT, hit.triangleId);
+		//printf(" newT: %f triangle: %i", newT, hit.triangleId);
 	}
-	printf("rays hit: %f", visibility);
+	//printf("rays hit: %f", visibility);
 	visibility = visibility / RAYS_PER_PATCH;
 	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
-	printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
+	//printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
 
 	return formfactor * visibility;
 
+}
+
+// a first implementation for the visibility of the point light
+float OptixPrimeFunctionality::calculatePointLightVisibility(optix::float3 &lightpos, int patch, std::vector<Vertex> &vertices, optix::prime::Context &contextP,
+		optix::prime::Model &model, std::vector<UV> &rands) {
+
+	std::vector<optix::float3> rays;
+	rays.resize(RAYS_PER_PATCH);
+	std::vector<Hit> hits;
+	hits.resize(RAYS_PER_PATCH);
+
+	optix::float3 origin = lightpos;
+	optix::float3 dest;
+	for (int i = 0; i < RAYS_PER_PATCH; i++) {
+		dest = TriangleMath::uv2xyz(patch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		rays[i] = optix::normalize(dest - origin);
+	}
+
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+	query->setRays(RAYS_PER_PATCH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
+	hitBuffer->setRange(0, RAYS_PER_PATCH);
+	query->setHits(hitBuffer);
+	try {
+		query->execute(RTP_QUERY_HINT_NONE);
+	}
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
+	}
+
+	float visibility = 0;
+
+	for (Hit hit : hits) {
+		float newT = hit.t > 0 && hit.triangleId == patch ? 1 : 0;
+		visibility += newT;
+	}
+	visibility = visibility / RAYS_PER_PATCH;
+	return visibility;
+}
+
+// TODO: optimize insertion, this is probably best done with triplets, as explained on:
+// https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
+void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
+	int numtriangles = vertices.size() / 3;
+	for (int row = 0; row < numtriangles -1; row++) {
+		// calulate form factors current patch to all other patches (that have not been calculated already)
+		for (int col = (row +1); col < numtriangles; col++) {
+			float formfactorRC = p2pFormfactor2(row, col, vertices, contextP, model, rands);
+			if (formfactorRC != 0) {
+				//std::cout << "non zero entry should be set: " << formfactorRC << std::endl;
+				RadMat.insert(row, col) = formfactorRC;
+				// The reciprocity theorem for view factors allows one to calculate F_c->r if one already knows F_r->c.
+				// Using the areas of the two surfaces A_a and A_b:
+				// A_r*F_r->c = A_c*F_c->r
+				// ( A_r*F_r->c)/A_c = F_c->r
+				float area_r = TriangleMath::calculateSurface(vertices[row * 3].pos, vertices[row * 3 + 1].pos, vertices[row * 3 + 2].pos);
+				float area_c = TriangleMath::calculateSurface(vertices[col * 3].pos, vertices[col * 3 + 1].pos, vertices[col * 3 + 2].pos);
+				float formfactorCR = (area_r * formfactorRC) / area_c;
+				RadMat.insert(col, row) = formfactorCR;
+			}
+		}
+	}
 }
 
 bool OptixPrimeFunctionality::shootPatchRay(std::vector<Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Model &model) {

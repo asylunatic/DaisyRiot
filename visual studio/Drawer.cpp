@@ -1,10 +1,5 @@
 #include "Drawer.h"
 
-Drawer::Drawer()
-{
-	
-}
-
 GLFWwindow* Drawer::initWindow(int width, int height) {
 	if (!glfwInit()) {
 		std::cerr << "Failed to initialize GLFW!" << std::endl;
@@ -171,8 +166,4 @@ void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLu
 
 	// Present result to the screen
 	glfwSwapBuffers(window);
-}
-
-Drawer::~Drawer()
-{
 }
