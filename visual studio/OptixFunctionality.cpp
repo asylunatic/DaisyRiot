@@ -101,7 +101,7 @@ float OptixFunctionality::TriangleMath::calculateSurface(glm::vec3 a, glm::vec3 
 	glm::vec3 ac = c - a;
 	float theta = glm::acos(glm::dot(ab, ac) / (glm::length(ab)*glm::length(ac)));
 	float surface = 0.5 * glm::length(ab)*glm::length(ac) + glm::sin(theta);
-	printf("\nsurface area is: %f", surface);
+	//printf("\nsurface area is: %f", surface);
 	return surface;
 }
 

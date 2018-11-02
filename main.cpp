@@ -30,6 +30,9 @@
 #include <optix_prime\optix_prime.h>
 #include <optix_prime\optix_prime_declarations.h>
 #include <optix_prime\optix_primepp.h>
+#include <Eigen/Sparse>
+#include <Eigen/Dense>
+
 #include "lodepng.h"
 #include "visual studio\ImageExporter.h"
 #include "visual studio\ShaderLoader.h"
@@ -39,11 +42,15 @@
 #include "visual studio\Defines.h"
 #include "visual studio\InputHandler.h"
 
+
 // Configuration
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
 const char * obj_filepath = "balls.obj";
+
+// The Matrix
+typedef Eigen::SparseMatrix<float> SpMat;
 
 std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
 { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
@@ -77,6 +84,7 @@ int main() {
 	glfwSetKeyCallback(window, InputHandler::key_callback);
 	// set up callback context
 	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, optixView, patches, vertices, rands, optixP);
+
 	glfwSetWindowUserPointer(window, &cbc);
 
 	Vertex::loadVertices(vertices, obj_filepath);
@@ -108,6 +116,27 @@ int main() {
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
 	patches.resize(2);
+
+	// initialize radiosity matrix
+	int numtriangles = vertices.size() / 3;
+	SpMat RadMat(numtriangles, numtriangles);
+	optixP.calculateRadiosityMatrix(RadMat, vertices, rands);
+	// little debug output to check something happened while calculating the matrix:
+	std::cout << "total entries in matriex = " << numtriangles*numtriangles << std::endl;
+	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
+	std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
+
+	// add light & calculate visibility to all patches in visibility vector
+	Eigen::VectorXf visibility = Eigen::VectorXf::Zero(numtriangles);
+	optix::float3 pointlight = optix::make_float3(4.f, 0.f, 3.f);
+	for (int i = 0; i < numtriangles; i++) {
+		visibility(i) = optixP.calculatePointLightVisibility(pointlight, i, vertices, rands);
+	}
+
+	// calculate first pass into lightningvalues vector
+	Eigen::VectorXf lightningvalues = Eigen::VectorXf::Zero(numtriangles);
+	lightningvalues = RadMat * visibility;
+
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {

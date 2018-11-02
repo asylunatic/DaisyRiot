@@ -37,7 +37,7 @@ private:
 	static void move_up(GLFWwindow* window);
 	static void move_down(GLFWwindow* window);
 	static void calculate_form_vector(GLFWwindow* window);
-	static void save_image(GLFWwindow* window);
+	static void save_screenshot(GLFWwindow* window);
 	static void find_triangle_by_id(GLFWwindow* window);
 };
 
