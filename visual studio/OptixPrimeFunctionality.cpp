@@ -97,10 +97,89 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 	projtriangle.resize(3);
 	hemitriangle.resize(3);
 
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 3; i++) {
 		hemitriangle[i] = glm::normalize(vertices[destPatch * 3 + i].pos - centreOrig);
 		projtriangle[i] = hemitriangle[i] - glm::dot(vertices[originPatch * 3].normal, hemitriangle[i])*vertices[originPatch * 3].normal;
 	}
+
+	std::vector<optix::float3> rays;
+	rays.resize(2 * RAYS_PER_PATCH);
+
+	std::vector<Hit> hits;
+	hits.resize(RAYS_PER_PATCH);
+
+	optix::float3 origin;
+	optix::float3 dest;
+	for (int i = 0; i < RAYS_PER_PATCH; i++) {
+		origin = TriangleMath::uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		dest = TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
+		rays[i * 2 + 1] = optix::normalize(dest - origin);
+		//printf("\nuv = %f, %f");
+	}
+
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+	query->setRays(RAYS_PER_PATCH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
+	hitBuffer->setRange(0, RAYS_PER_PATCH);
+	query->setHits(hitBuffer);
+	try {
+		query->execute(RTP_QUERY_HINT_NONE);
+	}
+	catch (optix::prime::Exception &e) {
+		std::cerr << "An error occurred with error code "
+			<< e.getErrorCode() << " and message "
+			<< e.getErrorString() << std::endl;
+	}
+
+	float visibility = 0;
+
+
+	for (Hit hit : hits) {
+		//printf("\n%f", hit.t);
+		float newT = hit.t > 0 && hit.triangleId == destPatch ? 1 : 0;
+		visibility += newT;
+		//printf(" newT: %f triangle: %i", newT, hit.triangleId);
+	}
+	//printf("rays hit: %f", visibility);
+	visibility = visibility / RAYS_PER_PATCH;
+	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
+	//printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
+
+	return formfactor * visibility;
+
+}
+
+float OptixPrimeFunctionality::p2pFormfactor3(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
+	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
+	//    A___B<------centreOrig
+	//     \ /    ----/
+	//      C<---/
+
+	std::vector<glm::vec3> hemitriangle;
+	std::vector<glm::vec3> projtriangle;
+
+	projtriangle.resize(3);
+	hemitriangle.resize(3);
+
+	for (int i = 0; i < 3; i++) {
+		hemitriangle[i] = glm::normalize(vertices[destPatch * 3 + i].pos - centreOrig);
+		//projtriangle[i] = hemitriangle[i] - glm::dot(vertices[originPatch * 3].normal, hemitriangle[i])*vertices[originPatch * 3].normal;
+
+		// now calculated the projection of the hemi triangle onto the base of the unit sphere:
+		glm::vec3 minus(-1, -1, -1);
+		// first complete the plane equation of the base of the unit sphere by finding d:
+		// -d = dot(n, c) where n is the normal and c is a point in the plane
+		glm::vec3 center = OptixFunctionality::TriangleMath::calculateCentre(originPatch, vertices);
+		glm::vec3 normal = OptixFunctionality::TriangleMath::avgNormal(originPatch, vertices);
+		float minusd = - glm::dot(normal, center);
+		float projdist = glm::dot(normal, hemitriangle[i]) + minusd;
+		projtriangle[i] = hemitriangle[i] - (projdist * normal);
+	}
+
+
+	
+
 
 	std::vector<optix::float3> rays;
 	rays.resize(2 * RAYS_PER_PATCH);
@@ -211,8 +290,8 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 		// L is a vector [l0, l1, l2 ...] with ln = v0*(0->n)+v1(1->n)+v2(2->n)... etc
 
 		for (int col = (row +1); col < numtriangles; col++) {
-			float formfactorRC = p2pFormfactor2(row, col, vertices, rands);
-			if (formfactorRC != 0) {
+			float formfactorRC = p2pFormfactor3(row, col, vertices, rands);
+			if (formfactorRC > 0) {
 				// at place (x, y) we want the form factor y->x
 				RadMat.insert(col, row) = formfactorRC;
 				// The reciprocity theorem for view factors allows one to calculate F_c->r if one already knows F_r->c.

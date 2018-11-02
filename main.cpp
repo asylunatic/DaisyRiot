@@ -99,7 +99,6 @@ int main() {
 		uv.u = ((float)(rand() % RAND_MAX)) / RAND_MAX;
 		uv.v = ((float)(rand() % RAND_MAX)) / RAND_MAX;
 		uv.v = uv.v * (1 - uv.u);
-		printf("\nsum uv : %f", uv.v + uv.u);
 		rands[i] = uv;
 	}
 
