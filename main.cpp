@@ -58,8 +58,7 @@ std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,
 optix::float3 eye = optix::make_float3(0.0f, 0.0f, -7.0f);
 optix::float3 viewDirection = optix::make_float3(0.0f, 0.0f, 1.0f);
 optix::Context context;
-optix::prime::Context contextP;
-optix::prime::Model model;
+OptixPrimeFunctionality optixP;
 std::vector<Vertex> vertices;
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
@@ -84,7 +83,8 @@ int main() {
 	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
 	glfwSetKeyCallback(window, InputHandler::key_callback);
 	// set up callback context
-	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye, trianglesonScreen, model, optixView, patches, vertices, contextP, rands);
+	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, optixView, patches, vertices, rands, optixP);
+
 	glfwSetWindowUserPointer(window, &cbc);
 
 	Vertex::loadVertices(vertices, obj_filepath);
@@ -102,11 +102,12 @@ int main() {
 	}
 
 	//initializing optix
-	OptixPrimeFunctionality::initOptixPrime(contextP, model, vertices);
+	optixP = OptixPrimeFunctionality();
+	optixP.initOptixPrime(vertices);
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	OptixPrimeFunctionality::doOptixPrime(optixW, optixH, contextP, optixView, eye, viewDirection, model,  trianglesonScreen, vertices);
+	optixP.doOptixPrime(optixW, optixH, optixView, eye, viewDirection, trianglesonScreen, vertices);
 	Drawer::initRes(optixShader, optixVao, optixTex, optixW, optixH, optixView);
 	std::cout << optixTex << std::endl;
 
@@ -119,7 +120,7 @@ int main() {
 	// initialize radiosity matrix
 	int numtriangles = vertices.size() / 3;
 	SpMat RadMat(numtriangles, numtriangles);
-	OptixPrimeFunctionality::calculateRadiosityMatrix(RadMat, vertices, contextP, model, rands);
+	optixP.calculateRadiosityMatrix(RadMat, vertices, rands);
 	// little debug output to check something happened while calculating the matrix:
 	std::cout << "total entries in matriex = " << numtriangles*numtriangles << std::endl;
 	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
@@ -129,7 +130,7 @@ int main() {
 	Eigen::VectorXf visibility = Eigen::VectorXf::Zero(numtriangles);
 	optix::float3 pointlight = optix::make_float3(4.f, 0.f, 3.f);
 	for (int i = 0; i < numtriangles; i++) {
-		visibility(i) = OptixPrimeFunctionality::calculatePointLightVisibility(pointlight, i, vertices, contextP, model, rands);
+		visibility(i) = optixP.calculatePointLightVisibility(pointlight, i, vertices, rands);
 	}
 
 	// calculate first pass into lightningvalues vector

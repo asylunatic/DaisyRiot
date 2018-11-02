@@ -15,16 +15,18 @@ typedef Eigen::SparseMatrix<float> SpMat;
 class OptixPrimeFunctionality : public OptixFunctionality
 {
 public:
-	static bool intersectMouse(bool &left, double xpos, double ypos, int optixW, int optixH, optix::float3 &viewDirection, optix::float3 &eye, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
-		optix::prime::Model &model, std::vector<glm::vec3> &optixView, std::vector<Hit> &patches, std::vector<Vertex> &vertices);
-	static bool shootPatchRay(std::vector<Hit> &patches, std::vector<Vertex> &vertices, optix::prime::Model &model);
-	static float p2pFormfactor(int originPatch, int destPatch, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<Vertex> &vertices, std::vector<UV> &rands);
-	static float p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands);
-	static float calculatePointLightVisibility(optix::float3 &lightpos, int patchindex, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands);
-	static void calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands);
-	static void initOptixPrime(optix::prime::Context &contextP, optix::prime::Model &model, std::vector<Vertex> &vertices);
-	static void doOptixPrime(int optixW, int optixH, optix::prime::Context &contextP, std::vector<glm::vec3> &optixView,
-		optix::float3 &eye, optix::float3 &viewDirection, optix::prime::Model &model, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, std::vector<Vertex> &vertices);
+	optix::prime::Model model;
+	optix::prime::Context contextP;
+	bool intersectMouse(bool &left, double xpos, double ypos, int optixW, int optixH, optix::float3 &viewDirection, optix::float3 &eye, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
+		std::vector<glm::vec3> &optixView, std::vector<Hit> &patches, std::vector<Vertex> &vertices);
+	bool shootPatchRay(std::vector<Hit> &patches, std::vector<Vertex> &vertices);
+	float p2pFormfactor(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands);
+	float p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands);
+	float calculatePointLightVisibility(optix::float3 &lightpos, int patchindex, std::vector<Vertex> &vertices, std::vector<UV> &rands);
+	void calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands);
+	void initOptixPrime(std::vector<Vertex> &vertices);
+	void doOptixPrime(int optixW, int optixH, std::vector<glm::vec3> &optixView, optix::float3 &eye, optix::float3 &viewDirection,  std::vector<std::vector<MatrixIndex>> &trianglesonScreen, 
+		std::vector<Vertex> &vertices);
 
 };
 
