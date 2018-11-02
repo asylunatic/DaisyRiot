@@ -194,12 +194,27 @@ float OptixPrimeFunctionality::calculatePointLightVisibility(optix::float3 &ligh
 void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 	int numtriangles = vertices.size() / 3;
 	for (int row = 0; row < numtriangles -1; row++) {
-		// calulate form factors current patch to all other patches (that have not been calculated already)
+		// calulate form factors current patch to all other patches (that have not been calculated already):
+		// matrix shape should be as follows:
+		// *------*------*------*
+		// |   0  | 1->0 | 2->0 |
+		// *------*------*------*
+		// | 0->1 |  0   | 2->1 |
+		// *------*------*------*
+		// | 0->2 | 1->2 |   0  |
+		// *------*------*------*
+		//
+		// such that we can do the following calculation:
+		// M*V = L where
+		// M is radiosity matrix
+		// V is a vector containing the light per patch 
+		// L is a vector [l0, l1, l2 ...] with ln = v0*(0->n)+v1(1->n)+v2(2->n)... etc
+
 		for (int col = (row +1); col < numtriangles; col++) {
 			float formfactorRC = p2pFormfactor2(row, col, vertices, rands);
 			if (formfactorRC != 0) {
-				//std::cout << "non zero entry should be set: " << formfactorRC << std::endl;
-				RadMat.insert(row, col) = formfactorRC;
+				// at place (x, y) we want the form factor y->x
+				RadMat.insert(col, row) = formfactorRC;
 				// The reciprocity theorem for view factors allows one to calculate F_c->r if one already knows F_r->c.
 				// Using the areas of the two surfaces A_a and A_b:
 				// A_r*F_r->c = A_c*F_c->r
@@ -207,7 +222,13 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 				float area_r = TriangleMath::calculateSurface(vertices[row * 3].pos, vertices[row * 3 + 1].pos, vertices[row * 3 + 2].pos);
 				float area_c = TriangleMath::calculateSurface(vertices[col * 3].pos, vertices[col * 3 + 1].pos, vertices[col * 3 + 2].pos);
 				float formfactorCR = (area_r * formfactorRC) / area_c;
-				RadMat.insert(col, row) = formfactorCR;
+				RadMat.insert(row, col) = formfactorCR;
+				std::cout << "Adding form factor" << col << "->" << row << " = " << formfactorCR << " at place ("<<row<<", "<<col<<")"<<std::endl;
+				std::cout << "Adding form factor" << row << "->" << col  << " = " << formfactorRC << " at place (" << col << ", " << row << ")" << std::endl;
+			}
+			else {
+				std::cout << "Form factor is zero for " << col << "->" << row << " at place (" << row << ", " << col << ")" << std::endl;
+				std::cout << "Form factor is zero for " << row << "->" << col << " at place (" << col << ", " << row << ")" << std::endl;
 			}
 		}
 	}

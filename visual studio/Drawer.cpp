@@ -25,7 +25,6 @@ GLFWwindow* Drawer::initWindow(int width, int height) {
 
 }
 
-
 void Drawer::debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram) {
 	// creating vao
 	glGenVertexArrays(1, &linevao);
@@ -166,4 +165,18 @@ void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLu
 
 	// Present result to the screen
 	glfwSwapBuffers(window);
+}
+
+void Drawer::drawRadiosity(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH) {
+	for (int i = 0; i < lightningvalues.size(); i++) {
+		if (trianglesonScreen[i].size() > 0) {
+			for (MatrixIndex index : trianglesonScreen[i]) {
+				float intensity = lightningvalues[i]*100;
+				optixView[(index.row*optixH + index.col)] = glm::vec3(intensity, intensity, intensity);
+			}
+		}
+		
+	}
+
+	Drawer::refreshTexture(optixW, optixH, optixView);
 }

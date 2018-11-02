@@ -11,7 +11,7 @@ class InputHandler
 public:
 	struct callback_context {
 		callback_context(bool &left, bool &hitB, std::vector<Vertex> &debugline, int optixW, int optixH, optix::float3 &viewDirection, optix::float3 &eye, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
-			std::vector<glm::vec3> &optixView, std::vector<OptixFunctionality::Hit> &patches, std::vector<Vertex> &vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP);
+			std::vector<glm::vec3> &optixView, std::vector<OptixFunctionality::Hit> &patches, std::vector<Vertex> &vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues);
 		bool &left;
 		bool &hitB;
 		std::vector<Vertex> &debugline;
@@ -25,6 +25,7 @@ public:
 		std::vector<Vertex> &vertices;
 		std::vector<UV> &rands;
 		OptixPrimeFunctionality &optixP;
+		Eigen::VectorXf &lightningvalues;
 	};
 	
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -39,5 +40,6 @@ private:
 	static void calculate_form_vector(GLFWwindow* window);
 	static void save_screenshot(GLFWwindow* window);
 	static void find_triangle_by_id(GLFWwindow* window);
+	static void set_radiosity_tex(GLFWwindow* window);
 };
 

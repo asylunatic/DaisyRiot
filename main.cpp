@@ -47,7 +47,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "balls.obj";
+const char * obj_filepath = "testscene1.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -60,6 +60,7 @@ optix::float3 viewDirection = optix::make_float3(0.0f, 0.0f, 1.0f);
 optix::Context context;
 OptixPrimeFunctionality optixP;
 std::vector<Vertex> vertices;
+// optixview is an array containing all pixel values
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
 std::vector<OptixFunctionality::Hit> patches;
@@ -68,6 +69,7 @@ int optixW = 512, optixH = 512;
 bool hitB = false;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
+Eigen::VectorXf lightningvalues;
 
 int main() {
 	
@@ -83,7 +85,7 @@ int main() {
 	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
 	glfwSetKeyCallback(window, InputHandler::key_callback);
 	// set up callback context
-	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, optixView, patches, vertices, rands, optixP);
+	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues);
 
 	glfwSetWindowUserPointer(window, &cbc);
 
@@ -128,14 +130,16 @@ int main() {
 
 	// add light & calculate visibility to all patches in visibility vector
 	Eigen::VectorXf visibility = Eigen::VectorXf::Zero(numtriangles);
-	optix::float3 pointlight = optix::make_float3(4.f, 0.f, 3.f);
+	std::vector<float> debugvisibility;
+	optix::float3 pointlight = optix::make_float3(3.5f, 0.f, 2.5f);
 	for (int i = 0; i < numtriangles; i++) {
 		visibility(i) = optixP.calculatePointLightVisibility(pointlight, i, vertices, rands);
+		debugvisibility.push_back(i);
 	}
 
 	// calculate first pass into lightningvalues vector
-	Eigen::VectorXf lightningvalues = Eigen::VectorXf::Zero(numtriangles);
-	lightningvalues = RadMat * visibility;
+	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
+	lightningvalues = (RadMat * visibility)+visibility;
 
 
 	// Main loop
