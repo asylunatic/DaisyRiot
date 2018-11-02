@@ -85,6 +85,21 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	start = std::clock();
 }
 
+float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
+	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
+	glm::vec3 centreDest = TriangleMath::calculateCentre(destPatch, vertices);
+
+	float formfactor = OptixFunctionality::TriangleMath::calcPointFormfactor(Vertex(centreOrig, vertices[originPatch * 3].normal), Vertex(centreDest, vertices[destPatch * 3].normal));
+	printf("\nformfactor before including surfacearea: %f", formfactor);
+	formfactor = formfactor*TriangleMath::calculateSurface(vertices[destPatch * 3].pos, vertices[destPatch * 3 + 1].pos, vertices[destPatch * 3 + 2].pos);
+
+	printf("\nformfactor: %f", formfactor);
+	float visibility = OptixPrimeFunctionality::calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
+
+	return formfactor * visibility;
+
+}
+
 float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
 	//    A___B<------centreOrig
@@ -102,6 +117,16 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 		projtriangle[i] = hemitriangle[i] - glm::dot(vertices[originPatch * 3].normal, hemitriangle[i])*vertices[originPatch * 3].normal;
 	}
 
+
+	float visibility = OptixPrimeFunctionality::calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
+	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
+	printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
+
+	return formfactor * visibility;
+
+}
+
+float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatch, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
 	std::vector<optix::float3> rays;
 	rays.resize(2 * RAYS_PER_PATCH);
 
@@ -115,7 +140,6 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 		dest = TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
 		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
 		rays[i * 2 + 1] = optix::normalize(dest - origin);
-		//printf("\nuv = %f, %f");
 	}
 
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
@@ -136,18 +160,12 @@ float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, st
 
 
 	for (Hit hit : hits) {
-		//printf("\n%f", hit.t);
 		float newT = hit.t > 0 && hit.triangleId == destPatch ? 1 : 0;
 		visibility += newT;
-		//printf(" newT: %f triangle: %i", newT, hit.triangleId);
 	}
 	//printf("rays hit: %f", visibility);
 	visibility = visibility / RAYS_PER_PATCH;
-	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
-	//printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
-
-	return formfactor * visibility;
-
+	return visibility;
 }
 
 // a first implementation for the visibility of the point light
