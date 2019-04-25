@@ -110,6 +110,21 @@ float OptixFunctionality::TriangleMath::calculateSurface(glm::vec3 a, glm::vec3 
 	return surface;
 }
 
+float OptixFunctionality::TriangleMath::calcPointFormfactor(Vertex orig, Vertex dest) {
+	float formfactor = 0;
+	float dot1 = glm::dot(orig.normal, glm::normalize(dest.pos - orig.pos));
+	float dot2 = glm::dot(dest.normal, glm::normalize(orig.pos - dest.pos));
+	if (dot1 > 0 && dot2 > 0) {
+		float length = glm::sqrt(glm::dot(dest.pos - orig.pos, dest.pos - orig.pos));
+		float theta1 = glm::acos(dot1 / length) * 180.0 / M_PIf;
+		float theta2 = glm::acos(dot2 / length) * 180.0 / M_PIf;
+		printf("\n theta's: %f, %f \nlength: %f \ndots: %f, %f", theta1, theta2, length, dot1, dot2);
+		formfactor = dot1 * dot2 / std::powf(length, 4)*M_PIf;
+	}
+
+	return formfactor;
+}
+
 OptixFunctionality::OptixFunctionality()
 {
 }
