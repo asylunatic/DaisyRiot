@@ -132,14 +132,6 @@ int main() {
 	// set first triangle to emit
 	emission(0) = 1.0;	
 	
-	/*std::vector<float> debugvisibility;
-	//(3.5, 0, 2.5) is for testscene1.obj
-	//optix::float3 pointlight = optix::make_float3(3.5f, 0.f, 2.5f);
-	//optix::float3 pointlight = optix::make_float3(0.f, 0.f, -1.f);
-	for (int i = 0; i < numtriangles; i++) {
-		visibility(i) = optixP.calculatePointLightVisibility(pointlight, i, vertices, rands);
-		debugvisibility.push_back(i);
-	}*/
 
 	// calculate first pass into lightningvalues vector
 	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
