@@ -47,7 +47,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "balls.obj";
+const char * obj_filepath = "testscene3_emissivesurface.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -60,6 +60,7 @@ optix::float3 viewDirection = optix::make_float3(0.0f, 0.0f, 1.0f);
 optix::Context context;
 OptixPrimeFunctionality optixP;
 std::vector<Vertex> vertices;
+// optixview is an array containing all pixel values
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
 std::vector<OptixFunctionality::Hit> patches;
@@ -68,6 +69,7 @@ int optixW = 512, optixH = 512;
 bool hitB = false;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
+Eigen::VectorXf lightningvalues;
 
 int main() {
 	
@@ -83,7 +85,7 @@ int main() {
 	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
 	glfwSetKeyCallback(window, InputHandler::key_callback);
 	// set up callback context
-	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, optixView, patches, vertices, rands, optixP);
+	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues);
 
 	glfwSetWindowUserPointer(window, &cbc);
 
@@ -97,7 +99,6 @@ int main() {
 		uv.u = ((float)(rand() % RAND_MAX)) / RAND_MAX;
 		uv.v = ((float)(rand() % RAND_MAX)) / RAND_MAX;
 		uv.v = uv.v * (1 - uv.u);
-		printf("\nsum uv : %f", uv.v + uv.u);
 		rands[i] = uv;
 	}
 
@@ -126,16 +127,18 @@ int main() {
 	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
 	std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
 
-	// add light & calculate visibility to all patches in visibility vector
-	Eigen::VectorXf visibility = Eigen::VectorXf::Zero(numtriangles);
-	optix::float3 pointlight = optix::make_float3(4.f, 0.f, 3.f);
-	for (int i = 0; i < numtriangles; i++) {
-		visibility(i) = optixP.calculatePointLightVisibility(pointlight, i, vertices, rands);
-	}
+	// set initial emission vector
+	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
+	// set first triangle to emit
+	emission(0) = 1.0;	
+	
 
 	// calculate first pass into lightningvalues vector
-	Eigen::VectorXf lightningvalues = Eigen::VectorXf::Zero(numtriangles);
-	lightningvalues = RadMat * visibility;
+	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
+	lightningvalues = emission; // aka == emission
+	// calculate second pass
+	lightningvalues = (RadMat * lightningvalues) + lightningvalues;
+	lightningvalues = (RadMat * lightningvalues) + lightningvalues;
 
 
 	// Main loop

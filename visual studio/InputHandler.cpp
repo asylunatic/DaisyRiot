@@ -7,9 +7,9 @@ InputHandler::callback_context* InputHandler::get_context(GLFWwindow* w) {
 
 InputHandler::callback_context::callback_context(bool & left, bool & hitB, std::vector<Vertex>& debugline, int optixW, int optixH, optix::float3 & viewDirection, 
 	optix::float3 & eye, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView, std::vector<OptixFunctionality::Hit>& patches, 
-	std::vector<Vertex>& vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP) :
+	std::vector<Vertex>& vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues) :
 	left(left), hitB(hitB), debugline(debugline),optixW(optixW),optixH(optixH),viewDirection(viewDirection),eye(eye),trianglesonScreen(trianglesonScreen), optixView(optixView),
-	patches(patches), vertices(vertices), rands(rands), optixP(optixP)
+	patches(patches), vertices(vertices), rands(rands), optixP(optixP), lightningvalues(lightningvalues)
 {
 	
 }
@@ -115,11 +115,20 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
 	if (key == GLFW_KEY_F && action == GLFW_PRESS) {
 		find_triangle_by_id(window);
 	}
+
+	if (key == GLFW_KEY_O && action == GLFW_PRESS) {
+		std::cout << "setting radiosity drawing as result" << std::endl;
+		set_radiosity_tex(window);
+	}
+}
+
+void InputHandler::set_radiosity_tex(GLFWwindow* window) {
+	callback_context* cbc_ptr = get_context(window);
+	Drawer::drawRadiosity(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
 }
 
 void InputHandler::leftclick(GLFWwindow* window)
 {
-	std::cout << "u clicked" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
