@@ -35,6 +35,7 @@
 # Video files
 *.mp4
 
+testscenes/
 .vs/
 visual studio/.vs/
 visual studio/.vs/*

@@ -7,9 +7,9 @@ InputHandler::callback_context* InputHandler::get_context(GLFWwindow* w) {
 
 InputHandler::callback_context::callback_context(bool & left, bool & hitB, std::vector<Vertex>& debugline, int optixW, int optixH, optix::float3 & viewDirection, 
 	optix::float3 & eye, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView, std::vector<OptixFunctionality::Hit>& patches, 
-	std::vector<Vertex>& vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues) :
+	std::vector<Vertex>& vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &residualvector) :
 	left(left), hitB(hitB), debugline(debugline),optixW(optixW),optixH(optixH),viewDirection(viewDirection),eye(eye),trianglesonScreen(trianglesonScreen), optixView(optixView),
-	patches(patches), vertices(vertices), rands(rands), optixP(optixP), lightningvalues(lightningvalues)
+	patches(patches), vertices(vertices), rands(rands), optixP(optixP), lightningvalues(lightningvalues), RadMat(RadMat), residualvector(residualvector)
 {
 	
 }
@@ -120,10 +120,23 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
 		std::cout << "setting radiosity drawing as result" << std::endl;
 		set_radiosity_tex(window);
 	}
+
+	if (key == GLFW_KEY_L && action == GLFW_PRESS) {
+		std::cout << "Add another light pass and set radiosity drawing as result" << std::endl;
+		increment_lightpasses(window);
+	}
 }
 
 void InputHandler::set_radiosity_tex(GLFWwindow* window) {
 	callback_context* cbc_ptr = get_context(window);
+	Drawer::drawRadiosity(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
+}
+
+void InputHandler::increment_lightpasses(GLFWwindow* window) {
+	callback_context* cbc_ptr = get_context(window);
+	// calculate consecutive lighting pass
+	cbc_ptr->residualvector = cbc_ptr->RadMat * cbc_ptr->residualvector;
+	cbc_ptr->lightningvalues = cbc_ptr->lightningvalues + cbc_ptr->residualvector;
 	Drawer::drawRadiosity(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
 }
 
