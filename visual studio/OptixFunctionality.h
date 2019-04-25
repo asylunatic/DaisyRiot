@@ -13,6 +13,7 @@ public:
 		static glm::vec3 TriangleMath::calculateCentre(float triangleId, std::vector<Vertex> &vertices);
 		static float TriangleMath::calculateSurface(glm::vec3 a, glm::vec3 b, glm::vec3 c);
 		static glm::vec3 TriangleMath::avgNormal(float triangleId, std::vector<Vertex> &vertices);
+		static float TriangleMath::calcPointFormfactor(Vertex orig, Vertex dest);
 	};
 	struct Hit {
 		float t;
