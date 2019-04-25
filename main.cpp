@@ -47,7 +47,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "testscene1.obj";
+const char * obj_filepath = "balls.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -130,7 +130,9 @@ int main() {
 	// add light & calculate visibility to all patches in visibility vector
 	Eigen::VectorXf visibility = Eigen::VectorXf::Zero(numtriangles);
 	std::vector<float> debugvisibility;
-	optix::float3 pointlight = optix::make_float3(3.5f, 0.f, 2.5f);
+	//(3.5, 0, 2.5) is for testscene1.obj
+	//optix::float3 pointlight = optix::make_float3(3.5f, 0.f, 2.5f);
+	optix::float3 pointlight = optix::make_float3(0.f, 0.f, -1.f);
 	for (int i = 0; i < numtriangles; i++) {
 		visibility(i) = optixP.calculatePointLightVisibility(pointlight, i, vertices, rands);
 		debugvisibility.push_back(i);

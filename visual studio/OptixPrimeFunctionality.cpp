@@ -166,7 +166,8 @@ float OptixPrimeFunctionality::p2pFormfactor3(int originPatch, int destPatch, st
 		hemitriangle[i] = glm::normalize(vertices[destPatch * 3 + i].pos - centreOrig);
 		//projtriangle[i] = hemitriangle[i] - glm::dot(vertices[originPatch * 3].normal, hemitriangle[i])*vertices[originPatch * 3].normal;
 
-		// now calculated the projection of the hemi triangle onto the base of the unit sphere:
+		// now calculated the projection of the hemi triangle onto the base of the unit sphere: 
+		// (as per https://stackoverflow.com/questions/9605556/how-to-project-a-point-onto-a-plane-in-3d)
 		glm::vec3 minus(-1, -1, -1);
 		// first complete the plane equation of the base of the unit sphere by finding d:
 		// -d = dot(n, c) where n is the normal and c is a point in the plane

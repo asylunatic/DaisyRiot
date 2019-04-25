@@ -171,7 +171,7 @@ void Drawer::drawRadiosity(std::vector<std::vector<MatrixIndex>> &trianglesonScr
 	for (int i = 0; i < lightningvalues.size(); i++) {
 		if (trianglesonScreen[i].size() > 0) {
 			for (MatrixIndex index : trianglesonScreen[i]) {
-				float intensity = lightningvalues[i]*100;
+				float intensity = lightningvalues[i];
 				optixView[(index.row*optixH + index.col)] = glm::vec3(intensity, intensity, intensity);
 			}
 		}
