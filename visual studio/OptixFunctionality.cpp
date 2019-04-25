@@ -91,6 +91,11 @@ optix::float3 OptixFunctionality::TriangleMath::uv2xyz(int triangleId, optix::fl
 	return optix::make_float3(point.x, point.y, point.z);
 }
 
+glm::vec3 OptixFunctionality::TriangleMath::calculateCentre(std::vector<glm::vec3> triangle) {
+	glm::vec3 centre = (triangle[0] + triangle[1] + triangle[2]);
+	return glm::vec3(centre.x / 3, centre.y / 3, centre.z / 3);
+}
+
 glm::vec3 OptixFunctionality::TriangleMath::calculateCentre(float triangleId, std::vector<Vertex> &vertices) {
 	glm::vec3 centre = (vertices[triangleId * 3].pos + vertices[triangleId * 3 + 1].pos + vertices[triangleId * 3 + 2].pos);
 	return glm::vec3(centre.x / 3, centre.y / 3, centre.z / 3);
@@ -110,19 +115,37 @@ float OptixFunctionality::TriangleMath::calculateSurface(glm::vec3 a, glm::vec3 
 	return surface;
 }
 
-float OptixFunctionality::TriangleMath::calcPointFormfactor(Vertex orig, Vertex dest) {
+float OptixFunctionality::TriangleMath::calculateSurface(std::vector<glm::vec3> triangle) {
+	return OptixFunctionality::TriangleMath::calculateSurface(triangle[0], triangle[1], triangle[2]);
+}
+
+
+float OptixFunctionality::TriangleMath::calcPointFormfactor(Vertex orig, Vertex dest, float surface) {
 	float formfactor = 0;
 	float dot1 = glm::dot(orig.normal, glm::normalize(dest.pos - orig.pos));
 	float dot2 = glm::dot(dest.normal, glm::normalize(orig.pos - dest.pos));
 	if (dot1 > 0 && dot2 > 0) {
 		float length = glm::sqrt(glm::dot(dest.pos - orig.pos, dest.pos - orig.pos));
-		float theta1 = glm::acos(dot1 / length) * 180.0 / M_PIf;
-		float theta2 = glm::acos(dot2 / length) * 180.0 / M_PIf;
-		printf("\n theta's: %f, %f \nlength: %f \ndots: %f, %f", theta1, theta2, length, dot1, dot2);
-		formfactor = dot1 * dot2 / std::powf(length, 4)*M_PIf;
+		formfactor = dot1 * dot2 / std::powf(length, 2)*M_PIf * surface;
 	}
-
 	return formfactor;
+}
+
+std::vector<std::vector<glm::vec3>> OptixFunctionality::TriangleMath::divideInFourTriangles(float triangleId, std::vector<Vertex> &vertices) {
+	glm::vec3 a = vertices[triangleId * 3].pos;
+	glm::vec3 b = vertices[triangleId * 3 + 1].pos;
+	glm::vec3 c = vertices[triangleId * 3 + 2].pos;
+	std::vector<glm::vec3> innerTriangle;
+	glm::vec3 innerA = ((b - a) / 2.0f) + a;
+	glm::vec3 innerC = ((c - a) / 2.0f) + a;
+	glm::vec3 innerB = ((b - c) / 2.0f) + c;
+
+	std::vector<std::vector<glm::vec3>> res{ 
+		std::vector<glm::vec3>{a, innerC, innerA},
+		std::vector<glm::vec3>{innerC, c, innerB}, 
+		std::vector<glm::vec3>{innerA, innerB, b},
+		std::vector<glm::vec3>{innerA, innerB, innerC} };
+	return res;
 }
 
 OptixFunctionality::OptixFunctionality()

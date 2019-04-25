@@ -21,7 +21,6 @@ public:
 		std::vector<glm::vec3> &optixView, std::vector<Hit> &patches, std::vector<Vertex> &vertices);
 	bool shootPatchRay(std::vector<Hit> &patches, std::vector<Vertex> &vertices);
 	float p2pFormfactor(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands);
-	float p2pFormfactor3(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands);
 	float p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands);
 	float calculatePointLightVisibility(optix::float3 &lightpos, int patchindex, std::vector<Vertex> &vertices, std::vector<UV> &rands);
 	void calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands);
