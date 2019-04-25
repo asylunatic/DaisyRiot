@@ -15,8 +15,13 @@ RTPresult RTPAPI rtpQuerySetCudaStream(RTPquery query, cudaStream_t stream);
 Change this line to:
 RTPresult RTPAPI rtpQuerySetCudaStream(RTPquery query, optix::cudaStream_t stream);
 
-2) In Ref.h, move the following two method declarations to the public section:
+2) In Ref.h, move the following two method declarations to the public section: 
+
 /// Increment the reference count
+
 virtual unsigned int ref();
+
+
 /// Decrement the reference count
+
 virtual unsigned int unref();
