@@ -47,7 +47,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "balls.obj";
+const char * obj_filepath = "testscene3_emissivesurface.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -127,20 +127,26 @@ int main() {
 	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
 	std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
 
-	// add light & calculate visibility to all patches in visibility vector
-	Eigen::VectorXf visibility = Eigen::VectorXf::Zero(numtriangles);
-	std::vector<float> debugvisibility;
+	// set initial emission vector
+	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
+	// set first triangle to emit
+	emission(0) = 1.0;	
+	
+	/*std::vector<float> debugvisibility;
 	//(3.5, 0, 2.5) is for testscene1.obj
 	//optix::float3 pointlight = optix::make_float3(3.5f, 0.f, 2.5f);
-	optix::float3 pointlight = optix::make_float3(0.f, 0.f, -1.f);
+	//optix::float3 pointlight = optix::make_float3(0.f, 0.f, -1.f);
 	for (int i = 0; i < numtriangles; i++) {
 		visibility(i) = optixP.calculatePointLightVisibility(pointlight, i, vertices, rands);
 		debugvisibility.push_back(i);
-	}
+	}*/
 
 	// calculate first pass into lightningvalues vector
 	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
-	lightningvalues = (RadMat * visibility)+visibility;
+	lightningvalues = emission; // aka == emission
+	// calculate second pass
+	lightningvalues = (RadMat * lightningvalues) + lightningvalues;
+	lightningvalues = (RadMat * lightningvalues) + lightningvalues;
 
 
 	// Main loop
