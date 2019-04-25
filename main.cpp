@@ -47,7 +47,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "testscenes/bleedlighttest.obj";
+const char * obj_filepath = "testscenes/testscene5_emissivesurface.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
