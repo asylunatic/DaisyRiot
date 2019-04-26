@@ -318,11 +318,14 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 		for (int col = (row +1); col < numtriangles; col++) {
 			float formfactorRC = p2pFormfactor3(row, col, vertices, rands);
 			if (formfactorRC > 0.0) {
-				// at place (x, y) we want the form factor y->x
-				RadMat.insert(col, row) = formfactorRC;
+				// at place (x, y) we want the form factor y->x 
+				// but as this is a col major matrix we store (x, y) at (y, x) -> confused yet?
+				RadMat.insert(row, col) = formfactorRC;
+				std::cout << "Inserting form factor " << row << "->" << col << " with "<< formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
 
 				float formfactorCR = p2pFormfactor3(col, row, vertices, rands);
-				RadMat.insert(row, col) = formfactorCR;
+				RadMat.insert(col, row) = formfactorCR;
+				std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
 
 				if (formfactorCR > 1 || formfactorRC > 1){
 					std::cout << "WTF FORM FACTOR LARGER THAN ONE" << std::endl;

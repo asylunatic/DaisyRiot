@@ -47,7 +47,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "testscenes/debugtest_3tris.obj";
+const char * obj_filepath = "testscenes/debugtest_smolpath_9.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -113,7 +113,6 @@ int main() {
 	int numtriangles = vertices.size() / 3;
 	SpMat RadMat(numtriangles, numtriangles);
 	optixP.calculateRadiosityMatrix(RadMat, vertices, rands);
-	//RadMat = RadMat.transpose();
 	// little debug output to check something happened while calculating the matrix:
 	std::cout << "total entries in matrix = " << numtriangles*numtriangles << std::endl;
 	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
@@ -129,8 +128,7 @@ int main() {
 	lightningvalues = emission; 
 	// init residual vector
 	Eigen::VectorXf residualvector = Eigen::VectorXf::Zero(numtriangles);
-	residualvector = RadMat * emission;
-	lightningvalues = lightningvalues + residualvector;
+	residualvector = emission;
 	std::cout << "residual vector " << residualvector << std::endl;
 
 	// Set up OpenGL debug callback

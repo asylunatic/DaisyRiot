@@ -138,7 +138,7 @@ void InputHandler::increment_lightpasses(GLFWwindow* window) {
 	cbc_ptr->residualvector = cbc_ptr->RadMat * cbc_ptr->residualvector;
 	cbc_ptr->lightningvalues = cbc_ptr->lightningvalues + cbc_ptr->residualvector;
 
-	std::cout << "residual vector " << cbc_ptr->residualvector << std::endl;
+	std::cout << "residual vector " << std::endl << cbc_ptr->residualvector << std::endl;
 	Drawer::drawRadiosity(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
 }
 
