@@ -178,7 +178,7 @@ float OptixPrimeFunctionality::p2pFormfactor3(int originPatch, int destPatch, st
 	glm::vec3 normal_dest = OptixFunctionality::TriangleMath::avgNormal(destPatch, vertices);
 	glm::vec3 desty = glm::normalize(center_dest - center_origin);
 	if (glm::dot(desty, normal_dest) > 0){
-		std::cout << "FACING BACK OF TRIANGLE" << std::endl;
+		//std::cout << "FACING BACK OF TRIANGLE" << std::endl;
 		return 0.0;
 	}
 
@@ -247,9 +247,11 @@ float OptixPrimeFunctionality::p2pFormfactor3(int originPatch, int destPatch, st
 
 	visibility = visibility / RAYS_PER_PATCH;
 	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
-	printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
+	float totalformfactor = formfactor * visibility;
+	//printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility, "\n");
+	//printf("\ntotalformfactor: %f", totalformfactor, "\n");
 
-	return formfactor * visibility;
+	return totalformfactor;
 
 }
 
@@ -315,23 +317,28 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 
 		for (int col = (row +1); col < numtriangles; col++) {
 			float formfactorRC = p2pFormfactor3(row, col, vertices, rands);
-			if (formfactorRC > 0) {
+			if (formfactorRC > 0.0) {
 				// at place (x, y) we want the form factor y->x
 				RadMat.insert(col, row) = formfactorRC;
-				// The reciprocity theorem for view factors allows one to calculate F_c->r if one already knows F_r->c.
-				// Using the areas of the two surfaces A_a and A_b:
-				// A_r*F_r->c = A_c*F_c->r
-				// ( A_r*F_r->c)/A_c = F_c->r
-				float area_r = TriangleMath::calculateSurface(vertices[row * 3].pos, vertices[row * 3 + 1].pos, vertices[row * 3 + 2].pos);
-				float area_c = TriangleMath::calculateSurface(vertices[col * 3].pos, vertices[col * 3 + 1].pos, vertices[col * 3 + 2].pos);
-				float formfactorCR = (area_r * formfactorRC) / area_c;
+
+				//std::cout << "Adding form factor" << row << "->" << col << " = " << formfactorRC << " at place ( " << col << ", " << row << " )" << std::endl;
+				
+				// for some reason this does not work but not sure why??
+				//// The reciprocity theorem for view factors allows one to calculate F_c->r if one already knows F_r->c.
+				//// Using the areas of the two surfaces A_a and A_b:
+				//// A_r*F_r->c = A_c*F_c->r
+				//// ( A_r*F_r->c)/A_c = F_c->r
+				//float area_r = TriangleMath::calculateSurface(vertices[row * 3].pos, vertices[row * 3 + 1].pos, vertices[row * 3 + 2].pos);
+				//float area_c = TriangleMath::calculateSurface(vertices[col * 3].pos, vertices[col * 3 + 1].pos, vertices[col * 3 + 2].pos);
+				//float formfactorCR = (area_r * formfactorRC) / area_c;
+
+				float formfactorCR = p2pFormfactor3(col, row, vertices, rands);
 				RadMat.insert(row, col) = formfactorCR;
-				std::cout << "Adding form factor" << col << "->" << row << " = " << formfactorCR << " at place ("<<row<<", "<<col<<")"<<std::endl;
-				std::cout << "Adding form factor" << row << "->" << col  << " = " << formfactorRC << " at place (" << col << ", " << row << ")" << std::endl;
-			}
-			else {
-				//std::cout << "Form factor is zero for " << col << "->" << row << " at place (" << row << ", " << col << ")" << std::endl;
-				//std::cout << "Form factor is zero for " << row << "->" << col << " at place (" << col << ", " << row << ")" << std::endl;
+				
+				//std::cout << "Adding form factor" << col << "->" << row << " = " << formfactorCR << " at place ( "<<row<<", "<<col<<" )"<<std::endl;
+				if (formfactorCR > 1 || formfactorRC > 1){
+					std::cout << "WTF FORM FACTOR LARGER THAN ONE" << std::endl;
+				}
 			}
 		}
 	}
