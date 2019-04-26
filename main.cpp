@@ -47,7 +47,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "testscenes/testscene5_emissivesurface.obj";
+const char * obj_filepath = "testscenes/debugtest_3tris.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -113,24 +113,16 @@ int main() {
 	int numtriangles = vertices.size() / 3;
 	SpMat RadMat(numtriangles, numtriangles);
 	optixP.calculateRadiosityMatrix(RadMat, vertices, rands);
+	//RadMat = RadMat.transpose();
 	// little debug output to check something happened while calculating the matrix:
 	std::cout << "total entries in matrix = " << numtriangles*numtriangles << std::endl;
 	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
 	std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
-	for (int i = 0; i < numtriangles; i++){
-		float sum = 0;
-		for (int j = 0; j < numtriangles; j++){
-			sum += RadMat.coeff(j, i);
-		}
-		if (sum > 1){
-			std::cout << "SUM TOO LARGE: " << sum << std::endl;
-		}
-	}
 
 	// set initial emission vector
 	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
 	// set a triangle to emit
-	emission(numtriangles-1) = 1.0;	
+	emission(0) = 1.0;	
 	
 	// calculate first pass into lightningvalues vector
 	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
@@ -138,6 +130,8 @@ int main() {
 	// init residual vector
 	Eigen::VectorXf residualvector = Eigen::VectorXf::Zero(numtriangles);
 	residualvector = RadMat * emission;
+	lightningvalues = lightningvalues + residualvector;
+	std::cout << "residual vector " << residualvector << std::endl;
 
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(Drawer::debugCallback, nullptr);
