@@ -177,11 +177,9 @@ float OptixPrimeFunctionality::p2pFormfactor3(int originPatch, int destPatch, st
 	glm::vec3 normal_origin = OptixFunctionality::TriangleMath::avgNormal(originPatch, vertices);
 	glm::vec3 normal_dest = OptixFunctionality::TriangleMath::avgNormal(destPatch, vertices);
 	glm::vec3 desty = glm::normalize(center_dest - center_origin);
-	if (glm::dot(desty, normal_dest) >= 0){
-		//std::cout << "FACING BACK OF TRIANGLE" << std::endl;
+	if (glm::dot(desty, normal_dest) >= 0 || glm::dot(desty, normal_origin) <= 0){
 		return 0.0;
 	}
-
 
 	// init vectors to project triangle
 	std::vector<glm::vec3> hemitriangle;
@@ -206,46 +204,9 @@ float OptixPrimeFunctionality::p2pFormfactor3(int originPatch, int destPatch, st
 		//float projdist = glm::dot(normal_origin, hemitriangle[i]) + minusd;
 		//projtriangle[i] = hemitriangle[i] - (projdist * normal_origin);
 	}
+	
+	float visibility = calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
 
-
-	std::vector<optix::float3> rays;
-	rays.resize(2 * RAYS_PER_PATCH);
-
-	std::vector<Hit> hits;
-	hits.resize(RAYS_PER_PATCH);
-
-	optix::float3 origin;
-	optix::float3 dest;
-	for (int i = 0; i < RAYS_PER_PATCH; i++) {
-		origin = TriangleMath::uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
-		dest = TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
-		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
-		rays[i * 2 + 1] = optix::normalize(dest - origin);
-	}
-
-	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-	query->setRays(RAYS_PER_PATCH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
-	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
-	hitBuffer->setRange(0, RAYS_PER_PATCH);
-	query->setHits(hitBuffer);
-	try {
-		query->execute(RTP_QUERY_HINT_NONE);
-	}
-	catch (optix::prime::Exception &e) {
-		std::cerr << "An error occurred with error code "
-			<< e.getErrorCode() << " and message "
-			<< e.getErrorString() << std::endl;
-	}
-
-	float visibility = 0;
-
-
-	for (Hit hit : hits) {
-		float newT = hit.t > 0 && hit.triangleId == destPatch ? 1 : 0;
-		visibility += newT;
-	}
-
-	visibility = visibility / RAYS_PER_PATCH;
 	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
 	float totalformfactor = formfactor * visibility;
 	//printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility, "\n");
