@@ -6,10 +6,12 @@
 #include <ctime>
 #include <glm/glm.hpp>
 #include <Eigen/Sparse>
+
 #include "Vertex.h"
 #include "OptixFunctionality.h"
 #include "Defines.h"
 #include "Drawer.h"
+
 typedef Eigen::SparseMatrix<float> SpMat;
 
 class OptixPrimeFunctionality : public OptixFunctionality
@@ -23,6 +25,7 @@ public:
 	float p2pFormfactor(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands);
 	float p2pFormfactor3(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands);
 	float p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands);
+	float p2pFormfactorStochastic(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands);
 	float calculatePointLightVisibility(optix::float3 &lightpos, int patchindex, std::vector<Vertex> &vertices, std::vector<UV> &rands);
 	void calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands);
 	void initOptixPrime(std::vector<Vertex> &vertices);

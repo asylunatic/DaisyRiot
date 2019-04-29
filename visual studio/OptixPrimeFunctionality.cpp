@@ -168,6 +168,21 @@ float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatc
 	return visibility;
 }
 
+float OptixPrimeFunctionality::p2pFormfactorStochastic(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
+	std::vector<float> randfloat;
+	int numrays = 10000;
+	randfloat.resize(numrays);
+	std::srand(std::time(nullptr));
+
+	for (size_t i = 0; i < numrays; i++) {
+		float x = float(rand()) / (float(RAND_MAX));// +1.0);
+		randfloat[i] = x;
+		std::cout << x << std::endl;
+	}
+
+	return 0.0;
+}
+
 float OptixPrimeFunctionality::p2pFormfactor3(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 
 	glm::vec3 center_origin = TriangleMath::calculateCentre(originPatch, vertices);
@@ -197,7 +212,6 @@ float OptixPrimeFunctionality::p2pFormfactor3(int originPatch, int destPatch, st
 		// p' = p - (n ⋅ (p - o)) * n
 		projtriangle[i] = hemitriangle[i] - (glm::dot(normal_origin, (hemitriangle[i] - center_origin))) * normal_origin;
 
-
 		//// first complete the plane equation of the base of the unit sphere by finding d:
 		//// -d = dot(n, c) where n is the normal and c is a point in the plane
 		//float minusd = - glm::dot(normal_origin, center_origin);
@@ -209,8 +223,6 @@ float OptixPrimeFunctionality::p2pFormfactor3(int originPatch, int destPatch, st
 
 	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
 	float totalformfactor = formfactor * visibility;
-	//printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility, "\n");
-	//printf("\ntotalformfactor: %f", totalformfactor, "\n");
 
 	return totalformfactor;
 

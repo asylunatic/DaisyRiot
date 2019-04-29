@@ -47,7 +47,8 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "testscenes/debugtest_smolpath_9.obj";
+//const char * obj_filepath = "testscenes/debugtest_smolpath_0.obj";
+const char * obj_filepath = "testscenes/testscene5_emissivesurface.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -97,6 +98,8 @@ int main() {
 	optixP = OptixPrimeFunctionality();
 	optixP.initOptixPrime(vertices);
 
+	//optixP.p2pFormfactorStochastic(0, 0, vertices, rands);
+
 	//initializing result optix drawing
 	GLuint optixShader;
 	optixP.doOptixPrime(optixW, optixH, optixView, eye, viewDirection, trianglesonScreen, vertices);
@@ -108,6 +111,11 @@ int main() {
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
 	patches.resize(2);
+
+	/*for (int i = 0; i < vertices.size() / 3; i++){
+		std::cout << "calc triangle size!!" << std::endl;
+		OptixFunctionality::TriangleMath::calculateSurface(vertices[3 * i + 0].pos, vertices[3 * i + 1].pos, vertices[3 * i + 2].pos);
+	}*/
 
 	// initialize radiosity matrix
 	int numtriangles = vertices.size() / 3;
@@ -121,7 +129,7 @@ int main() {
 	// set initial emission vector
 	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
 	// set a triangle to emit
-	emission(0) = 1.0;	
+	emission(0) = 10.0;	
 	
 	// calculate first pass into lightningvalues vector
 	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
