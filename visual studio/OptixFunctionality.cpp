@@ -103,7 +103,6 @@ glm::vec3 OptixFunctionality::TriangleMath::avgNormal(float triangleId, std::vec
 }
 
 float OptixFunctionality::TriangleMath::calculateSurface(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
-	std::cout << "CALCULATING area of triangle " << std::endl;
 	glm::vec3 ab = b - a;
 	glm::vec3 ac = c - a;
 	float theta = glm::acos(glm::dot(ab, ac) / (glm::length(ab)*glm::length(ac)));
