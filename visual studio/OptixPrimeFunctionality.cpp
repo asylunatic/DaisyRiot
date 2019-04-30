@@ -86,10 +86,12 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 }
 
 float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {	
+	// subdivide triangles and return in vector w/ 12 entries (4*3 coordinates)
 	std::vector<std::vector<glm::vec3>> origintriangles, destinationtriangles;
 	origintriangles = OptixFunctionality::TriangleMath::divideInFourTriangles(originPatch, vertices);
 	destinationtriangles = OptixFunctionality::TriangleMath::divideInFourTriangles(destPatch, vertices);
 
+	// init vectors
 	std::vector<glm::vec3> originpoints, destinationpoints;
 	originpoints.resize(4);
 	destinationpoints.resize(4);
@@ -97,6 +99,7 @@ float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, std
 	glm::vec3 originNormal = OptixFunctionality::TriangleMath::avgNormal(originPatch, vertices);
 	glm::vec3 destNormal = OptixFunctionality::TriangleMath::avgNormal(destPatch, vertices);
 
+	// calculate centers of subdivided triangles
 	for (int i = 0; i < 4; i++) {
 		originpoints[i] = TriangleMath::calculateCentre(origintriangles[i]);
 		destinationpoints[i] = TriangleMath::calculateCentre(destinationtriangles[i]);
@@ -107,7 +110,7 @@ float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, std
 		for (int j = 0; j < 4; j++) {
 			formfactor = formfactor + OptixFunctionality::TriangleMath::calcPointFormfactor(Vertex(originpoints[i], originNormal), 
 				Vertex(destinationpoints[j], destNormal), 
-				OptixFunctionality::TriangleMath::calculateSurface(origintriangles[i])*OptixFunctionality::TriangleMath::calculateSurface(origintriangles[i]));
+				OptixFunctionality::TriangleMath::calculateSurface(origintriangles[i])*OptixFunctionality::TriangleMath::calculateSurface(destinationtriangles[i]));
 		}
 	}
 	//printf("\nformfactor before including surfacearea: %f", formfactor);
@@ -229,11 +232,11 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 				// at place (x, y) we want the form factor y->x 
 				// but as this is a col major matrix we store (x, y) at (y, x) -> confused yet?
 				RadMat.insert(row, col) = formfactorRC;
-				std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
+				//std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
 
 				float formfactorCR = p2pFormfactorNusselt(col, row, vertices, rands);
 				RadMat.insert(col, row) = formfactorCR;
-				std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
+				//std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
 			}
 		}
 	}
