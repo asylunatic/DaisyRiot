@@ -47,7 +47,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "testscene3_emissivesurface.obj";
+const char * obj_filepath = "testscenes/debugtest_smolpath_bigmesh.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -79,15 +79,6 @@ int main() {
 	// Initialize GLEW extension loader
 	glewExperimental = GL_TRUE;
 	glewInit();
-
-	// Set up OpenGL debug callback
-	glDebugMessageCallback(Drawer::debugCallback, nullptr);
-	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
-	glfwSetKeyCallback(window, InputHandler::key_callback);
-	// set up callback context
-	InputHandler::callback_context cbc(left, hitB,debugline, optixW, optixH,viewDirection, eye,  trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues);
-
-	glfwSetWindowUserPointer(window, &cbc);
 
 	Vertex::loadVertices(vertices, obj_filepath);
 
@@ -123,29 +114,34 @@ int main() {
 	SpMat RadMat(numtriangles, numtriangles);
 	optixP.calculateRadiosityMatrix(RadMat, vertices, rands);
 	// little debug output to check something happened while calculating the matrix:
-	std::cout << "total entries in matriex = " << numtriangles*numtriangles << std::endl;
+	std::cout << "total entries in matrix = " << numtriangles*numtriangles << std::endl;
 	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
 	std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
 
 	// set initial emission vector
 	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
-	// set first triangle to emit
-	emission(0) = 1.0;	
+	// set a triangle to emit
+	emission(0) = 125.0;	
 	
-
 	// calculate first pass into lightningvalues vector
 	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
-	lightningvalues = emission; // aka == emission
-	// calculate second pass
-	lightningvalues = (RadMat * lightningvalues) + lightningvalues;
-	lightningvalues = (RadMat * lightningvalues) + lightningvalues;
+	lightningvalues = emission; 
+	// init residual vector
+	Eigen::VectorXf residualvector = Eigen::VectorXf::Zero(numtriangles);
+	residualvector = emission;
+	std::cout << "residual vector " << residualvector << std::endl;
 
+	// Set up OpenGL debug callback
+	glDebugMessageCallback(Drawer::debugCallback, nullptr);
+	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
+	glfwSetKeyCallback(window, InputHandler::key_callback);
+	// set up callback context
+	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues, RadMat, residualvector);
+	glfwSetWindowUserPointer(window, &cbc);
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
-
 		glfwPollEvents();
-
 		Drawer::draw(window, optixShader, optixVao, debugprogram, linevao, linevbo, debugline, hitB);
 	}
 
