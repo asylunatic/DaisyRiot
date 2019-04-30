@@ -146,6 +146,18 @@ std::vector<std::vector<glm::vec3>> OptixFunctionality::TriangleMath::divideInFo
 	return res;
 }
 
+bool OptixFunctionality::TriangleMath::isFacingBack(glm::vec3 origin, float destPatch, std::vector<Vertex> &vertices) {
+	// check if facing back of triangle:
+	glm::vec3 center_dest = TriangleMath::calculateCentre(destPatch, vertices);
+	glm::vec3 normal_dest = OptixFunctionality::TriangleMath::avgNormal(destPatch, vertices);
+
+	glm::vec3 desty = glm::normalize(center_dest - origin);
+	if (glm::dot(desty, normal_dest) >= 0){
+		return true;
+	}
+	else return false;
+}
+
 OptixFunctionality::OptixFunctionality()
 {
 }

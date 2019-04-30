@@ -1,10 +1,12 @@
-betere triangle visualistie:
-	- traingles hebben maar een kant
-	- of twee maar implementatie
+* betere triangle visualisatie:
+	- triangles hebben maar een kant
 	- interpolate between triangles
-	- interactieve lightpasses
-calculaten van form factors moet in cuda
-
-renderen met optix ipv optix prime
+* calculaten van form factors moet in cuda
+* stochastic form factor
+* renderen met optix ipv optix prime
+* renderen met kleur
+* static classes naar namespaces
+* normale renderer voor vergelijking
+* van optix prime naar optix
 
 

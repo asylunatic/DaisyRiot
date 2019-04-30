@@ -168,6 +168,8 @@ void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLu
 }
 
 void Drawer::drawRadiosity(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH) {
+	optixView.clear();
+	optixView.resize(optixW * optixH);
 	for (int i = 0; i < lightningvalues.size(); i++) {
 		if (trianglesonScreen[i].size() > 0) {
 			for (MatrixIndex index : trianglesonScreen[i]) {

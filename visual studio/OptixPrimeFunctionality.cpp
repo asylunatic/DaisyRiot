@@ -69,12 +69,15 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 
 	for (int j = 0; j < optixH; j++) {
 		for (int i = 0; i < optixW; i++) {
-			optixView[(j*optixH + i)] = (hits[(j*optixH + i)].t > 0) ? glm::vec3(glm::abs(vertices[hits[(j*optixH + i)].triangleId * 3].normal)) : glm::vec3(0.0f, 0.0f, 0.0f);
-			if (hits[(j*optixH + i)].t > 0) {
+			int pixelIndex = j*optixH + i;
+			optixView[pixelIndex] = (hits[pixelIndex].t > 0) ? glm::vec3(glm::abs(vertices[hits[pixelIndex].triangleId * 3].normal)) : glm::vec3(0.0f, 0.0f, 0.0f);
+			if (hits[pixelIndex].t > 0 
+				&& !OptixFunctionality::TriangleMath::isFacingBack(OptixFunctionality::optix2glmf3(eye), hits[pixelIndex].triangleId, vertices)
+				) {
 				MatrixIndex index = {};
 				index.col = i;
 				index.row = j;
-				trianglesonScreen[hits[(j*optixH + i)].triangleId].push_back(index);
+				trianglesonScreen[hits[pixelIndex].triangleId].push_back(index);
 			}
 		}
 
@@ -167,11 +170,10 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 	glm::vec3 center_origin = TriangleMath::calculateCentre(originPatch, vertices);
 	glm::vec3 center_dest = TriangleMath::calculateCentre(destPatch, vertices);
 
-	// check if facing back of triangle:
 	glm::vec3 normal_origin = OptixFunctionality::TriangleMath::avgNormal(originPatch, vertices);
-	glm::vec3 normal_dest = OptixFunctionality::TriangleMath::avgNormal(destPatch, vertices);
-	glm::vec3 desty = glm::normalize(center_dest - center_origin);
-	if (glm::dot(desty, normal_dest) >= 0 || glm::dot(desty, normal_origin) <= 0){
+
+	if (OptixFunctionality::TriangleMath::isFacingBack(center_origin, destPatch, vertices),
+		OptixFunctionality::TriangleMath::isFacingBack(center_dest, originPatch, vertices)) {
 		return 0.0;
 	}
 
