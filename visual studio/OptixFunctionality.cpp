@@ -123,8 +123,11 @@ float OptixFunctionality::TriangleMath::calcPointFormfactor(Vertex orig, Vertex 
 	float dot1 = glm::dot(orig.normal, glm::normalize(dest.pos - orig.pos));
 	float dot2 = glm::dot(dest.normal, glm::normalize(orig.pos - dest.pos));
 	if (dot1 > 0 && dot2 > 0) {
-		float length = glm::sqrt(glm::dot(dest.pos - orig.pos, dest.pos - orig.pos));
-		formfactor = dot1 * dot2 / std::powf(length, 2)*M_PIf * surface;
+		float length = glm::length(dest.pos - orig.pos);
+		// dot product of normalized vectors gives 1*1*cos(theta) 
+		// so dot1 = cos(theta) i
+		// dot2 = cos(theta) j
+		formfactor = ( (dot1 * dot2) / (std::powf(length, 2)*M_PIf) ) * surface;
 	}
 	return formfactor;
 }
