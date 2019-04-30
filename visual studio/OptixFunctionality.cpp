@@ -160,12 +160,3 @@ bool OptixFunctionality::TriangleMath::isFacingBack(glm::vec3 origin, float dest
 	}
 	else return false;
 }
-
-OptixFunctionality::OptixFunctionality()
-{
-}
-
-
-OptixFunctionality::~OptixFunctionality()
-{
-}
