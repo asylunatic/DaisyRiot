@@ -1,4 +1,4 @@
-#include "OptixPrimeFunctionality.h"
+﻿#include "OptixPrimeFunctionality.h"
 
 void OptixPrimeFunctionality::initOptixPrime(std::vector<Vertex> &vertices) {
 	contextP = optix::prime::Context::create(RTP_CONTEXT_TYPE_CUDA);
@@ -110,49 +110,14 @@ float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, std
 				OptixFunctionality::TriangleMath::calculateSurface(origintriangles[i])*OptixFunctionality::TriangleMath::calculateSurface(origintriangles[i]));
 		}
 	}
-	printf("\nformfactor before including surfacearea: %f", formfactor);
+	//printf("\nformfactor before including surfacearea: %f", formfactor);
 	formfactor = formfactor/TriangleMath::calculateSurface(vertices[originPatch * 3].pos, vertices[originPatch * 3 + 1].pos, vertices[originPatch * 3 + 2].pos);
 
-	printf("\nformfactor: %f", formfactor);
+	//printf("\nformfactor: %f", formfactor);
 	float visibility = OptixPrimeFunctionality::calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
 
 	return formfactor * visibility;
 
-}
-
-
-float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
-	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
-	//    A___B<------centreOrig
-	//     \ /    ----/
-	//      C<---/
-
-	std::vector<glm::vec3> hemitriangle;
-	std::vector<glm::vec3> projtriangle;
-
-	projtriangle.resize(3);
-	hemitriangle.resize(3);
-
-	for (int i = 0; i < 3; i++) {
-		hemitriangle[i] = glm::normalize(vertices[destPatch * 3 + i].pos - centreOrig);
-		// now calculated the projection of the hemi triangle onto the base of the unit sphere: 
-		// (as per https://stackoverflow.com/questions/9605556/how-to-project-a-point-onto-a-plane-in-3d)
-		glm::vec3 minus(-1, -1, -1);
-		// first complete the plane equation of the base of the unit sphere by finding d:
-		// -d = dot(n, c) where n is the normal and c is a point in the plane
-		glm::vec3 center = OptixFunctionality::TriangleMath::calculateCentre(originPatch, vertices);
-		glm::vec3 normal = OptixFunctionality::TriangleMath::avgNormal(originPatch, vertices);
-		float minusd = -glm::dot(normal, center);
-		float projdist = glm::dot(normal, hemitriangle[i]) + minusd;
-		projtriangle[i] = hemitriangle[i] - (projdist * normal);
-	}
-
-
-	float visibility = OptixPrimeFunctionality::calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
-	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
-	printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
-
-	return formfactor * visibility;
 }
 
 float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatch, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
@@ -197,6 +162,45 @@ float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatc
 	return visibility;
 }
 
+float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
+
+	glm::vec3 center_origin = TriangleMath::calculateCentre(originPatch, vertices);
+	glm::vec3 center_dest = TriangleMath::calculateCentre(destPatch, vertices);
+
+	// check if facing back of triangle:
+	glm::vec3 normal_origin = OptixFunctionality::TriangleMath::avgNormal(originPatch, vertices);
+	glm::vec3 normal_dest = OptixFunctionality::TriangleMath::avgNormal(destPatch, vertices);
+	glm::vec3 desty = glm::normalize(center_dest - center_origin);
+	if (glm::dot(desty, normal_dest) >= 0 || glm::dot(desty, normal_origin) <= 0){
+		return 0.0;
+	}
+
+	// init vectors to project triangle
+	std::vector<glm::vec3> hemitriangle;
+	std::vector<glm::vec3> projtriangle;
+	projtriangle.resize(3);
+	hemitriangle.resize(3);
+
+	for (int i = 0; i < 3; i++) {
+		hemitriangle[i] = center_origin + glm::normalize(vertices[destPatch * 3 + i].pos - center_origin);
+
+		// calculate the projection of the vertex of the hemi triangle onto the plane that contains the triangle: 
+		// (as per https://stackoverflow.com/questions/9605556/how-to-project-a-point-onto-a-plane-in-3d)
+		// Given a point-normal definition of a plane with normal n and point o on the plane, a point p', 
+		// being the point on the plane closest to the given point p, can be found by:
+		// p' = p - (n ⋅ (p - o)) * n
+		projtriangle[i] = hemitriangle[i] - (glm::dot(normal_origin, (hemitriangle[i] - center_origin))) * normal_origin;
+	}
+	
+	float visibility = calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
+
+	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
+	float totalformfactor = formfactor * visibility;
+
+	return totalformfactor;
+
+}
+
 
 // TODO: optimize insertion, this is probably best done with triplets, as explained on:
 // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
@@ -206,38 +210,30 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 		// calulate form factors current patch to all other patches (that have not been calculated already):
 		// matrix shape should be as follows:
 		// *------*------*------*
-		// |   0  | 1->0 | 2->0 |
+		// |   0  | 0->1 | 0->2 |
 		// *------*------*------*
-		// | 0->1 |  0   | 2->1 |
+		// | 1->0 |  0   | 1->2 |
 		// *------*------*------*
-		// | 0->2 | 1->2 |   0  |
+		// | 2->0 | 2->1 |   0  |
 		// *------*------*------*
 		//
 		// such that we can do the following calculation:
-		// M*V = L where
+		// M*V1 = V2 where
 		// M is radiosity matrix
-		// V is a vector containing the light per patch 
-		// L is a vector [l0, l1, l2 ...] with ln = v0*(0->n)+v1(1->n)+v2(2->n)... etc
+		// V1 is a vector containing the light that is emitted per patch 
+		// V2 is a vector containing the light that is emitted per patch after the bounce
 
 		for (int col = (row +1); col < numtriangles; col++) {
 			float formfactorRC = p2pFormfactor(row, col, vertices, rands);
-			if (formfactorRC > 0) {
-				// at place (x, y) we want the form factor y->x
-				RadMat.insert(col, row) = formfactorRC;
-				// The reciprocity theorem for view factors allows one to calculate F_c->r if one already knows F_r->c.
-				// Using the areas of the two surfaces A_a and A_b:
-				// A_r*F_r->c = A_c*F_c->r
-				// ( A_r*F_r->c)/A_c = F_c->r
-				float area_r = TriangleMath::calculateSurface(vertices[row * 3].pos, vertices[row * 3 + 1].pos, vertices[row * 3 + 2].pos);
-				float area_c = TriangleMath::calculateSurface(vertices[col * 3].pos, vertices[col * 3 + 1].pos, vertices[col * 3 + 2].pos);
-				float formfactorCR = (area_r * formfactorRC) / area_c;
-				RadMat.insert(row, col) = formfactorCR;
-				std::cout << "Adding form factor" << col << "->" << row << " = " << formfactorCR << " at place ("<<row<<", "<<col<<")"<<std::endl;
-				std::cout << "Adding form factor" << row << "->" << col  << " = " << formfactorRC << " at place (" << col << ", " << row << ")" << std::endl;
-			}
-			else {
-				std::cout << "Form factor is zero for " << col << "->" << row << " at place (" << row << ", " << col << ")" << std::endl;
-				std::cout << "Form factor is zero for " << row << "->" << col << " at place (" << col << ", " << row << ")" << std::endl;
+			if (formfactorRC > 0.0) {
+				// at place (x, y) we want the form factor y->x 
+				// but as this is a col major matrix we store (x, y) at (y, x) -> confused yet?
+				RadMat.insert(row, col) = formfactorRC;
+				std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
+
+				float formfactorCR = p2pFormfactorNusselt(col, row, vertices, rands);
+				RadMat.insert(col, row) = formfactorCR;
+				std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
 			}
 		}
 	}

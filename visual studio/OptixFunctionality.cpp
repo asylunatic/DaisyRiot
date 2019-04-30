@@ -103,16 +103,14 @@ glm::vec3 OptixFunctionality::TriangleMath::calculateCentre(float triangleId, st
 
 glm::vec3 OptixFunctionality::TriangleMath::avgNormal(float triangleId, std::vector<Vertex> &vertices) {
 	glm::vec3 avg = (vertices[triangleId * 3].normal + vertices[triangleId * 3 + 1].normal + vertices[triangleId * 3 + 2].normal);
-	return glm::vec3(avg.x / 3, avg.y / 3, avg.z / 3);
+	avg = glm::vec3(avg.x / 3, avg.y / 3, avg.z / 3);
+	return glm::normalize(avg);
 }
 
 float OptixFunctionality::TriangleMath::calculateSurface(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
 	glm::vec3 ab = b - a;
 	glm::vec3 ac = c - a;
-	float theta = glm::acos(glm::dot(ab, ac) / (glm::length(ab)*glm::length(ac)));
-	float surface = 0.5 * glm::length(ab)*glm::length(ac) + glm::sin(theta);
-	//printf("\nsurface area is: %f", surface);
-	return surface;
+	return 0.5*glm::length(glm::cross(ab, ac));
 }
 
 float OptixFunctionality::TriangleMath::calculateSurface(std::vector<glm::vec3> triangle) {
