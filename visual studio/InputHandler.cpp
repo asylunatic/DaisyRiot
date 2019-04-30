@@ -71,7 +71,7 @@ void InputHandler::move_down(GLFWwindow* window){
 
 void InputHandler::calculate_form_vector(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
-	float ff = cbc_ptr->optixP.p2pFormfactor2(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->vertices, cbc_ptr->rands);
+	float ff = cbc_ptr->optixP.p2pFormfactorNusselt(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->vertices, cbc_ptr->rands);
 	std::cout << "Form factor = " << ff << std::endl;
 
 }

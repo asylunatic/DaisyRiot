@@ -85,47 +85,6 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	start = std::clock();
 }
 
-float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
-	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
-	glm::vec3 centreDest = TriangleMath::calculateCentre(destPatch, vertices);
-
-	float formfactor = OptixFunctionality::TriangleMath::calcPointFormfactor(Vertex(centreOrig, vertices[originPatch * 3].normal), Vertex(centreDest, vertices[destPatch * 3].normal));
-	printf("\nformfactor before including surfacearea: %f", formfactor);
-	formfactor = formfactor*TriangleMath::calculateSurface(vertices[destPatch * 3].pos, vertices[destPatch * 3 + 1].pos, vertices[destPatch * 3 + 2].pos);
-
-	printf("\nformfactor: %f", formfactor);
-	float visibility = OptixPrimeFunctionality::calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
-
-	return formfactor * visibility;
-
-}
-
-float OptixPrimeFunctionality::p2pFormfactor2(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
-	glm::vec3 centreOrig = TriangleMath::calculateCentre(originPatch, vertices);
-	//    A___B<------centreOrig
-	//     \ /    ----/
-	//      C<---/
-
-	std::vector<glm::vec3> hemitriangle;
-	std::vector<glm::vec3> projtriangle;
-
-	projtriangle.resize(3);
-	hemitriangle.resize(3);
-
-	for (int i = 0; i < 3; i++) {
-		hemitriangle[i] = glm::normalize(vertices[destPatch * 3 + i].pos - centreOrig);
-		projtriangle[i] = hemitriangle[i] - glm::dot(vertices[originPatch * 3].normal, hemitriangle[i])*vertices[originPatch * 3].normal;
-	}
-
-
-	float visibility = OptixPrimeFunctionality::calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
-	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
-	printf("\nformfactor: %f \nvisibility: %f", formfactor, visibility);
-
-	return formfactor * visibility;
-
-}
-
 float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatch, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
 	std::vector<optix::float3> rays;
 	rays.resize(2 * RAYS_PER_PATCH);
@@ -168,22 +127,7 @@ float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatc
 	return visibility;
 }
 
-float OptixPrimeFunctionality::p2pFormfactorStochastic(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
-	std::vector<float> randfloat;
-	int numrays = 10000;
-	randfloat.resize(numrays);
-	std::srand(std::time(nullptr));
-
-	for (size_t i = 0; i < numrays; i++) {
-		float x = float(rand()) / (float(RAND_MAX));// +1.0);
-		randfloat[i] = x;
-		std::cout << x << std::endl;
-	}
-
-	return 0.0;
-}
-
-float OptixPrimeFunctionality::p2pFormfactor3(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
+float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 
 	glm::vec3 center_origin = TriangleMath::calculateCentre(originPatch, vertices);
 	glm::vec3 center_dest = TriangleMath::calculateCentre(destPatch, vertices);
@@ -211,12 +155,6 @@ float OptixPrimeFunctionality::p2pFormfactor3(int originPatch, int destPatch, st
 		// being the point on the plane closest to the given point p, can be found by:
 		// p' = p - (n ⋅ (p - o)) * n
 		projtriangle[i] = hemitriangle[i] - (glm::dot(normal_origin, (hemitriangle[i] - center_origin))) * normal_origin;
-
-		//// first complete the plane equation of the base of the unit sphere by finding d:
-		//// -d = dot(n, c) where n is the normal and c is a point in the plane
-		//float minusd = - glm::dot(normal_origin, center_origin);
-		//float projdist = glm::dot(normal_origin, hemitriangle[i]) + minusd;
-		//projtriangle[i] = hemitriangle[i] - (projdist * normal_origin);
 	}
 	
 	float visibility = calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
@@ -275,34 +213,28 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 		// calulate form factors current patch to all other patches (that have not been calculated already):
 		// matrix shape should be as follows:
 		// *------*------*------*
-		// |   0  | 1->0 | 2->0 |
+		// |   0  | 0->1 | 0->2 |
 		// *------*------*------*
-		// | 0->1 |  0   | 2->1 |
+		// | 1->0 |  0   | 1->2 |
 		// *------*------*------*
-		// | 0->2 | 1->2 |   0  |
+		// | 2->0 | 2->1 |   0  |
 		// *------*------*------*
 		//
 		// such that we can do the following calculation:
-		// M*V = L where
+		// M*V1 = V2 where
 		// M is radiosity matrix
-		// V is a vector containing the light per patch 
-		// L is a vector [l0, l1, l2 ...] with ln = v0*(0->n)+v1(1->n)+v2(2->n)... etc
+		// V1 is a vector containing the light that is emitted per patch 
+		// V2 is a vector containing the light that is emitted per patch after the bounce
 
 		for (int col = (row +1); col < numtriangles; col++) {
-			float formfactorRC = p2pFormfactor3(row, col, vertices, rands);
+			float formfactorRC = p2pFormfactorNusselt(row, col, vertices, rands);
 			if (formfactorRC > 0.0) {
 				// at place (x, y) we want the form factor y->x 
 				// but as this is a col major matrix we store (x, y) at (y, x) -> confused yet?
 				RadMat.insert(row, col) = formfactorRC;
-				//std::cout << "Inserting form factor " << row << "->" << col << " with "<< formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
 
-				float formfactorCR = p2pFormfactor3(col, row, vertices, rands);
+				float formfactorCR = p2pFormfactorNusselt(col, row, vertices, rands);
 				RadMat.insert(col, row) = formfactorCR;
-				//std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
-
-				if (formfactorCR > 1 || formfactorRC > 1){
-					std::cout << "WTF FORM FACTOR LARGER THAN ONE" << std::endl;
-				}
 			}
 		}
 	}
