@@ -72,7 +72,7 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 			int pixelIndex = j*optixH + i;
 			optixView[pixelIndex] = (hits[pixelIndex].t > 0) ? glm::vec3(glm::abs(vertices[hits[pixelIndex].triangleId * 3].normal)) : glm::vec3(0.0f, 0.0f, 0.0f);
 			if (hits[pixelIndex].t > 0 
-				&& !OptixFunctionality::TriangleMath::isFacingBack(OptixFunctionality::optix2glmf3(eye), hits[pixelIndex].triangleId, vertices)
+				&& !TriangleMath::isFacingBack(OptixFunctionality::optix2glmf3(eye), hits[pixelIndex].triangleId, vertices)
 				) {
 				MatrixIndex index = {};
 				index.col = i;
@@ -91,33 +91,33 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {	
 	// subdivide triangles and return in vector w/ 12 entries (4*3 coordinates)
 	std::vector<std::vector<glm::vec3>> origintriangles, destinationtriangles;
-	origintriangles = OptixFunctionality::TriangleMath::divideInFourTriangles(originPatch, vertices);
-	destinationtriangles = OptixFunctionality::TriangleMath::divideInFourTriangles(destPatch, vertices);
+	origintriangles = TriangleMath::divideInFourTriangles(originPatch, vertices);
+	destinationtriangles = TriangleMath::divideInFourTriangles(destPatch, vertices);
 
 	// init vectors
 	std::vector<glm::vec3> originpoints, destinationpoints;
 	originpoints.resize(4);
 	destinationpoints.resize(4);
 	
-	glm::vec3 originNormal = OptixFunctionality::TriangleMath::avgNormal(originPatch, vertices);
-	glm::vec3 destNormal = OptixFunctionality::TriangleMath::avgNormal(destPatch, vertices);
+	glm::vec3 originNormal = TriangleMath::avgNormal(originPatch, vertices);
+	glm::vec3 destNormal = TriangleMath::avgNormal(destPatch, vertices);
 
 	// calculate centers of subdivided triangles
 	for (int i = 0; i < 4; i++) {
-		originpoints[i] = OptixFunctionality::TriangleMath::calculateCentre(origintriangles[i]);
-		destinationpoints[i] = OptixFunctionality::TriangleMath::calculateCentre(destinationtriangles[i]);
+		originpoints[i] = TriangleMath::calculateCentre(origintriangles[i]);
+		destinationpoints[i] = TriangleMath::calculateCentre(destinationtriangles[i]);
 	}
 
 	float formfactor = 0;
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
-			formfactor = formfactor + OptixFunctionality::TriangleMath::calcPointFormfactor(Vertex(originpoints[i], originNormal), 
+			formfactor = formfactor +TriangleMath::calcPointFormfactor(Vertex(originpoints[i], originNormal), 
 				Vertex(destinationpoints[j], destNormal), 
-				OptixFunctionality::TriangleMath::calculateSurface(origintriangles[i])*OptixFunctionality::TriangleMath::calculateSurface(destinationtriangles[i]));
+				TriangleMath::calculateSurface(origintriangles[i])*TriangleMath::calculateSurface(destinationtriangles[i]));
 		}
 	}
 	//printf("\nformfactor before including surfacearea: %f", formfactor);
-	formfactor = formfactor / OptixFunctionality::TriangleMath::calculateSurface(vertices[originPatch * 3].pos, vertices[originPatch * 3 + 1].pos, vertices[originPatch * 3 + 2].pos);
+	formfactor = formfactor / TriangleMath::calculateSurface(vertices[originPatch * 3].pos, vertices[originPatch * 3 + 1].pos, vertices[originPatch * 3 + 2].pos);
 
 	//printf("\nformfactor: %f", formfactor);
 	float visibility = OptixPrimeFunctionality::calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
@@ -136,8 +136,8 @@ float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatc
 	optix::float3 origin;
 	optix::float3 dest;
 	for (int i = 0; i < RAYS_PER_PATCH; i++) {
-		origin = OptixFunctionality::TriangleMath::uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
-		dest = OptixFunctionality::TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		origin = TriangleMath::uv2xyz(originPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
+		dest = TriangleMath::uv2xyz(destPatch, optix::make_float2(rands[i].u, rands[i].v), vertices);
 		rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
 		rays[i * 2 + 1] = optix::normalize(dest - origin);
 	}
@@ -170,13 +170,13 @@ float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatc
 
 float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 
-	glm::vec3 center_origin = OptixFunctionality::TriangleMath::calculateCentre(originPatch, vertices);
-	glm::vec3 center_dest = OptixFunctionality::TriangleMath::calculateCentre(destPatch, vertices);
+	glm::vec3 center_origin = TriangleMath::calculateCentre(originPatch, vertices);
+	glm::vec3 center_dest = TriangleMath::calculateCentre(destPatch, vertices);
 
-	glm::vec3 normal_origin = OptixFunctionality::TriangleMath::avgNormal(originPatch, vertices);
+	glm::vec3 normal_origin = TriangleMath::avgNormal(originPatch, vertices);
 
-	if (OptixFunctionality::TriangleMath::isFacingBack(center_origin, destPatch, vertices),
-		OptixFunctionality::TriangleMath::isFacingBack(center_dest, originPatch, vertices)) {
+	if (TriangleMath::isFacingBack(center_origin, destPatch, vertices),
+		TriangleMath::isFacingBack(center_dest, originPatch, vertices)) {
 		return 0.0;
 	}
 
@@ -199,7 +199,7 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 	
 	float visibility = calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
 
-	float formfactor = OptixFunctionality::TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
+	float formfactor = TriangleMath::calculateSurface(projtriangle[0], projtriangle[1], projtriangle[2]) / M_PIf;
 	float totalformfactor = formfactor * visibility;
 
 	return totalformfactor;
@@ -245,8 +245,8 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 }
 
 bool OptixPrimeFunctionality::shootPatchRay(std::vector<OptixFunctionality::Hit> &patches, std::vector<Vertex> &vertices) {
-	optix::float3  pointA = OptixFunctionality::TriangleMath::uv2xyz(patches[0].triangleId, patches[0].uv, vertices);
-	optix::float3  pointB = OptixFunctionality::TriangleMath::uv2xyz(patches[1].triangleId, patches[1].uv, vertices);
+	optix::float3  pointA = TriangleMath::uv2xyz(patches[0].triangleId, patches[0].uv, vertices);
+	optix::float3  pointB = TriangleMath::uv2xyz(patches[1].triangleId, patches[1].uv, vertices);
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 	std::vector<optix::float3> ray = { pointA + optix::normalize(pointB - pointA)*0.000001f, optix::normalize(pointB - pointA) };
 	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());

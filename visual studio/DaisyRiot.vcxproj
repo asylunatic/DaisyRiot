@@ -28,6 +28,7 @@
     <ClCompile Include="OptixFunctionality.cpp" />
     <ClCompile Include="OptixPrimeFunctionality.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
+    <ClCompile Include="TriangleMath.cpp" />
     <ClCompile Include="Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +61,7 @@
     <ClInclude Include="OptixFunctionality.h" />
     <ClInclude Include="OptixPrimeFunctionality.h" />
     <ClInclude Include="ShaderLoader.h" />
+    <ClInclude Include="TriangleMath.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

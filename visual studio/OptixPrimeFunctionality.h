@@ -9,6 +9,7 @@
 
 #include "Vertex.h"
 #include "OptixFunctionality.h"
+#include "TriangleMath.h"
 #include "Defines.h"
 #include "Drawer.h"
 
