@@ -47,7 +47,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "testscenes/debugtest_smolpath_bigmesh.obj";
+const char * obj_filepath = "testscenes/debugtest_smolpath_8.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -63,7 +63,7 @@ std::vector<Vertex> vertices;
 // optixview is an array containing all pixel values
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
-std::vector<OptixFunctionality::Hit> patches;
+std::vector<optix_functionality::Hit> patches;
 bool left = true; 
 int optixW = 512, optixH = 512;
 bool hitB = false;

@@ -25,9 +25,10 @@
     <ClCompile Include="Drawer.cpp" />
     <ClCompile Include="ImageExporter.cpp" />
     <ClCompile Include="InputHandler.cpp" />
-    <ClCompile Include="OptixFunctionality.cpp" />
+    <ClCompile Include="optix_functionality.cpp" />
     <ClCompile Include="OptixPrimeFunctionality.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
+    <ClCompile Include="triangle_math.cpp" />
     <ClCompile Include="Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -57,9 +58,10 @@
     <ClInclude Include="Drawer.h" />
     <ClInclude Include="ImageExporter.h" />
     <ClInclude Include="InputHandler.h" />
-    <ClInclude Include="OptixFunctionality.h" />
+    <ClInclude Include="optix_functionality.h" />
     <ClInclude Include="OptixPrimeFunctionality.h" />
     <ClInclude Include="ShaderLoader.h" />
+    <ClInclude Include="triangle_math.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
