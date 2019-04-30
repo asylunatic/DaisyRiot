@@ -1,12 +1,8 @@
 * betere triangle visualisatie:
-	- triangles hebben maar een kant
 	- interpolate between triangles
-* calculaten van form factors moet in cuda
-* stochastic form factor
-* renderen met optix ipv optix prime
+* calculaten van form factors moet in cuda (WIP MARIJN)
+* stochastic form factor (WIP VERA)
 * renderen met kleur
 * static classes naar namespaces
 * normale renderer voor vergelijking
 * van optix prime naar optix
-
-
