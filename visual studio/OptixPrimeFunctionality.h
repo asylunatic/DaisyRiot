@@ -14,6 +14,7 @@
 #include "Drawer.h"
 
 typedef Eigen::SparseMatrix<float> SpMat;
+typedef Eigen::Triplet<double> Tripl;
 
 class OptixPrimeFunctionality
 {

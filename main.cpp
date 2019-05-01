@@ -47,7 +47,9 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "testscenes/debugtest_smolpath_bigmesh.obj";
+const char * obj_filepath = "testscenes/2trisfaceupanddown.obj";
+//const char * obj_filepath = "testscenes/debugtest_smolpath_8.obj";
+
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -121,7 +123,7 @@ int main() {
 	// set initial emission vector
 	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
 	// set a triangle to emit
-	emission(0) = 250.0;	
+	emission(0) = 125.0;	
 	
 	// calculate first pass into lightningvalues vector
 	lightningvalues = Eigen::VectorXf::Zero(numtriangles);

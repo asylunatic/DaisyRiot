@@ -210,6 +210,8 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
 void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 	int numtriangles = vertices.size() / 3;
+	std::vector<Tripl> tripletList;
+
 	for (int row = 0; row < numtriangles -1; row++) {
 		// calulate form factors current patch to all other patches (that have not been calculated already):
 		// matrix shape should be as follows:
@@ -232,15 +234,18 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 			if (formfactorRC > 0.0) {
 				// at place (x, y) we want the form factor y->x 
 				// but as this is a col major matrix we store (x, y) at (y, x) -> confused yet?
-				RadMat.insert(row, col) = formfactorRC;
+			
+				tripletList.push_back(Tripl(row, col, formfactorRC));
 				//std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
 
 				float formfactorCR = p2pFormfactorNusselt(col, row, vertices, rands);
-				RadMat.insert(col, row) = formfactorCR;
+				tripletList.push_back(Tripl(col, row, formfactorCR));
 				//std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
 			}
 		}
 	}
+
+	RadMat.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
 void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
@@ -261,20 +266,19 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 	// V2 is a vector containing the light that is emitted per patch after the bounce
 
 	int numtriangles = vertices.size() / 3;
-	int numrays = 10000;
+	int numrays = 100;
 
 	std::vector<std::pair<float, float>> randnums;
 	randnums.resize(numrays);
 	std::srand(std::time(nullptr)); // use current time as seed for random generator
 	for (size_t i = 0; i < numrays; i++) {
 		float x = ((float)(rand() % RAND_MAX)) / RAND_MAX;
-		float theta = acosf(sqrtf(1-x));
+		float theta = acosf(sqrtf(1.0-x));
 		float phi = 2.0*M_PIf*x;
 		randnums[i] = std::make_pair(theta, phi);
 	}
 
-	typedef Eigen::Triplet<double> T;
-	std::vector<T> tripletList;
+	std::vector<Tripl> tripletList;
 
 	for (int row = 0; row < numtriangles; row++) {
 
@@ -286,22 +290,34 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 		optix::float3 dest;
 
 		for (int i = 0; i < numrays; i++) {
-			origin = triangle_math::uv2xyz(row, optix::make_float2(rands[i].u, rands[i].v), vertices);
+			// pick a point on the triangle to shoot from
+			
+			origin = optix_functionality::glm2optixf3(triangle_math::calculateCentre(row, vertices));//triangle_math::uv2xyz(row, optix::make_float2(rands[i].u, rands[i].v), vertices);
+			// determine normal of triangle
 			glm::vec3 rownormal = triangle_math::avgNormal(row, vertices);
+			// retrieve random but related theta and phi
 			float theta = randnums[i].first;
 			float phi = randnums[i].second;
+
 			// rotate normal down by theta, as per https://stackoverflow.com/a/22101541/7925249
-			// for d we take a vector in the plane
+			// for d we take a vector perpendicular to the normal, which is luckily just any vector in the plane of the triangle
 			glm::vec3 d = glm::normalize(vertices[row*3].pos - vertices[row*3 + 1].pos);
-			glm::vec3 d_tick = glm::cross(glm::cross(rownormal, d), rownormal);
-			glm::vec3 temp = cos(theta)*rownormal + sin(theta)*d_tick;
+			glm::vec3 temp_down = cos(theta)*rownormal + sin(theta)*d;
+			temp_down = glm::normalize(temp_down);
+
 			// rotate normal around by phi
-			glm::mat4x4 rotation = glm::rotate(glm::mat4(), phi, rownormal);
-			temp = rotation * glm::vec4(temp.x, temp.y, temp.z, 1);
-			dest = optix_functionality::glm2optixf3(temp);
+			glm::mat4x4 rotation = glm::rotate(glm::mat4(1.0f), phi, rownormal);
+			glm::vec3 temp_around = rotation * glm::vec4(temp_down.x, temp_down.y, temp_down.z, 1.0);
+			dest = optix_functionality::glm2optixf3(temp_around);
+
+			std::cout << "rotated vector " << temp_down.x << " " << temp_down.y << " " << temp_down.z << " around normal " << rownormal.x << " " << rownormal.y << " " << rownormal.z << " by a factor of " << phi << " with result " << temp_around.x << " " << temp_around.y << " " << temp_around.z << std::endl;
+
+			//std::cout << "normal " << rownormal.x << " " << rownormal.y << " " << rownormal.z << std::endl;
+			//std::cout << "creating ray towards " << dest.x << " "<< dest.y << " " << dest.z << std::endl;
 			rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
 			rays[i * 2 + 1] = optix::normalize(dest - origin);
 		}
+
 		optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 		query->setRays(RAYS_PER_PATCH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
 		optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
@@ -330,7 +346,8 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 			float formfactorRC = formfactorarray[col];
 			if (formfactorRC > 0.0) {
 				//RadMat.insert(row, col) = formfactorRC;
-				tripletList.push_back(T(row, col, formfactorRC));
+				tripletList.push_back(Tripl(row, col, formfactorRC));
+				std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
 			}
 		}
 		
