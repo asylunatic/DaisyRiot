@@ -3,7 +3,6 @@
 * calculaten van form factors moet in cuda (WIP MARIJN)
 * stochastic form factor (WIP VERA)
 * renderen met kleur
-* static classes naar namespaces
 * normale renderer voor vergelijking
 * van optix prime naar optix
 * triplet insertion in matrix is supposed to speed up insertion: https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
