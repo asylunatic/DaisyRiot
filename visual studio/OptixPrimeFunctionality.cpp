@@ -243,6 +243,102 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 	}
 }
 
+void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
+	// calulate form factors current patch to all other patches (that have not been calculated already):
+	// matrix shape should be as follows:
+	// *------*------*------*
+	// |   0  | 0->1 | 0->2 |
+	// *------*------*------*
+	// | 1->0 |  0   | 1->2 |
+	// *------*------*------*
+	// | 2->0 | 2->1 |   0  |
+	// *------*------*------*
+	//
+	// such that we can do the following calculation:
+	// M*V1 = V2 where
+	// M is radiosity matrix
+	// V1 is a vector containing the light that is emitted per patch 
+	// V2 is a vector containing the light that is emitted per patch after the bounce
+
+	int numtriangles = vertices.size() / 3;
+	int numrays = 10000;
+
+	std::vector<std::pair<float, float>> randnums;
+	randnums.resize(numrays);
+	std::srand(std::time(nullptr)); // use current time as seed for random generator
+	for (size_t i = 0; i < numrays; i++) {
+		float x = ((float)(rand() % RAND_MAX)) / RAND_MAX;
+		float theta = acosf(sqrtf(1-x));
+		float phi = 2.0*M_PIf*x;
+		randnums[i] = std::make_pair(theta, phi);
+	}
+
+	typedef Eigen::Triplet<double> T;
+	std::vector<T> tripletList;
+
+	for (int row = 0; row < numtriangles; row++) {
+
+		std::vector<optix::float3> rays;
+		rays.resize(2 * numrays);
+		std::vector<optix_functionality::Hit> hits;
+		hits.resize(numrays);
+		optix::float3 origin;
+		optix::float3 dest;
+
+		for (int i = 0; i < numrays; i++) {
+			origin = triangle_math::uv2xyz(row, optix::make_float2(rands[i].u, rands[i].v), vertices);
+			glm::vec3 rownormal = triangle_math::avgNormal(row, vertices);
+			float theta = randnums[i].first;
+			float phi = randnums[i].second;
+			// rotate normal down by theta, as per https://stackoverflow.com/a/22101541/7925249
+			// for d we take a vector in the plane
+			glm::vec3 d = glm::normalize(vertices[row*3].pos - vertices[row*3 + 1].pos);
+			glm::vec3 d_tick = glm::cross(glm::cross(rownormal, d), rownormal);
+			glm::vec3 temp = cos(theta)*rownormal + sin(theta)*d_tick;
+			// rotate normal around by phi
+			glm::mat4x4 rotation = glm::rotate(glm::mat4(), phi, rownormal);
+			temp = rotation * glm::vec4(temp.x, temp.y, temp.z, 1);
+			dest = optix_functionality::glm2optixf3(temp);
+			rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
+			rays[i * 2 + 1] = optix::normalize(dest - origin);
+		}
+		optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+		query->setRays(RAYS_PER_PATCH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+		optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
+		hitBuffer->setRange(0, RAYS_PER_PATCH);
+		query->setHits(hitBuffer);
+		try {
+			query->execute(RTP_QUERY_HINT_NONE);
+		}
+		catch (optix::prime::Exception &e) {
+			std::cerr << "An error occurred with error code "
+				<< e.getErrorCode() << " and message "
+				<< e.getErrorString() << std::endl;
+		}
+
+		std::vector<float> formfactorarray(numtriangles, 0);
+
+		for (optix_functionality::Hit hit : hits) {
+			// this check is wrong i think
+			if (hit.t > 0){
+				formfactorarray[hit.triangleId] += (1.0 / numrays);
+				//std::cout << "incremented formfactorarray loc " << hit.triangleId << " by " << (1.0/numrays) << " total sum now " << formfactorarray[hit.triangleId] << std::endl;
+			}
+		}
+
+		for (int col = 0; col < numtriangles; col++){
+			float formfactorRC = formfactorarray[col];
+			if (formfactorRC > 0.0) {
+				//RadMat.insert(row, col) = formfactorRC;
+				tripletList.push_back(T(row, col, formfactorRC));
+			}
+		}
+		
+	}
+	std::cout << "setting matrix" << std::endl;
+	RadMat.setFromTriplets(tripletList.begin(), tripletList.end());
+}
+
 bool OptixPrimeFunctionality::shootPatchRay(std::vector<optix_functionality::Hit> &patches, std::vector<Vertex> &vertices) {
 	optix::float3  pointA = triangle_math::uv2xyz(patches[0].triangleId, patches[0].uv, vertices);
 	optix::float3  pointB = triangle_math::uv2xyz(patches[1].triangleId, patches[1].uv, vertices);

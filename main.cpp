@@ -47,7 +47,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "testscenes/debugtest_smolpath_8.obj";
+const char * obj_filepath = "testscenes/debugtest_smolpath_bigmesh.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -112,7 +112,7 @@ int main() {
 	// initialize radiosity matrix
 	int numtriangles = vertices.size() / 3;
 	SpMat RadMat(numtriangles, numtriangles);
-	optixP.calculateRadiosityMatrix(RadMat, vertices, rands);
+	optixP.calculateRadiosityMatrixStochastic(RadMat, vertices, rands);
 	// little debug output to check something happened while calculating the matrix:
 	std::cout << "total entries in matrix = " << numtriangles*numtriangles << std::endl;
 	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
@@ -121,7 +121,7 @@ int main() {
 	// set initial emission vector
 	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
 	// set a triangle to emit
-	emission(0) = 125.0;	
+	emission(0) = 250.0;	
 	
 	// calculate first pass into lightningvalues vector
 	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
