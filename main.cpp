@@ -47,8 +47,8 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "testscenes/2trisfaceupanddown.obj";
-//const char * obj_filepath = "testscenes/debugtest_smolpath_8.obj";
+//const char * obj_filepath = "testscenes/2trisfaceupanddown.obj";
+const char * obj_filepath = "testscenes/debugtest_smolpath_8.obj";
 
 
 // The Matrix

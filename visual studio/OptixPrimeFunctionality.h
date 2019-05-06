@@ -6,6 +6,7 @@
 #include <ctime>
 #include <glm/glm.hpp>
 #include <Eigen/Sparse>
+#include <random>
 
 #include "Vertex.h"
 #include "optix_functionality.h"
