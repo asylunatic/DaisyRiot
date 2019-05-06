@@ -5,14 +5,16 @@
 * renderen met kleur
 * normale renderer voor vergelijking
 * van optix prime naar optix
-* triplet insertion in matrix is supposed to speed up insertion: https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
-* print menu
-* config file
-* toggle view normalcolor or radiosity rendering
-* display or print number of light passes & amount of residual light in scene
-* reset lightning (by keypress or manual selection of emitting patch(es)?)
-* progress information on startup initialisation of matrix
+* triplet insertion in matrix is supposed to speed up insertion (PR ready: print-menu)
+* print menu (PR ready: print-menu)
+* config file (PR ready: print-menu)
+* toggle view normalcolor or radiosity rendering (PR ready: print-menu)
+* display or print number of light passes & amount of residual light in scene  (PR ready: print-menu)
+* reset lightning  (PR ready: print-menu)
+* set different lightning by keyboard input or manual selection 
+* progress information on startup initialisation of matrix (PR ready: print-menu)
 * debug drawin of form factors (nice for report lol)
 * gamma correction in result rendering
 * normal interpolation (for calculation of form factor?)
-* add option to fully converge lightning calculation
+* add option to fully converge lightning calculation (PR ready: print-menu)
+* arcball controlls for satisfying interaction
