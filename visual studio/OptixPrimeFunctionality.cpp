@@ -42,7 +42,7 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	}
 
 	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	std::cout << "for looping: " << duration << '\n';
+	//std::cout << "for looping: " << duration << '\n';
 	start = std::clock();
 
 	query->setRays(optixW*optixH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
@@ -61,7 +61,7 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	query->finish();
 
 	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	std::cout << "optix rayshooting " << duration << '\n';
+	//std::cout << "optix rayshooting " << duration << '\n';
 	start = std::clock();
 
 	trianglesonScreen.clear();
@@ -83,7 +83,7 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	}
 
 	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	std::cout << "for looping again: " << duration << '\n';
+	//std::cout << "for looping again: " << duration << '\n';
 	start = std::clock();
 }
 
@@ -209,6 +209,7 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 // TODO: optimize insertion, this is probably best done with triplets, as explained on:
 // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
 void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
+	std::cout << "Calculating radiosity matrix..." << std::endl;
 	int numtriangles = vertices.size() / 3;
 	std::vector<Tripl> tripletList;
 	for (int row = 0; row < numtriangles -1; row++) {
@@ -241,8 +242,22 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 				//std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
 			}
 		}
+
+		// draw progress bar
+		int barWidth = 70;
+		float progress = float(float(row) / float(numtriangles));
+		std::cout << "[";
+		int pos = barWidth * progress;
+		for (int i = 0; i < barWidth; ++i) {
+			if (i < pos) std::cout << "=";
+			else if (i == pos) std::cout << ">";
+			else std::cout << " ";
+		}
+		std::cout << "] " << int(progress * 100.0) << " %\r";
+		std::cout.flush();
 	}
 	RadMat.setFromTriplets(tripletList.begin(), tripletList.end());
+	std::cout << "... done!                                                                                       " << std::endl;
 }
 
 bool OptixPrimeFunctionality::shootPatchRay(std::vector<optix_functionality::Hit> &patches, std::vector<Vertex> &vertices) {

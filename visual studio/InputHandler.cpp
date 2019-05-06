@@ -136,27 +136,37 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
 	}
 
 	if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-		std::cout << "Toggle view" << std::endl;
 		toggle_view(window);
 	}
 
 	if (key == GLFW_KEY_L && action == GLFW_PRESS) {
-		std::cout << "Add another light pass and set radiosity drawing as result" << std::endl;
 		increment_lightpasses(window);
 	}
 
 	if (key == GLFW_KEY_C && action == GLFW_PRESS) {
-		std::cout << "Converging lightning calculation" << std::endl;
-		increment_lightpasses(window);
+		calc_full_lightning(window);
 	}
 
 	if (key == GLFW_KEY_X && action == GLFW_PRESS) {
-		std::cout << "Clear radiosity drawing" << std::endl;
 		clear_light(window);
 	}
 }
 
+void InputHandler::calc_full_lightning(GLFWwindow* window){
+	std::cout << "Converging lightning calculation" << std::endl;
+	callback_context* cbc_ptr = get_context(window);
+	while (cbc_ptr->residualvector.sum() > 0.0001){
+		cbc_ptr->residualvector = cbc_ptr->RadMat * cbc_ptr->residualvector;
+		cbc_ptr->lightningvalues = cbc_ptr->lightningvalues + cbc_ptr->residualvector;
+		cbc_ptr->numpasses++;
+	}
+	std::cout << "Number of light passes " << cbc_ptr->numpasses << ". Amount of residual light in scene " << cbc_ptr->residualvector.sum() << std::endl;
+	std::cout << "Residual vector: " << std::endl << cbc_ptr->residualvector << std::endl;
+	Drawer::drawRadiosity(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
+}
+
 void InputHandler::toggle_view(GLFWwindow* window) {
+	std::cout << "Toggle view" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
 	cbc_ptr->radiosityRendering = !cbc_ptr->radiosityRendering;
 
@@ -172,6 +182,7 @@ void InputHandler::toggle_view(GLFWwindow* window) {
 }
 
 void InputHandler::increment_lightpasses(GLFWwindow* window) {
+	std::cout << "Add another light pass and set radiosity drawing as result" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
 	// calculate consecutive lighting pass
 	cbc_ptr->residualvector = cbc_ptr->RadMat * cbc_ptr->residualvector;
@@ -184,6 +195,7 @@ void InputHandler::increment_lightpasses(GLFWwindow* window) {
 }
 
 void InputHandler::clear_light(GLFWwindow* window) {
+	std::cout << "Clear radiosity" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
 	// clear light passes
 	cbc_ptr->residualvector = cbc_ptr->emission;

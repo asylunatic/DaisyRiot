@@ -48,5 +48,6 @@ private:
 	static void toggle_view(GLFWwindow* window);
 	static void increment_lightpasses(GLFWwindow* window);
 	static void clear_light(GLFWwindow* window);
+	static void calc_full_lightning(GLFWwindow* window);
 };
 

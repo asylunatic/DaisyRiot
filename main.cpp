@@ -71,6 +71,12 @@ std::vector<UV> rands;
 Eigen::VectorXf lightningvalues;
 
 int main() {
+	// print header
+	std::ifstream f("print_header.txt");
+	if (f.is_open())
+		std::cout << f.rdbuf();
+	f.close();
+
 	// load config
 	INIReader reader("config.ini");
 	if (reader.ParseError() != 0) {
@@ -81,16 +87,10 @@ int main() {
 	HEIGHT = reader.GetInteger("window", "height", -1);
 	optixW = reader.GetInteger("optix", "optixW", -1);
 	optixH = reader.GetInteger("optix", "optixH", -1);
-	std::cout << reader.Get("filepaths", "scene", "UNKNOWN") << std::endl;
 	obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
 	emission_index = reader.GetInteger("lightning", "emission_index", -1);
 	emission_value = reader.GetReal("lightning", "emission_value", -1);
-
-	// print menu
-	std::ifstream f("print_menu.txt");
-	if (f.is_open())
-		std::cout << f.rdbuf();
 	
 	//initialize window
 	GLFWwindow* window = Drawer::initWindow(WIDTH, HEIGHT);
@@ -105,7 +105,6 @@ int main() {
 	// set up randoms to be reused
 	rands.resize(RAYS_PER_PATCH);
 	std::srand(std::time(nullptr)); // use current time as seed for random generator
-	printf("\nrands: ");
  	for (size_t i = 0; i < RAYS_PER_PATCH; i++) {
 		UV uv = UV();
 		uv.u = ((float)(rand() % RAND_MAX)) / RAND_MAX;
@@ -132,9 +131,9 @@ int main() {
 	SpMat RadMat(numtriangles, numtriangles);
 	optixP.calculateRadiosityMatrix(RadMat, vertices, rands);
 	// little debug output to check something happened while calculating the matrix:
-	std::cout << "total entries in matrix = " << numtriangles*numtriangles << std::endl;
-	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
-	std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
+	//std::cout << "total entries in matrix = " << numtriangles*numtriangles << std::endl;
+	//std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
+	//std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
 
 	// set up lightning
 	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
@@ -144,7 +143,12 @@ int main() {
 	Eigen::VectorXf residualvector = Eigen::VectorXf::Zero(numtriangles);
 	residualvector = emission;
 	int numpasses = 0;
-	std::cout << "residual vector " << residualvector << std::endl;
+	// converge lightning
+	while (residualvector.sum() > 0.0001){
+		residualvector = RadMat * residualvector;
+		lightningvalues = lightningvalues + residualvector;
+		numpasses++;
+	}
 
 	// Set up OpenGL debug callback
 	glDebugMessageCallback(Drawer::debugCallback, nullptr);
@@ -156,6 +160,12 @@ int main() {
 	patches.resize(2);
 	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radrend);
 	glfwSetWindowUserPointer(window, &cbc);
+
+	// print menu
+	std::ifstream f_menu("print_menu.txt");
+	if (f_menu.is_open())
+		std::cout << f_menu.rdbuf();
+	f_menu.close();
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
