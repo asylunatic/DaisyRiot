@@ -210,6 +210,7 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
 void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 	int numtriangles = vertices.size() / 3;
+	std::vector<Tripl> tripletList;
 	for (int row = 0; row < numtriangles -1; row++) {
 		// calulate form factors current patch to all other patches (that have not been calculated already):
 		// matrix shape should be as follows:
@@ -232,15 +233,16 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 			if (formfactorRC > 0.0) {
 				// at place (x, y) we want the form factor y->x 
 				// but as this is a col major matrix we store (x, y) at (y, x) -> confused yet?
-				RadMat.insert(row, col) = formfactorRC;
+				tripletList.push_back(Tripl(row, col, formfactorRC));
 				//std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
 
-				float formfactorCR = p2pFormfactorNusselt(col, row, vertices, rands);
-				RadMat.insert(col, row) = formfactorCR;
+				float formfactorCR = p2pFormfactor(col, row, vertices, rands);
+				tripletList.push_back(Tripl(col, row, formfactorCR));
 				//std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
 			}
 		}
 	}
+	RadMat.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
 bool OptixPrimeFunctionality::shootPatchRay(std::vector<optix_functionality::Hit> &patches, std::vector<Vertex> &vertices) {
