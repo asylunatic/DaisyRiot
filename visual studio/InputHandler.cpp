@@ -101,6 +101,13 @@ void InputHandler::find_triangle_by_id(GLFWwindow* window){
 
 // key button callback to print screen
 void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
+	// reset debug line
+	callback_context* cbc_ptr = get_context(window);
+	cbc_ptr->left = true;
+	cbc_ptr->debugline.at(0) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+	cbc_ptr->debugline.at(1) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
+	
+
 	if (key == GLFW_KEY_P && action == GLFW_PRESS){
 		save_screenshot(window);
 	}
