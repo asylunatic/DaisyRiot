@@ -41,13 +41,13 @@
 #include "visual studio\OptixPrimeFunctionality.h"
 #include "visual studio\Defines.h"
 #include "visual studio\InputHandler.h"
-
+#include "visual studio\INIReader.h"
 
 // Configuration
-const int WIDTH = 800;
-const int HEIGHT = 600;
+int WIDTH;// = 800;
+int HEIGHT;// = 600;
 
-const char * obj_filepath = "testscenes/debugtest_smolpath_8.obj";
+char * obj_filepath;// = "testscenes/debugtest_smolpath_8.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -72,9 +72,27 @@ std::vector<UV> rands;
 Eigen::VectorXf lightningvalues;
 
 int main() {
+	// load config
+	INIReader reader("config.ini");
+	if (reader.ParseError() != 0) {
+		std::cout << "Can't load 'config.ini'\n";
+		return 1;
+	}
 
+	WIDTH = reader.GetInteger("window", "width", -1);
+	HEIGHT = reader.GetInteger("window", "height", -1);
+	std::cout << reader.Get("filepaths", "scene", "UNKNOWN") << std::endl;
+	obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
+	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
+	/*std::cout << "Config loaded from 'test.ini': version="
+		<< reader.GetInteger("window", "height", -1) << ", name="
+		<< reader.Get("user", "name", "UNKNOWN") << ", email="
+		<< reader.Get("user", "email", "UNKNOWN") << ", pi="
+		<< reader.GetReal("user", "pi", -1) << ", active="
+		<< reader.GetBoolean("user", "active", true) << "\n";*/
+
+	// print menu
 	std::ifstream f("print_menu.txt");
-
 	if (f.is_open())
 		std::cout << f.rdbuf();
 	
