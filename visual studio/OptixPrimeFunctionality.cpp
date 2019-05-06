@@ -212,6 +212,7 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 	std::cout << "Calculating radiosity matrix..." << std::endl;
 	int numtriangles = vertices.size() / 3;
 	std::vector<Tripl> tripletList;
+	int numfilled = 0;
 	for (int row = 0; row < numtriangles -1; row++) {
 		// calulate form factors current patch to all other patches (that have not been calculated already):
 		// matrix shape should be as follows:
@@ -241,11 +242,12 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 				tripletList.push_back(Tripl(col, row, formfactorCR));
 				//std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
 			}
+			numfilled += 2;
 		}
 
 		// draw progress bar
 		int barWidth = 70;
-		float progress = float(float(row) / float(numtriangles));
+		float progress = float(float(numfilled) / float(numtriangles*(numtriangles-1)));
 		std::cout << "[";
 		int pos = barWidth * progress;
 		for (int i = 0; i < barWidth; ++i) {

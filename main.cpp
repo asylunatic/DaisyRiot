@@ -130,7 +130,7 @@ int main() {
 	int numtriangles = vertices.size() / 3;
 	SpMat RadMat(numtriangles, numtriangles);
 	optixP.calculateRadiosityMatrix(RadMat, vertices, rands);
-	// little debug output to check something happened while calculating the matrix:
+	//// little debug output to check something happened while calculating the matrix:
 	//std::cout << "total entries in matrix = " << numtriangles*numtriangles << std::endl;
 	//std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
 	//std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
