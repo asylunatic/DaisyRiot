@@ -34,6 +34,10 @@ float triangle_math::calculateSurface(std::vector<glm::vec3> triangle) {
 	return triangle_math::calculateSurface(triangle[0], triangle[1], triangle[2]);
 }
 
+float triangle_math::calculateSurface(float triangleId, std::vector<Vertex> &vertices) {
+	return triangle_math::calculateSurface(vertices[triangleId * 3].pos, vertices[triangleId * 3 + 1].pos, vertices[triangleId * 3 + 2].pos);
+}
+
 
 float triangle_math::calcPointFormfactor(Vertex orig, Vertex dest, float surface) {
 	float formfactor = 0;

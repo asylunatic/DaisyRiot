@@ -157,7 +157,6 @@ void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLu
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	
 	//Drawing result from optix raytracing!
 	Drawer::drawRes(optixShader, optixVao);
 
@@ -168,7 +167,7 @@ void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLu
 	glfwSwapBuffers(window);
 }
 
-void Drawer::drawRadiosity(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH) {
+void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH) {
 	optixView.clear();
 	optixView.resize(optixW * optixH);
 	for (int i = 0; i < lightningvalues.size(); i++) {
@@ -178,8 +177,5 @@ void Drawer::drawRadiosity(std::vector<std::vector<MatrixIndex>> &trianglesonScr
 				optixView[(index.row*optixH + index.col)] = glm::vec3(intensity, intensity, intensity);
 			}
 		}
-		
 	}
-
-	Drawer::refreshTexture(optixW, optixH, optixView);
 }

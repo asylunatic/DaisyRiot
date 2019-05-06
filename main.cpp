@@ -48,6 +48,7 @@ int WIDTH, HEIGHT, optixW, optixH;
 char * obj_filepath;
 int emission_index;
 float emission_value;
+bool radiosityRendering;
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -91,6 +92,7 @@ int main() {
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
 	emission_index = reader.GetInteger("lightning", "emission_index", -1);
 	emission_value = reader.GetReal("lightning", "emission_value", -1);
+	radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
 	
 	//initialize window
 	GLFWwindow* window = Drawer::initWindow(WIDTH, HEIGHT);
@@ -156,9 +158,8 @@ int main() {
 	glfwSetKeyCallback(window, InputHandler::key_callback);
 
 	// set up callback context
-	bool radrend = false;
 	patches.resize(2);
-	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radrend);
+	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// print menu
@@ -166,6 +167,11 @@ int main() {
 	if (f_menu.is_open())
 		std::cout << f_menu.rdbuf();
 	f_menu.close();
+
+	if (radiosityRendering){
+		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, optixW, optixH);
+		Drawer::refreshTexture(optixW, optixH, optixView);
+	}
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {

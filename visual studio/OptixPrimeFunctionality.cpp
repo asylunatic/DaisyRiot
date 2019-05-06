@@ -238,7 +238,8 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 				tripletList.push_back(Tripl(row, col, formfactorRC));
 				//std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
 
-				float formfactorCR = p2pFormfactor(col, row, vertices, rands);
+				// use reprocipity theorem to calculate form factor the other way around
+				float formfactorCR = (triangle_math::calculateSurface(row, vertices)*formfactorRC) / triangle_math::calculateSurface(col, vertices);
 				tripletList.push_back(Tripl(col, row, formfactorCR));
 				//std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
 			}
