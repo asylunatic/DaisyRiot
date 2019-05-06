@@ -43,11 +43,11 @@
 #include "visual studio\InputHandler.h"
 #include "visual studio\INIReader.h"
 
-// Configuration
-int WIDTH;// = 800;
-int HEIGHT;// = 600;
-
-char * obj_filepath;// = "testscenes/debugtest_smolpath_8.obj";
+// Variables to be set from config.ini file
+int WIDTH, HEIGHT, optixW, optixH;
+char * obj_filepath;
+int emission_index;
+float emission_value;
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -65,7 +65,6 @@ std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
 std::vector<optix_functionality::Hit> patches;
 bool left = true; 
-int optixW = 512, optixH = 512;
 bool hitB = false;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
@@ -78,18 +77,15 @@ int main() {
 		std::cout << "Can't load 'config.ini'\n";
 		return 1;
 	}
-
 	WIDTH = reader.GetInteger("window", "width", -1);
 	HEIGHT = reader.GetInteger("window", "height", -1);
+	optixW = reader.GetInteger("optix", "optixW", -1);
+	optixH = reader.GetInteger("optix", "optixH", -1);
 	std::cout << reader.Get("filepaths", "scene", "UNKNOWN") << std::endl;
 	obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
-	/*std::cout << "Config loaded from 'test.ini': version="
-		<< reader.GetInteger("window", "height", -1) << ", name="
-		<< reader.Get("user", "name", "UNKNOWN") << ", email="
-		<< reader.Get("user", "email", "UNKNOWN") << ", pi="
-		<< reader.GetReal("user", "pi", -1) << ", active="
-		<< reader.GetBoolean("user", "active", true) << "\n";*/
+	emission_index = reader.GetInteger("lightning", "emission_index", -1);
+	emission_value = reader.GetReal("lightning", "emission_value", -1);
 
 	// print menu
 	std::ifstream f("print_menu.txt");
@@ -103,8 +99,10 @@ int main() {
 	glewExperimental = GL_TRUE;
 	glewInit();
 
+	// load scene
 	Vertex::loadVertices(vertices, obj_filepath);
 
+	// set up randoms to be reused
 	rands.resize(RAYS_PER_PATCH);
 	std::srand(std::time(nullptr)); // use current time as seed for random generator
 	printf("\nrands: ");
@@ -124,13 +122,10 @@ int main() {
 	GLuint optixShader;
 	optixP.doOptixPrime(optixW, optixH, optixView, eye, viewDirection, trianglesonScreen, vertices);
 	Drawer::initRes(optixShader, optixVao, optixTex, optixW, optixH, optixView);
-	std::cout << optixTex << std::endl;
 
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
-
-	patches.resize(2);
 
 	// initialize radiosity matrix
 	int numtriangles = vertices.size() / 3;
@@ -141,15 +136,11 @@ int main() {
 	std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
 	std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
 
-	// set initial emission vector
+	// set up lightning
 	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
-	// set a triangle to emit
-	emission(0) = 125.0;	
-	
-	// calculate first pass into lightningvalues vector
+	emission(emission_index) = emission_value;	
 	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
 	lightningvalues = emission; 
-	// init residual vector
 	Eigen::VectorXf residualvector = Eigen::VectorXf::Zero(numtriangles);
 	residualvector = emission;
 	int numpasses = 0;
@@ -159,8 +150,10 @@ int main() {
 	glDebugMessageCallback(Drawer::debugCallback, nullptr);
 	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
 	glfwSetKeyCallback(window, InputHandler::key_callback);
+
 	// set up callback context
 	bool radrend = false;
+	patches.resize(2);
 	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radrend);
 	glfwSetWindowUserPointer(window, &cbc);
 
