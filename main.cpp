@@ -47,7 +47,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-const char * obj_filepath = "testscenes/debugtest_smolpath_bigmesh.obj";
+const char * obj_filepath = "testscenes/debugtest_smolpath_8.obj";
 
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -72,6 +72,11 @@ std::vector<UV> rands;
 Eigen::VectorXf lightningvalues;
 
 int main() {
+
+	std::ifstream f("print_menu.txt");
+
+	if (f.is_open())
+		std::cout << f.rdbuf();
 	
 	//initialize window
 	GLFWwindow* window = Drawer::initWindow(WIDTH, HEIGHT);
@@ -129,6 +134,7 @@ int main() {
 	// init residual vector
 	Eigen::VectorXf residualvector = Eigen::VectorXf::Zero(numtriangles);
 	residualvector = emission;
+	int numpasses = 0;
 	std::cout << "residual vector " << residualvector << std::endl;
 
 	// Set up OpenGL debug callback
@@ -136,7 +142,8 @@ int main() {
 	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
 	glfwSetKeyCallback(window, InputHandler::key_callback);
 	// set up callback context
-	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues, RadMat, residualvector);
+	bool radrend = false;
+	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radrend);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// Main loop
