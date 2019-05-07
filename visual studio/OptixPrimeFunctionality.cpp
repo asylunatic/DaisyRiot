@@ -42,7 +42,7 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	}
 
 	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	std::cout << "for looping: " << duration << '\n';
+	//std::cout << "for looping: " << duration << '\n';
 	start = std::clock();
 
 	query->setRays(optixW*optixH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
@@ -61,7 +61,7 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	query->finish();
 
 	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	std::cout << "optix rayshooting " << duration << '\n';
+	//std::cout << "optix rayshooting " << duration << '\n';
 	start = std::clock();
 
 	trianglesonScreen.clear();
@@ -83,7 +83,7 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	}
 
 	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	std::cout << "for looping again: " << duration << '\n';
+	//std::cout << "for looping again: " << duration << '\n';
 	start = std::clock();
 }
 
@@ -209,7 +209,10 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 // TODO: optimize insertion, this is probably best done with triplets, as explained on:
 // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
 void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
+	std::cout << "Calculating radiosity matrix..." << std::endl;
 	int numtriangles = vertices.size() / 3;
+	std::vector<Tripl> tripletList;
+	int numfilled = 0;
 	for (int row = 0; row < numtriangles -1; row++) {
 		// calulate form factors current patch to all other patches (that have not been calculated already):
 		// matrix shape should be as follows:
@@ -232,15 +235,32 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 			if (formfactorRC > 0.0) {
 				// at place (x, y) we want the form factor y->x 
 				// but as this is a col major matrix we store (x, y) at (y, x) -> confused yet?
-				RadMat.insert(row, col) = formfactorRC;
+				tripletList.push_back(Tripl(row, col, formfactorRC));
 				//std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
 
-				float formfactorCR = p2pFormfactorNusselt(col, row, vertices, rands);
-				RadMat.insert(col, row) = formfactorCR;
+				// use reprocipity theorem to calculate form factor the other way around
+				float formfactorCR = (triangle_math::calculateSurface(row, vertices)*formfactorRC) / triangle_math::calculateSurface(col, vertices);
+				tripletList.push_back(Tripl(col, row, formfactorCR));
 				//std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
 			}
+			numfilled += 2;
 		}
+
+		// draw progress bar
+		int barWidth = 70;
+		float progress = float(float(numfilled) / float(numtriangles*(numtriangles-1)));
+		std::cout << "[";
+		int pos = barWidth * progress;
+		for (int i = 0; i < barWidth; ++i) {
+			if (i < pos) std::cout << "=";
+			else if (i == pos) std::cout << ">";
+			else std::cout << " ";
+		}
+		std::cout << "] " << int(progress * 100.0) << " %\r";
+		std::cout.flush();
 	}
+	RadMat.setFromTriplets(tripletList.begin(), tripletList.end());
+	std::cout << "... done!                                                                                       " << std::endl;
 }
 
 bool OptixPrimeFunctionality::shootPatchRay(std::vector<optix_functionality::Hit> &patches, std::vector<Vertex> &vertices) {

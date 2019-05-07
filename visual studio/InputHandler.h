@@ -11,7 +11,7 @@ class InputHandler
 public:
 	struct callback_context {
 		callback_context(bool &left, bool &hitB, std::vector<Vertex> &debugline, int optixW, int optixH, optix::float3 &viewDirection, optix::float3 &eye, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
-			std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, std::vector<Vertex> &vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &residualvector);
+			std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, std::vector<Vertex> &vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering);
 		bool &left;
 		bool &hitB;
 		std::vector<Vertex> &debugline;
@@ -27,7 +27,10 @@ public:
 		OptixPrimeFunctionality &optixP;
 		Eigen::VectorXf &lightningvalues;
 		Eigen::SparseMatrix<float> &RadMat;
+		Eigen::VectorXf &emission;
+		int numpasses;
 		Eigen::VectorXf &residualvector;
+		bool radiosityRendering;
 	};
 	
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -42,7 +45,9 @@ private:
 	static void calculate_form_vector(GLFWwindow* window);
 	static void save_screenshot(GLFWwindow* window);
 	static void find_triangle_by_id(GLFWwindow* window);
-	static void set_radiosity_tex(GLFWwindow* window);
+	static void toggle_view(GLFWwindow* window);
 	static void increment_lightpasses(GLFWwindow* window);
+	static void clear_light(GLFWwindow* window);
+	static void calc_full_lightning(GLFWwindow* window);
 };
 
