@@ -29,26 +29,27 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	std::vector<optix::float3> rays;
 	rays.resize(optixW*optixH * 2);
 
-	//// generate rays the marijn way
-	//for (size_t j = 0; j < optixH; j++) {
-	//	for (size_t i = 0; i < optixW; i++) {
-	//		rays[(j*optixH + i) * 2] = camera.eye;
-	//		rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner + optix::make_float3(i*2.0f / optixW, -1.0f*(j*2.0f / optixH), 0) - camera.eye);
-	//	}
-	//}
-
-	// generate rays the un_project way
-	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.origin), optix_functionality::optix2glmf3(camera.up));
-	glm::mat4x4 projection = camera.ortho(-1.0, 1.0, -1.0, 1.0, 0.01, 10000);
+	// generate rays the marijn way
 	for (size_t j = 0; j < optixH; j++) {
 		for (size_t i = 0; i < optixW; i++) {
-			optix::float3 world_coord = camera.un_project(i, j, 0.0, lookat, projection, camera.viewport);
-			rays[(j*optixH + i) * 2] = world_coord;
-			optix::float3 dir = (camera.origin - camera.eye);
-			dir = normalize(dir);
-			rays[((j*optixH + i) * 2) + 1] = dir;
+			rays[(j*optixH + i) * 2] = camera.eye;
+			rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner + optix::make_float3(i*2.0f / optixW, -1.0f*(j*2.0f / optixH), 0) - camera.eye);
 		}
 	}
+
+	//// generate rays the un_project way
+	//glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.origin), optix_functionality::optix2glmf3(camera.up));
+	//glm::mat4x4 projection = glm::ortho(-10.0, 10.0, -10.0, 10.0);//camera.ortho(-100.0, 100.0, -100.0, 100.0, 0.01, 10000);
+	//for (size_t j = 0; j < optixH; j++) {
+	//	for (size_t i = 0; i < optixW; i++) {
+	//		glm::vec3 win(i, j, 0.0);
+	//		glm::vec3 world_coord = glm::unProject(win, lookat, projection, camera.viewport);
+	//		rays[(j*optixH + i) * 2] = optix_functionality::glm2optixf3(world_coord);
+	//		optix::float3 dir = (camera.origin - camera.eye);
+	//		dir = normalize(dir);
+	//		rays[((j*optixH + i) * 2) + 1] = dir;
+	//	}
+	//}
 
 	query->setRays(optixW*optixH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
 	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
