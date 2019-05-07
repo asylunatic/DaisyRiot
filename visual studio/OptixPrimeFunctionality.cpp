@@ -204,7 +204,6 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 
 }
 
-
 // TODO: optimize insertion, this is probably best done with triplets, as explained on:
 // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
 void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
@@ -247,29 +246,11 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 	RadMat.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
-glm::vec3 uniformSampleHemisphere(const float &r1, const float &r2)
-{
-	float sinTheta = sqrtf(1 - r1 * r1);
-	float phi = 2.0 * M_PIf * r2;
-	float x = sinTheta * cosf(phi);
-	float z = sinTheta * sinf(phi);
-	return glm::vec3(x, r1, z);
-}
-
-void createCoordinateSystem(const glm::vec3 &N, glm::vec3 &Nt, glm::vec3 &Nb)
-{
-	if (std::fabs(N.x) > std::fabs(N.y))
-		Nt = glm::vec3(N.z, 0, -N.x) / sqrtf(N.x * N.x + N.z * N.z);
-	else
-		Nt = glm::vec3(0, -N.z, N.y) / sqrtf(N.y * N.y + N.z * N.z);
-	Nb = glm::cross(N, Nt);// N.crossProduct(Nt);
-}
-
 void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 	
 	// init some shit
 	int numtriangles = vertices.size() / 3;
-	int numrays = 10000000;
+	int numrays = 1000;
 	std::srand(std::time(nullptr)); // use current time as seed for random generator
 	std::vector<Tripl> tripletList;
 	
@@ -284,7 +265,7 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 		hits.resize(numrays);
 
 		// generate random rays
-		for (int i = 0; i < numtriangles; i++) {
+		for (int i = 0; i < numrays; i++) {
 			
 			float x = ((float)(rand() % RAND_MAX)) / RAND_MAX;
 			float y = ((float)(rand() % RAND_MAX)) / RAND_MAX;
@@ -323,14 +304,15 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 
 		// initialize vector with all zeroes and store in this the number of hits
 		std::vector<float> hitarray(numtriangles, 0.0);
-		for (optix_functionality::Hit hit : hits) {
+		for (int i = 0; i < numrays; i++) {
+			optix_functionality::Hit hit = hits[i];
 			if (hit.t > 0.0){
 				// check if we did not hit triangle on the back
 				glm::vec3 destcenter = triangle_math::calculateCentre(hit.triangleId, vertices);
 				glm::vec3 destnormal = triangle_math::avgNormal(hit.triangleId, vertices);
 				float dot1 = glm::dot(rownormal, glm::normalize(destcenter - optix_functionality::optix2glmf3(origin)));
 				float dot2 = glm::dot(destnormal, glm::normalize(optix_functionality::optix2glmf3(origin) - destcenter));
-				if (dot1 > 0 && dot2 > 0){
+				if (dot1 > 0.0 && dot2 > 0.0){
 					hitarray[hit.triangleId] += 1.0;
 				}
 			}
@@ -338,10 +320,10 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 
 		// go over all triangles and store form factors in tripletList 
 		for (int col = 0; col < numtriangles; col++){
-			float formfactorRC = hitarray[col]/numrays;
+			float formfactorRC = hitarray[col] / float(numrays);
 			if (formfactorRC > 0.0) {
 				tripletList.push_back(Tripl(row, col, formfactorRC));
-				std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
+				//std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
 			}
 		}
 	}
