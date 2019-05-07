@@ -18,3 +18,4 @@
 * normal interpolation (for calculation of form factor?)
 * add option to fully converge lightning calculation (PR ready: print-menu)
 * arcball controlls for satisfying interaction
+* divide lightning value of surface by area
