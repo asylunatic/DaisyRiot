@@ -19,31 +19,36 @@ void OptixPrimeFunctionality::initOptixPrime(std::vector<Vertex> &vertices) {
 }
 
 void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<glm::vec3> &optixView,
-		optix::float3 &eye, optix::float3 &viewDirection, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, std::vector<Vertex> &vertices) {
+		Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, std::vector<Vertex> &vertices) {
 
 	std::vector<optix_functionality::Hit> hits;
 	hits.resize(optixW*optixH);
 	optixView.resize(optixW*optixH);
-	optix::float3 upperLeftCorner = eye + viewDirection + optix::make_float3(-1.0f, 1.0f, 0.0f);
+	optix::float3 upperLeftCorner = camera.eye + camera.dir + optix::make_float3(-1.0f, 1.0f, 0.0f);
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 	std::vector<optix::float3> rays;
 	rays.resize(optixW*optixH * 2);
 
-	//timing
-	std::clock_t start;
-	double duration;
-	start = std::clock();
+	//// generate rays the marijn way
+	//for (size_t j = 0; j < optixH; j++) {
+	//	for (size_t i = 0; i < optixW; i++) {
+	//		rays[(j*optixH + i) * 2] = camera.eye;
+	//		rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner + optix::make_float3(i*2.0f / optixW, -1.0f*(j*2.0f / optixH), 0) - camera.eye);
+	//	}
+	//}
+
+	// generate rays the un_project way
+	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.origin), optix_functionality::optix2glmf3(camera.up));
+	glm::mat4x4 projection = camera.ortho(-1.0, 1.0, -1.0, 1.0, 0.01, 10000);
 	for (size_t j = 0; j < optixH; j++) {
 		for (size_t i = 0; i < optixW; i++) {
-			rays[(j*optixH + i) * 2] = eye;
-			rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner + optix::make_float3(i*2.0f / optixW, -1.0f*(j*2.0f / optixH), 0) - eye);
+			optix::float3 world_coord = camera.un_project(i, j, 0.0, lookat, projection, camera.viewport);
+			rays[(j*optixH + i) * 2] = world_coord;
+			optix::float3 dir = (camera.origin - camera.eye);
+			dir = normalize(dir);
+			rays[((j*optixH + i) * 2) + 1] = dir;
 		}
-
 	}
-
-	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	//std::cout << "for looping: " << duration << '\n';
-	start = std::clock();
 
 	query->setRays(optixW*optixH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
 	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
@@ -60,10 +65,6 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	}
 	query->finish();
 
-	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	//std::cout << "optix rayshooting " << duration << '\n';
-	start = std::clock();
-
 	trianglesonScreen.clear();
 	trianglesonScreen.resize(vertices.size() / 3);
 
@@ -72,7 +73,7 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 			int pixelIndex = j*optixH + i;
 			optixView[pixelIndex] = (hits[pixelIndex].t > 0) ? glm::vec3(glm::abs(vertices[hits[pixelIndex].triangleId * 3].normal)) : glm::vec3(0.0f, 0.0f, 0.0f);
 			if (hits[pixelIndex].t > 0 
-				&& !triangle_math::isFacingBack(optix_functionality::optix2glmf3(eye), hits[pixelIndex].triangleId, vertices)
+				&& !triangle_math::isFacingBack(optix_functionality::optix2glmf3(camera.eye), hits[pixelIndex].triangleId, vertices)
 				) {
 				MatrixIndex index = {};
 				index.col = i;
@@ -82,9 +83,6 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 		}
 	}
 
-	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	//std::cout << "for looping again: " << duration << '\n';
-	start = std::clock();
 }
 
 float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands) {	
@@ -386,11 +384,11 @@ bool OptixPrimeFunctionality::shootPatchRay(std::vector<optix_functionality::Hit
 	else return false;
 }
 
-bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypos, int optixW, int optixH, optix::float3 &viewDirection, optix::float3 &eye, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
+bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypos, int optixW, int optixH, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
 	std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, std::vector<Vertex> &vertices) {
 	bool hitB = true;
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-	std::vector<optix::float3> ray = { eye, optix::normalize(optix::make_float3(xpos + viewDirection.x, ypos + viewDirection.y, viewDirection.z)) };
+	std::vector<optix::float3> ray = { camera.eye, optix::normalize(optix::make_float3(xpos + camera.dir.x, ypos + camera.dir.y, camera.dir.z)) };
 	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
 	optix_functionality::Hit hit;
 	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);

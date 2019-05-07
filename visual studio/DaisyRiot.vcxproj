@@ -55,6 +55,7 @@
   <ItemGroup>
     <ClInclude Include="..\lodepng.h" />
     <ClInclude Include="..\stdafx.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="Drawer.h" />
     <ClInclude Include="ImageExporter.h" />
