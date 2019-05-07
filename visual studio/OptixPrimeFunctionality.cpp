@@ -284,10 +284,8 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 		std::vector<optix_functionality::Hit> hits;
 		hits.resize(numrays);
 
-		std::vector<float> randos = { 0.5, 0.0, 0.5, 0.5 };
-
 		// generate random rays
-		for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < numtriangles; i++) {
 
 			/*float theta = randos[i * 2]*M_PIf;
 			float phi = randos[i * 2 + 1]*M_PIf;
@@ -317,8 +315,8 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 			// or with the scratchapixel method:
 			glm::vec3 Nt, Nb;
 			createCoordinateSystem(rownormal, Nt, Nb);
-			float r1 = randos[i * 2];// ((float)(rand() % RAND_MAX)) / RAND_MAX;
-			float r2 = randos[i * 2 + 1];//((float)(rand() % RAND_MAX)) / RAND_MAX;
+			float r1 = ((float)(rand() % RAND_MAX)) / RAND_MAX;
+			float r2 = ((float)(rand() % RAND_MAX)) / RAND_MAX;
 			glm::vec3 sample = uniformSampleHemisphere(r1, r2);
 			glm::vec3 sampleWorld(
 				sample.x * Nb.x + sample.y * rownormal.x + sample.z * Nt.x,
