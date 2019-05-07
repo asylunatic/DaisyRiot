@@ -162,7 +162,6 @@ float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatc
 		float newT = hit.t > 0 && hit.triangleId == destPatch ? 1 : 0;
 		visibility += newT;
 	}
-	//printf("rays hit: %f", visibility);
 	visibility = visibility / RAYS_PER_PATCH;
 	return visibility;
 }
@@ -205,13 +204,13 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 
 }
 
-
 // TODO: optimize insertion, this is probably best done with triplets, as explained on:
 // https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
 void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
 	std::cout << "Calculating radiosity matrix..." << std::endl;
 	int numtriangles = vertices.size() / 3;
 	std::vector<Tripl> tripletList;
+
 	int numfilled = 0;
 	for (int row = 0; row < numtriangles -1; row++) {
 		// calulate form factors current patch to all other patches (that have not been calculated already):
@@ -259,6 +258,108 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 		std::cout << "] " << int(progress * 100.0) << " %\r";
 		std::cout.flush();
 	}
+
+	RadMat.setFromTriplets(tripletList.begin(), tripletList.end());
+	std::cout << "... done!                                                                                       " << std::endl;
+}
+
+void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands) {
+	
+	// init some shit
+	int numtriangles = vertices.size() / 3;
+	int numrays = 1000;
+	std::srand(std::time(nullptr)); // use current time as seed for random generator
+	std::vector<Tripl> tripletList;
+	
+	int numfilled = 0;
+	for (int row = 0; row < numtriangles; row++) {
+		// retrieve origin and normal of triangle w/ row as index
+		optix::float3 origin = optix_functionality::glm2optixf3(triangle_math::calculateCentre(row, vertices));
+		glm::vec3 rownormal = triangle_math::avgNormal(row, vertices);
+
+		std::vector<optix::float3> rays;
+		rays.resize(2 * numrays);
+		std::vector<optix_functionality::Hit> hits;
+		hits.resize(numrays);
+
+		// generate random rays
+		for (int i = 0; i < numrays; i++) {
+			
+			float x = ((float)(rand() % RAND_MAX)) / RAND_MAX;
+			float y = ((float)(rand() % RAND_MAX)) / RAND_MAX;
+			float theta = acosf(sqrtf(1.0 - x));
+			float phi = 2.0*M_PIf*y;
+			
+			// rotate normal down by theta, as per https://stackoverflow.com/a/22101541/7925249
+			// for d we take a vector perpendicular to the normal, which is luckily just any vector in the plane of the triangle
+			glm::vec3 d = glm::normalize(vertices[row*3].pos - vertices[row*3 + 1].pos);
+			glm::vec3 temp_down = cos(theta)*rownormal + sin(theta)*d;
+			temp_down = glm::normalize(temp_down);
+			
+			// rotate normal around by phi
+			glm::mat4x4 rotation = glm::rotate(glm::mat4(1.0f), phi, rownormal);
+			glm::vec3 temp_around = rotation * glm::vec4(temp_down.x, temp_down.y, temp_down.z, 1.0);
+			optix::float3 dest = optix_functionality::glm2optixf3(temp_around);
+			
+			rays[i * 2] = origin + optix::normalize(dest)*0.000001f;
+			rays[i * 2 + 1] = optix::normalize(dest);
+		}
+
+		// now shoot the rays
+		optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+		query->setRays(numrays, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+		optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
+		hitBuffer->setRange(0, numrays);
+		query->setHits(hitBuffer);
+		try {
+			query->execute(RTP_QUERY_HINT_NONE);
+		}
+		catch (optix::prime::Exception &e) {
+			std::cerr << "An error occurred with error code "
+				<< e.getErrorCode() << " and message "
+				<< e.getErrorString() << std::endl;
+		}
+
+		// initialize vector with all zeroes and store in this the number of hits
+		std::vector<float> hitarray(numtriangles, 0.0);
+		for (int i = 0; i < numrays; i++) {
+			optix_functionality::Hit hit = hits[i];
+			if (hit.t > 0.0){
+				// check if we did not hit triangle on the back
+				glm::vec3 destcenter = triangle_math::calculateCentre(hit.triangleId, vertices);
+				glm::vec3 destnormal = triangle_math::avgNormal(hit.triangleId, vertices);
+				float dot1 = glm::dot(rownormal, glm::normalize(destcenter - optix_functionality::optix2glmf3(origin)));
+				float dot2 = glm::dot(destnormal, glm::normalize(optix_functionality::optix2glmf3(origin) - destcenter));
+				if (dot1 > 0.0 && dot2 > 0.0){
+					hitarray[hit.triangleId] += 1.0;
+				}
+			}
+		}
+
+		// go over all triangles and store form factors in tripletList 
+		for (int col = 0; col < numtriangles; col++){
+			float formfactorRC = hitarray[col] / float(numrays);
+			if (formfactorRC > 0.0) {
+				tripletList.push_back(Tripl(row, col, formfactorRC));
+				//std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
+			}
+		}
+
+		numfilled += numtriangles;
+		// draw progress bar
+		int barWidth = 70;
+		float progress = float(float(numfilled) / float(numtriangles*(numtriangles - 1)));
+		std::cout << "[";
+		int pos = barWidth * progress;
+		for (int i = 0; i < barWidth; ++i) {
+			if (i < pos) std::cout << "=";
+			else if (i == pos) std::cout << ">";
+			else std::cout << " ";
+		}
+		std::cout << "] " << int(progress * 100.0) << " %\r";
+		std::cout.flush();
+	}
+
 	RadMat.setFromTriplets(tripletList.begin(), tripletList.end());
 	std::cout << "... done!                                                                                       " << std::endl;
 }

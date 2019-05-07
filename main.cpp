@@ -50,6 +50,7 @@ int emission_index;
 float emission_value;
 bool radiosityRendering;
 
+
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
 
@@ -131,7 +132,8 @@ int main() {
 	// initialize radiosity matrix
 	int numtriangles = vertices.size() / 3;
 	SpMat RadMat(numtriangles, numtriangles);
-	optixP.calculateRadiosityMatrix(RadMat, vertices, rands);
+
+	optixP.calculateRadiosityMatrixStochastic(RadMat, vertices, rands);
 	//// little debug output to check something happened while calculating the matrix:
 	//std::cout << "total entries in matrix = " << numtriangles*numtriangles << std::endl;
 	//std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
