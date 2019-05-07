@@ -1,8 +1,9 @@
 
 
 All is set up. Get ready to play around!
-		
-Click on a triangle to select it, click on a second triangle to calculate if they can see each other.
+	
+Left click and drag to rotate view.	
+Right click on a triangle to select it, click on a second triangle to calculate if they can see each other.
 Press arrow keys to move around the scene
 Press P to make a screenshot
 Press B to calculate a form factor between two selected patches
