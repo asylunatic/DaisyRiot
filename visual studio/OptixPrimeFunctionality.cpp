@@ -162,7 +162,6 @@ float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatc
 		float newT = hit.t > 0 && hit.triangleId == destPatch ? 1 : 0;
 		visibility += newT;
 	}
-	//printf("rays hit: %f", visibility);
 	visibility = visibility / RAYS_PER_PATCH;
 	return visibility;
 }
@@ -270,7 +269,7 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 	
 	// init some shit
 	int numtriangles = vertices.size() / 3;
-	int numrays = 1000000;
+	int numrays = 10000000;
 	std::srand(std::time(nullptr)); // use current time as seed for random generator
 	std::vector<Tripl> tripletList;
 	
@@ -286,48 +285,25 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 
 		// generate random rays
 		for (int i = 0; i < numtriangles; i++) {
-
-			/*float theta = randos[i * 2]*M_PIf;
-			float phi = randos[i * 2 + 1]*M_PIf;
-			std::cout << "theta = " << theta << " phi = " << phi << std::endl;*/
 			
-			//float x = randos[i * 2];// ((float)(rand() % RAND_MAX)) / RAND_MAX;
-			//float y = randos[i * 2 + 1]; // ((float)(rand() % RAND_MAX)) / RAND_MAX;
-			//float theta = acosf(sqrtf(1.0 - x));
-			//float phi = 2.0*M_PIf*y;
-			//
-			//// rotate normal down by theta, as per https://stackoverflow.com/a/22101541/7925249
-			//// for d we take a vector perpendicular to the normal, which is luckily just any vector in the plane of the triangle
-			//glm::vec3 d = glm::normalize(vertices[row*3].pos - vertices[row*3 + 1].pos);
-			//glm::vec3 temp_down = cos(theta)*rownormal + sin(theta)*d;
-			//temp_down = glm::normalize(temp_down);
-			//
-			//// rotate normal around by phi
-			//glm::mat4x4 rotation = glm::rotate(glm::mat4(1.0f), phi, rownormal);
-			//glm::vec3 temp_around = rotation * glm::vec4(temp_down.x, temp_down.y, temp_down.z, 1.0);
-			//optix::float3 dest = optix_functionality::glm2optixf3(temp_around);
-			//
-			//std::cout << "normal " << rownormal.x << " " << rownormal.y << " " << rownormal.z << std::endl;
-			//std::cout << "creating ray towards " << dest.x << " "<< dest.y << " " << dest.z << std::endl;
-			//rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
-			//rays[i * 2 + 1] = optix::normalize(dest - origin);
-
-			// or with the scratchapixel method:
-			glm::vec3 Nt, Nb;
-			createCoordinateSystem(rownormal, Nt, Nb);
-			float r1 = ((float)(rand() % RAND_MAX)) / RAND_MAX;
-			float r2 = ((float)(rand() % RAND_MAX)) / RAND_MAX;
-			glm::vec3 sample = uniformSampleHemisphere(r1, r2);
-			glm::vec3 sampleWorld(
-				sample.x * Nb.x + sample.y * rownormal.x + sample.z * Nt.x,
-				sample.x * Nb.y + sample.y * rownormal.y + sample.z * Nt.y,
-				sample.x * Nb.z + sample.y * rownormal.z + sample.z * Nt.z);
+			float x = ((float)(rand() % RAND_MAX)) / RAND_MAX;
+			float y = ((float)(rand() % RAND_MAX)) / RAND_MAX;
+			float theta = acosf(sqrtf(1.0 - x));
+			float phi = 2.0*M_PIf*y;
 			
-			optix::float3 dest = optix_functionality::glm2optixf3(sampleWorld);
-			std::cout << "normal " << rownormal.x << " " << rownormal.y << " " << rownormal.z << std::endl;
-			std::cout << "creating ray towards " << dest.x << " "<< dest.y << " " << dest.z << std::endl;
-			rays[i * 2] = origin + optix::normalize(dest - origin)*0.000001f;
-			rays[i * 2 + 1] = optix::normalize(dest - origin);
+			// rotate normal down by theta, as per https://stackoverflow.com/a/22101541/7925249
+			// for d we take a vector perpendicular to the normal, which is luckily just any vector in the plane of the triangle
+			glm::vec3 d = glm::normalize(vertices[row*3].pos - vertices[row*3 + 1].pos);
+			glm::vec3 temp_down = cos(theta)*rownormal + sin(theta)*d;
+			temp_down = glm::normalize(temp_down);
+			
+			// rotate normal around by phi
+			glm::mat4x4 rotation = glm::rotate(glm::mat4(1.0f), phi, rownormal);
+			glm::vec3 temp_around = rotation * glm::vec4(temp_down.x, temp_down.y, temp_down.z, 1.0);
+			optix::float3 dest = optix_functionality::glm2optixf3(temp_around);
+			
+			rays[i * 2] = origin + optix::normalize(dest)*0.000001f;
+			rays[i * 2 + 1] = optix::normalize(dest);
 		}
 
 		// now shoot the rays
@@ -349,11 +325,18 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 		std::vector<float> hitarray(numtriangles, 0.0);
 		for (optix_functionality::Hit hit : hits) {
 			if (hit.t > 0.0){
-				hitarray[hit.triangleId] += 1.0;
+				// check if we did not hit triangle on the back
+				glm::vec3 destcenter = triangle_math::calculateCentre(hit.triangleId, vertices);
+				glm::vec3 destnormal = triangle_math::avgNormal(hit.triangleId, vertices);
+				float dot1 = glm::dot(rownormal, glm::normalize(destcenter - optix_functionality::optix2glmf3(origin)));
+				float dot2 = glm::dot(destnormal, glm::normalize(optix_functionality::optix2glmf3(origin) - destcenter));
+				if (dot1 > 0 && dot2 > 0){
+					hitarray[hit.triangleId] += 1.0;
+				}
 			}
 		}
 
-		// go over all triangles and store form factors in tripletList
+		// go over all triangles and store form factors in tripletList 
 		for (int col = 0; col < numtriangles; col++){
 			float formfactorRC = hitarray[col]/numrays;
 			if (formfactorRC > 0.0) {
