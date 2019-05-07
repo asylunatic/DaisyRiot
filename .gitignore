@@ -47,4 +47,5 @@ visual studio/Release/*
 visual studio/backupprojectfiles/
 visual studio/backupprojectfiles/*
 visual studio/DaisyRiot.opensdf
+visual studio/DaisyRiot.v12.suo
 TryCuda/
