@@ -43,18 +43,18 @@ void Drawer::debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgr
 	glLinkProgram(shaderProgram);
 }
 
-void Drawer::debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<Vertex> &debugline, bool hitB) {
+void Drawer::debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<vertex::Vertex> &debugline, bool hitB) {
 	glUseProgram(debugprogram);
 	glBindVertexArray(linevao);
 	// vao will get info from linevbo now
 	glBindBuffer(GL_ARRAY_BUFFER, linevbo);
 	//insert data into the current array_buffer: the vbo
-	glBufferData(GL_ARRAY_BUFFER, debugline.size() * sizeof(Vertex), debugline.data(), GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, debugline.size() * sizeof(vertex::Vertex), debugline.data(), GL_STREAM_DRAW);
 	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
 	// Stride is the distance in bytes between vertices
 	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the current VertexArray
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex::Vertex), reinterpret_cast<void*>(offsetof(vertex::Vertex, pos)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex::Vertex), reinterpret_cast<void*>(offsetof(vertex::Vertex, normal)));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
@@ -152,7 +152,7 @@ void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<Vertex> &debugline, bool hitB) {
+void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<vertex::Vertex> &debugline, bool hitB) {
 	// Clear the framebuffer to black and depth to maximum value
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

@@ -10,11 +10,11 @@ class InputHandler
 {
 public:
 	struct callback_context {
-		callback_context(bool &left, bool &hitB, std::vector<Vertex> &debugline, int optixW, int optixH, optix::float3 &viewDirection, optix::float3 &eye, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
-			std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, std::vector<Vertex> &vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering);
+		callback_context(bool &left, bool &hitB, std::vector<vertex::Vertex> &debugline, int optixW, int optixH, optix::float3 &viewDirection, optix::float3 &eye, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
+			std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering);
 		bool &left;
 		bool &hitB;
-		std::vector<Vertex> &debugline;
+		std::vector<vertex::Vertex> &debugline;
 		int optixW;
 		int optixH;
 		optix::float3 &viewDirection;
@@ -22,7 +22,7 @@ public:
 		std::vector<std::vector<MatrixIndex>> &trianglesonScreen;
 		std::vector<glm::vec3> &optixView;
 		std::vector<optix_functionality::Hit> &patches;
-		std::vector<Vertex> &vertices;
+		vertex::MeshS& mesh;
 		std::vector<UV> &rands;
 		OptixPrimeFunctionality &optixP;
 		Eigen::VectorXf &lightningvalues;

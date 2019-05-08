@@ -23,13 +23,13 @@ class Drawer
 public:
 	static GLFWwindow* initWindow(int width, int height);
 	static void debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram);
-	static void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<Vertex> &debugline, bool hitB);
+	static void debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<vertex::Vertex> &debugline, bool hitB);
 	static void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 	static void setResDrawing(GLuint &optixVao, GLuint &optixTex, int optixW, int optixH, std::vector<glm::vec3> &optixView);
 	static void refreshTexture(int optixW, int optixH, std::vector<glm::vec3> &optixView);
 	static void initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, int optixW, int optixH, std::vector<glm::vec3> &optixView);
 	static void drawRes(GLuint &shaderProgram, GLuint &vao);
-	static void draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<Vertex> &debugline, bool hitB);
+	static void draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<vertex::Vertex> &debugline, bool hitB);
 	static void setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH);
 };
 
