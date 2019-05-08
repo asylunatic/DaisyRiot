@@ -39,7 +39,8 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 
 	// generate rays the un_project way
 	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.origin), optix_functionality::optix2glmf3(camera.up));
-	glm::mat4x4 projection = glm::ortho(-10.0, 10.0, -10.0, 10.0);//camera.ortho(-100.0, 100.0, -100.0, 100.0, 0.01, 10000);
+	glm::mat4x4 projection = glm::ortho(-10.0, 10.0, -10.0, 10.0);
+	//glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
 	for (size_t x = 0; x < optixW; x++) {
 		for (size_t y = 0; y < optixH; y++) {
 			glm::vec3 win(x, y, 0.0);
@@ -69,16 +70,16 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	trianglesonScreen.clear();
 	trianglesonScreen.resize(vertices.size() / 3);
 
-	for (int j = 0; j < optixH; j++) {
-		for (int i = 0; i < optixW; i++) {
-			int pixelIndex = j*optixH + i;
+	for (size_t x = 0; x < optixW; x++) {
+		for (size_t y = 0; y < optixH; y++) {
+			int pixelIndex = y*optixW + x;
 			optixView[pixelIndex] = (hits[pixelIndex].t > 0) ? glm::vec3(glm::abs(vertices[hits[pixelIndex].triangleId * 3].normal)) : glm::vec3(0.0f, 0.0f, 0.0f);
 			if (hits[pixelIndex].t > 0 
 				&& !triangle_math::isFacingBack(optix_functionality::optix2glmf3(camera.eye), hits[pixelIndex].triangleId, vertices)
 				) {
 				MatrixIndex index = {};
-				index.col = i;
-				index.row = j;
+				index.col = x;
+				index.row = y;
 				trianglesonScreen[hits[pixelIndex].triangleId].push_back(index);
 			}
 		}

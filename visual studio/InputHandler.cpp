@@ -45,7 +45,11 @@ void InputHandler::cursor_pos_callback(GLFWwindow * window, double xpos, double 
 
 	cbc_ptr->camera.rotate(yaw, pitch, 0.0);
 
-	std::cout << "yaw = " << yaw << " pitch = " << pitch << std::endl;
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->camera, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
+	if (cbc_ptr->radiosityRendering){
+		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
+	}
+	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 
 	cbc_ptr->inputstate.old_x = xpos;
 	cbc_ptr->inputstate.old_y = ypos;
