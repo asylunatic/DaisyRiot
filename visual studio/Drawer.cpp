@@ -167,15 +167,43 @@ void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLu
 	glfwSwapBuffers(window);
 }
 
-void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH) {
+void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH, vertex::MeshS& mesh) {
 	optixView.clear();
 	optixView.resize(optixW * optixH);
 	for (int i = 0; i < lightningvalues.size(); i++) {
 		if (trianglesonScreen[i].size() > 0) {
+			//for each pixel of the current triangle i that you can see on the screen
 			for (MatrixIndex index : trianglesonScreen[i]) {
-				float intensity = lightningvalues[i];
+				float intensity = Drawer::interpolate(index, i, lightningvalues, mesh);
 				optixView[(index.row*optixH + index.col)] = glm::vec3(intensity, intensity, intensity);
 			}
 		}
 	}
 }
+
+float Drawer::interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &lightningvalues, vertex::MeshS& mesh) {
+	UV uv = index.uv;
+
+	//average lightvalues of the three cornerpoints
+	float a = 0;
+	float b = 0;
+	float c = 0;
+
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.x]) {
+		a += lightningvalues[adjTriangle];
+	}
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.y]) {
+		b += lightningvalues[adjTriangle];
+	}
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.z]) {
+		c += lightningvalues[adjTriangle];
+	}
+	a = a / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.x].size();
+	b = b / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.y].size();
+	c = c / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.z].size();
+
+	float w = (1 - uv.u - uv.v);
+	float lightningvalue = uv.u * a + uv.v * b + w * c;
+	return lightningvalue;
+}
+

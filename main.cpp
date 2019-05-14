@@ -174,7 +174,7 @@ int main() {
 	f_menu.close();
 
 	if (radiosityRendering){
-		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, optixW, optixH);
+		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, optixW, optixH, mesh);
 		Drawer::refreshTexture(optixW, optixH, optixView);
 	}
 

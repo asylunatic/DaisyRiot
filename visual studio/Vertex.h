@@ -20,7 +20,7 @@ namespace vertex
 
 	struct MeshS {
 		//vertices: the unique vertices in the mesh
-		//normals: the uniquenormals in the mesh
+		//normals: the unique normals in the mesh
 		//triangleIndices: triangles indexing to vertices and normals
 		//trianglesPerVertices: an array, indexed per vertex like uniqvertices, pointing to triangles it is part of
 

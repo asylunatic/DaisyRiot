@@ -33,9 +33,12 @@ void vertex::loadVertices(vertex::MeshS& mesh, char * filepath)
 	}
 
 	// Read triangle vertices from OBJ file
+	//loop over each shape (consists of multiple triangles)
+	int currTriangleIndex = 0;
 	for (int i = 0; i < shapes.size(); i++) {
 		tinyobj::shape_t shape = shapes[i];
 
+		//loop over each triangle in shape
 		for (int j = 0; j < shape.mesh.indices.size(); j += 3) {
 
 			vertex::TriangleIndex triangle = {};
@@ -51,11 +54,11 @@ void vertex::loadVertices(vertex::MeshS& mesh, char * filepath)
 				shape.mesh.indices[j + 2].normal_index
 			};
 
-			mesh.trianglesPerVertex[shape.mesh.indices[0].vertex_index].push_back(i);
-			mesh.trianglesPerVertex[shape.mesh.indices[1].vertex_index].push_back(i);
-			mesh.trianglesPerVertex[shape.mesh.indices[2].vertex_index].push_back(i);
+			mesh.trianglesPerVertex[shape.mesh.indices[j + 0].vertex_index].push_back(currTriangleIndex);
+			mesh.trianglesPerVertex[shape.mesh.indices[j + 1].vertex_index].push_back(currTriangleIndex);
+			mesh.trianglesPerVertex[shape.mesh.indices[j + 2].vertex_index].push_back(currTriangleIndex);
 
-
+			currTriangleIndex += 1;
 			mesh.triangleIndices.push_back(triangle);
 		}
 	}

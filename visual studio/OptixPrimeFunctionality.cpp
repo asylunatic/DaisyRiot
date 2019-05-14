@@ -79,6 +79,7 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 				MatrixIndex index = {};
 				index.col = i;
 				index.row = j;
+				index.uv = {hits[pixelIndex].uv.x, hits[pixelIndex].uv.y};
 				trianglesonScreen[hits[pixelIndex].triangleId].push_back(index);
 			}
 		}
