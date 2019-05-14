@@ -189,7 +189,6 @@ void InputHandler::increment_lightpasses(GLFWwindow* window) {
 	cbc_ptr->numpasses++;
 
 	std::cout << "Number of light passes " << cbc_ptr->numpasses << ". Amount of residual light in scene "<< cbc_ptr->residualvector.sum() << std::endl;
-	std::cout << "Residual vector: " << std::endl << cbc_ptr->residualvector << std::endl;
 	Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
@@ -201,11 +200,6 @@ void InputHandler::clear_light(GLFWwindow* window) {
 	cbc_ptr->residualvector = cbc_ptr->emission;
 	cbc_ptr->lightningvalues = cbc_ptr->emission;
 	cbc_ptr->numpasses = 0;
-	std::cout << "Lightningvalues" << std::endl;
-	for (int i = 0; i < cbc_ptr->lightningvalues.size(); i ++) {
-		std::cout << cbc_ptr->lightningvalues[i] << std::endl;
-	}
-
 	Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }

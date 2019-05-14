@@ -1,9 +1,9 @@
 #include "triangle_math.h"
 
 optix::float3 triangle_math::uv2xyz(int triangleId, optix::float2 &uv, vertex::MeshS &mesh) {
-	glm::vec3 a = mesh.vertices[mesh.triangleIndices[triangleId].pos.x];
-	glm::vec3 b = mesh.vertices[mesh.triangleIndices[triangleId].pos.y];
-	glm::vec3 c = mesh.vertices[mesh.triangleIndices[triangleId].pos.z];
+	glm::vec3 a = mesh.vertices[mesh.triangleIndices[triangleId].vertex.x];
+	glm::vec3 b = mesh.vertices[mesh.triangleIndices[triangleId].vertex.y];
+	glm::vec3 c = mesh.vertices[mesh.triangleIndices[triangleId].vertex.z];
 	glm::vec3 point = a + uv.x*(b - a) + uv.y*(c - a);
 	return optix::make_float3(point.x, point.y, point.z);
 }
@@ -14,9 +14,9 @@ glm::vec3 triangle_math::calculateCentre(std::vector<glm::vec3> triangle) {
 }
 
 glm::vec3 triangle_math::calculateCentre(float triangleId, vertex::MeshS &mesh) {
-	glm::vec3 centre = (mesh.vertices[mesh.triangleIndices[triangleId].pos.x] +
-		mesh.vertices[mesh.triangleIndices[triangleId].pos.y] + 
-		mesh.vertices[mesh.triangleIndices[triangleId].pos.z]);
+	glm::vec3 centre = (mesh.vertices[mesh.triangleIndices[triangleId].vertex.x] +
+		mesh.vertices[mesh.triangleIndices[triangleId].vertex.y] + 
+		mesh.vertices[mesh.triangleIndices[triangleId].vertex.z]);
 	return glm::vec3(centre.x / 3, centre.y / 3, centre.z / 3);
 }
 
@@ -40,9 +40,9 @@ float triangle_math::calculateSurface(std::vector<glm::vec3> triangle) {
 
 float triangle_math::calculateSurface(float triangleId, vertex::MeshS &mesh) {
 	return triangle_math::calculateSurface(
-		mesh.vertices[mesh.triangleIndices[triangleId].pos.x], 
-		mesh.vertices[mesh.triangleIndices[triangleId].pos.y], 
-		mesh.vertices[mesh.triangleIndices[triangleId].pos.z]);
+		mesh.vertices[mesh.triangleIndices[triangleId].vertex.x], 
+		mesh.vertices[mesh.triangleIndices[triangleId].vertex.y], 
+		mesh.vertices[mesh.triangleIndices[triangleId].vertex.z]);
 }
 
 
@@ -58,9 +58,9 @@ float triangle_math::calcPointFormfactor(vertex::Vertex orig, vertex::Vertex des
 }
 
 std::vector<std::vector<glm::vec3>> triangle_math::divideInFourTriangles(float triangleId, vertex::MeshS &mesh) {
-	glm::vec3 a = mesh.vertices[mesh.triangleIndices[triangleId].pos.x];
-	glm::vec3 b = mesh.vertices[mesh.triangleIndices[triangleId].pos.y];
-	glm::vec3 c = mesh.vertices[mesh.triangleIndices[triangleId].pos.z];
+	glm::vec3 a = mesh.vertices[mesh.triangleIndices[triangleId].vertex.x];
+	glm::vec3 b = mesh.vertices[mesh.triangleIndices[triangleId].vertex.y];
+	glm::vec3 c = mesh.vertices[mesh.triangleIndices[triangleId].vertex.z];
 	std::vector<glm::vec3> innerTriangle;
 	glm::vec3 innerA = ((b - a) / 2.0f) + a;
 	glm::vec3 innerC = ((c - a) / 2.0f) + a;

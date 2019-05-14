@@ -189,18 +189,18 @@ float Drawer::interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &l
 	float b = 0;
 	float c = 0;
 
-	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.x]) {
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.x]) {
 		a += lightningvalues[adjTriangle];
 	}
-	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.y]) {
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.y]) {
 		b += lightningvalues[adjTriangle];
 	}
-	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.z]) {
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.z]) {
 		c += lightningvalues[adjTriangle];
 	}
-	a = a / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.x].size();
-	b = b / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.y].size();
-	c = c / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].pos.z].size();
+	a = a / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.x].size();
+	b = b / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.y].size();
+	c = c / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.z].size();
 
 	float w = (1 - uv.u - uv.v);
 	float lightningvalue = uv.u * a + uv.v * b + w * c;

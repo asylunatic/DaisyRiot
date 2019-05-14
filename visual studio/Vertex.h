@@ -9,7 +9,7 @@
 namespace vertex
 {
 	struct TriangleIndex{
-		glm::ivec3 pos;
+		glm::ivec3 vertex;
 		glm::ivec3 normal;
 	};
 

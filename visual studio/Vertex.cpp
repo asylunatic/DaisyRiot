@@ -42,7 +42,7 @@ void vertex::loadVertices(vertex::MeshS& mesh, char * filepath)
 		for (int j = 0; j < shape.mesh.indices.size(); j += 3) {
 
 			vertex::TriangleIndex triangle = {};
-			triangle.pos = {
+			triangle.vertex = {
 				shape.mesh.indices[j + 0].vertex_index,
 				shape.mesh.indices[j + 1].vertex_index,
 				shape.mesh.indices[j + 2].vertex_index

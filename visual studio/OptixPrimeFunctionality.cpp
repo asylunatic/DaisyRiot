@@ -188,7 +188,7 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 	hemitriangle.resize(3);
 
 	for (int i = 0; i < 3; i++) {
-		hemitriangle[i] = center_origin + glm::normalize(mesh.vertices[mesh.triangleIndices[destPatch].pos[i]] - center_origin);
+		hemitriangle[i] = center_origin + glm::normalize(mesh.vertices[mesh.triangleIndices[destPatch].vertex[i]] - center_origin);
 
 		// calculate the projection of the vertex of the hemi triangle onto the plane that contains the triangle: 
 		// (as per https://stackoverflow.com/questions/9605556/how-to-project-a-point-onto-a-plane-in-3d)
@@ -295,7 +295,7 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 			
 			// rotate normal down by theta, as per https://stackoverflow.com/a/22101541/7925249
 			// for d we take a vector perpendicular to the normal, which is luckily just any vector in the plane of the triangle
-			glm::vec3 d = glm::normalize(mesh.vertices[mesh.triangleIndices[row].pos.x] - mesh.vertices[mesh.triangleIndices[row].pos.y]);
+			glm::vec3 d = glm::normalize(mesh.vertices[mesh.triangleIndices[row].vertex.x] - mesh.vertices[mesh.triangleIndices[row].vertex.y]);
 			glm::vec3 temp_down = cos(theta)*rownormal + sin(theta)*d;
 			temp_down = glm::normalize(temp_down);
 			
