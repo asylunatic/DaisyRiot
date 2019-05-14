@@ -58,8 +58,6 @@ typedef Eigen::SparseMatrix<float> SpMat;
 std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
 { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
 
-// eye = optix::make_float3(0.0f, 0.0f, -7.0f);
-//optix::float3 viewDirection = optix::make_float3(0.0f, 0.0f, 1.0f);
 optix::Context context;
 OptixPrimeFunctionality optixP;
 std::vector<Vertex> vertices;

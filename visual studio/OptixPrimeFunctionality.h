@@ -32,7 +32,7 @@ public:
 	void calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands);
 	void calculateRadiosityMatrixStochastic(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands);
 	void initOptixPrime(std::vector<Vertex> &vertices);
-	void doOptixPrime(int optixW, int optixH, std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, 
+	void doOptixPrime(int &optixW, int &optixH, std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, 
 		std::vector<Vertex> &vertices);
 	static float calculateVisibility(int originPatch, int destPatch, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands);
 };

@@ -118,7 +118,7 @@ void Drawer::initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, 
 	ShaderLoader::loadShader(vertexShader, "shaders/optixShader.vert", GL_VERTEX_SHADER);
 
 	GLuint fragmentShader;
-	ShaderLoader::loadShader(fragmentShader, "shaders/optixShader_passthrough.frag", GL_FRAGMENT_SHADER);
+	ShaderLoader::loadShader(fragmentShader, "shaders/optixShader.frag", GL_FRAGMENT_SHADER);
 
 	// Combine vertex and fragment shaders into single shader program
 	shaderProgram = glCreateProgram();
@@ -177,9 +177,9 @@ void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonS
 	optixView.resize(optixW * optixH);
 	for (int i = 0; i < lightningvalues.size(); i++) {
 		if (trianglesonScreen[i].size() > 0) {
+			float intensity = lightningvalues[i];
 			for (MatrixIndex index : trianglesonScreen[i]) {
-				float intensity = lightningvalues[i];
-				optixView[(index.row*optixH + index.col)] = glm::vec3(intensity, intensity, intensity);
+				optixView[(index.row*optixW + index.col)] = glm::vec3(intensity, intensity, intensity);
 			}
 		}
 	}

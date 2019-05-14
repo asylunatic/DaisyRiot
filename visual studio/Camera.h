@@ -34,7 +34,7 @@ public:
 
 	optix::float3 yaw_pitch_eye(optix::float3 &eye_in, double yaw, double pitch){
 		// this function actually first inputted yaw 0.0 pitch :s
-		glm::mat4x4 rotation_mat = yaw_pitch_roll_in_degrees_to_mat(yaw, 0.0, pitch);
+		glm::mat4x4 rotation_mat = yaw_pitch_roll_in_degrees_to_mat(0.0, yaw, pitch);
 		glm::vec4 homogen_eye = { eye_in.x, eye_in.y, eye_in.z, 1.0 };
 		glm::vec4 rotated = rotation_mat * homogen_eye;
 		optix::float3 res = {rotated.x, rotated.y, rotated.z};
