@@ -43,18 +43,18 @@ void Drawer::debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgr
 	glLinkProgram(shaderProgram);
 }
 
-void Drawer::debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<Vertex> &debugline, bool hitB) {
+void Drawer::debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<vertex::Vertex> &debugline, bool hitB) {
 	glUseProgram(debugprogram);
 	glBindVertexArray(linevao);
 	// vao will get info from linevbo now
 	glBindBuffer(GL_ARRAY_BUFFER, linevbo);
 	//insert data into the current array_buffer: the vbo
-	glBufferData(GL_ARRAY_BUFFER, debugline.size() * sizeof(Vertex), debugline.data(), GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, debugline.size() * sizeof(vertex::Vertex), debugline.data(), GL_STREAM_DRAW);
 	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
 	// Stride is the distance in bytes between vertices
 	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the current VertexArray
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex::Vertex), reinterpret_cast<void*>(offsetof(vertex::Vertex, pos)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex::Vertex), reinterpret_cast<void*>(offsetof(vertex::Vertex, normal)));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
@@ -152,7 +152,7 @@ void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<Vertex> &debugline, bool hitB) {
+void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<vertex::Vertex> &debugline, bool hitB) {
 	// Clear the framebuffer to black and depth to maximum value
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -167,15 +167,43 @@ void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLu
 	glfwSwapBuffers(window);
 }
 
-void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH) {
+void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH, vertex::MeshS& mesh) {
 	optixView.clear();
 	optixView.resize(optixW * optixH);
 	for (int i = 0; i < lightningvalues.size(); i++) {
 		if (trianglesonScreen[i].size() > 0) {
+			//for each pixel of the current triangle i that you can see on the screen
 			for (MatrixIndex index : trianglesonScreen[i]) {
-				float intensity = lightningvalues[i];
+				float intensity = Drawer::interpolate(index, i, lightningvalues, mesh);
 				optixView[(index.row*optixH + index.col)] = glm::vec3(intensity, intensity, intensity);
 			}
 		}
 	}
 }
+
+float Drawer::interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &lightningvalues, vertex::MeshS& mesh) {
+	UV uv = index.uv;
+
+	//average lightvalues of the three cornerpoints
+	float a = 0;
+	float b = 0;
+	float c = 0;
+
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.x]) {
+		a += lightningvalues[adjTriangle];
+	}
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.y]) {
+		b += lightningvalues[adjTriangle];
+	}
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.z]) {
+		c += lightningvalues[adjTriangle];
+	}
+	a = a / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.x].size();
+	b = b / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.y].size();
+	c = c / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.z].size();
+
+	float w = (1 - uv.u - uv.v);
+	float lightningvalue = uv.u * a + uv.v * b + w * c;
+	return lightningvalue;
+}
+

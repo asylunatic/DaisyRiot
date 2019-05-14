@@ -54,14 +54,17 @@ bool radiosityRendering;
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
 
-std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
+std::vector<vertex::Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
 { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
 
 optix::float3 eye = optix::make_float3(0.0f, 0.0f, -7.0f);
 optix::float3 viewDirection = optix::make_float3(0.0f, 0.0f, 1.0f);
 optix::Context context;
 OptixPrimeFunctionality optixP;
-std::vector<Vertex> vertices;
+vertex::MeshS mesh = { std::vector<glm::vec3>(), 
+	std::vector<glm::vec3>(), 
+	std::vector<vertex::TriangleIndex>(), 
+	std::vector<std::vector<int>>()};
 // optixview is an array containing all pixel values
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
@@ -103,7 +106,7 @@ int main() {
 	glewInit();
 
 	// load scene
-	Vertex::loadVertices(vertices, obj_filepath);
+	vertex::loadVertices(mesh, obj_filepath);
 
 	// set up randoms to be reused
 	rands.resize(RAYS_PER_PATCH);
@@ -118,11 +121,11 @@ int main() {
 
 	//initializing optix
 	optixP = OptixPrimeFunctionality();
-	optixP.initOptixPrime(vertices);
+	optixP.initOptixPrime(mesh);
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	optixP.doOptixPrime(optixW, optixH, optixView, eye, viewDirection, trianglesonScreen, vertices);
+	optixP.doOptixPrime(optixW, optixH, optixView, eye, viewDirection, trianglesonScreen, mesh);
 	Drawer::initRes(optixShader, optixVao, optixTex, optixW, optixH, optixView);
 
 	//initializing debugline
@@ -130,10 +133,10 @@ int main() {
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
 	// initialize radiosity matrix
-	int numtriangles = vertices.size() / 3;
+	int numtriangles = mesh.triangleIndices.size();
 	SpMat RadMat(numtriangles, numtriangles);
 
-	optixP.calculateRadiosityMatrixStochastic(RadMat, vertices, rands);
+	optixP.calculateRadiosityMatrixStochastic(RadMat, mesh, rands);
 	//// little debug output to check something happened while calculating the matrix:
 	//std::cout << "total entries in matrix = " << numtriangles*numtriangles << std::endl;
 	//std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
@@ -161,7 +164,7 @@ int main() {
 
 	// set up callback context
 	patches.resize(2);
-	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering);
+	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// print menu
@@ -171,7 +174,7 @@ int main() {
 	f_menu.close();
 
 	if (radiosityRendering){
-		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, optixW, optixH);
+		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, optixW, optixH, mesh);
 		Drawer::refreshTexture(optixW, optixH, optixView);
 	}
 

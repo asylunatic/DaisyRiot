@@ -5,11 +5,11 @@ InputHandler::callback_context* InputHandler::get_context(GLFWwindow* w) {
 	return static_cast<callback_context*>(glfwGetWindowUserPointer(w));
 }
 
-InputHandler::callback_context::callback_context(bool & left, bool & hitB, std::vector<Vertex>& debugline, int optixW, int optixH, optix::float3 & viewDirection, 
+InputHandler::callback_context::callback_context(bool & left, bool & hitB, std::vector<vertex::Vertex>& debugline, int optixW, int optixH, optix::float3 & viewDirection, 
 	optix::float3 & eye, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView, std::vector<optix_functionality::Hit>& patches, 
-	std::vector<Vertex>& vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering) :
+	vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering) :
 	left(left), hitB(hitB), debugline(debugline),optixW(optixW),optixH(optixH),viewDirection(viewDirection),eye(eye),trianglesonScreen(trianglesonScreen), optixView(optixView),
-	patches(patches), vertices(vertices), rands(rands), optixP(optixP), lightningvalues(lightningvalues), RadMat(RadMat), emission(emission), numpasses(numpasses), residualvector(residualvector), radiosityRendering(radiosityRendering)
+	patches(patches), mesh(mesh), rands(rands), optixP(optixP), lightningvalues(lightningvalues), RadMat(RadMat), emission(emission), numpasses(numpasses), residualvector(residualvector), radiosityRendering(radiosityRendering)
 {
 	
 }
@@ -37,9 +37,9 @@ void InputHandler::move_left(GLFWwindow* window){
 	std::cout << "left" << std::endl;
 	cbc_ptr->eye = cbc_ptr->eye - optix::make_float3(0.5f, 0.0f, 0.0f);
 	cbc_ptr->viewDirection = cbc_ptr->viewDirection - optix::make_float3(0.0005f, 0.0f, 0.0f);
-	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->mesh);
 	if (cbc_ptr->radiosityRendering){
-		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
+		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
 	}
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
@@ -49,9 +49,9 @@ void InputHandler::move_right(GLFWwindow *window){
 	std::cout << "right" << std::endl;
 	cbc_ptr->eye = cbc_ptr->eye + optix::make_float3(0.5f, 0.0f, 0.0f);
 	cbc_ptr->viewDirection = cbc_ptr->viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
-	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->mesh);
 	if (cbc_ptr->radiosityRendering){
-		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
+		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
 	}
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
@@ -61,9 +61,9 @@ void InputHandler::move_up(GLFWwindow* window){
 	std::cout << "up" << std::endl;
 	cbc_ptr->eye = cbc_ptr->eye + optix::make_float3(0.0f, 0.5f, 0.0f);
 	cbc_ptr->viewDirection = cbc_ptr->viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
-	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->mesh);
 	if (cbc_ptr->radiosityRendering){
-		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
+		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
 	}
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 
@@ -74,16 +74,16 @@ void InputHandler::move_down(GLFWwindow* window){
 	std::cout << "down" << std::endl;
 	cbc_ptr->eye = cbc_ptr->eye - optix::make_float3(0.0f, 0.5f, 0.0f);
 	cbc_ptr->viewDirection = cbc_ptr->viewDirection + optix::make_float3(0.0005f, 0.0f, 0.0f);
-	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->mesh);
 	if (cbc_ptr->radiosityRendering){
-		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
+		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
 	}
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
 
 void InputHandler::calculate_form_vector(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
-	float ff = cbc_ptr->optixP.p2pFormfactorNusselt(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->vertices, cbc_ptr->rands);
+	float ff = cbc_ptr->optixP.p2pFormfactorNusselt(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->mesh, cbc_ptr->rands);
 	std::cout << "Form factor = " << ff << std::endl;
 
 }
@@ -162,7 +162,7 @@ void InputHandler::calc_full_lightning(GLFWwindow* window){
 	}
 	std::cout << "Number of light passes " << cbc_ptr->numpasses << ". Amount of residual light in scene " << cbc_ptr->residualvector.sum() << std::endl;
 	std::cout << "Residual vector: " << std::endl << cbc_ptr->residualvector << std::endl;
-	Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
+	Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
 
@@ -173,9 +173,9 @@ void InputHandler::toggle_view(GLFWwindow* window) {
 
 	cbc_ptr->eye = cbc_ptr->eye - optix::make_float3(0.0f, 0.0f, 0.0f);
 	cbc_ptr->viewDirection = cbc_ptr->viewDirection + optix::make_float3(0.0f, 0.0f, 0.0f);
-	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->eye, cbc_ptr->viewDirection, cbc_ptr->trianglesonScreen, cbc_ptr->mesh);
 	if (cbc_ptr->radiosityRendering){
-		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
+		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
 	}
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
@@ -189,8 +189,7 @@ void InputHandler::increment_lightpasses(GLFWwindow* window) {
 	cbc_ptr->numpasses++;
 
 	std::cout << "Number of light passes " << cbc_ptr->numpasses << ". Amount of residual light in scene "<< cbc_ptr->residualvector.sum() << std::endl;
-	std::cout << "Residual vector: " << std::endl << cbc_ptr->residualvector << std::endl;
-	Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
+	Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
 
@@ -201,8 +200,7 @@ void InputHandler::clear_light(GLFWwindow* window) {
 	cbc_ptr->residualvector = cbc_ptr->emission;
 	cbc_ptr->lightningvalues = cbc_ptr->emission;
 	cbc_ptr->numpasses = 0;
-
-	Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
+	Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
 	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
 
@@ -223,5 +221,5 @@ void InputHandler::leftclick(GLFWwindow* window)
 		cbc_ptr->debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
 	}
 	cbc_ptr->hitB = cbc_ptr->optixP.intersectMouse(cbc_ptr->left, xpos, ypos, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->viewDirection, cbc_ptr->eye, cbc_ptr->trianglesonScreen,
-		cbc_ptr->optixView, cbc_ptr->patches, cbc_ptr->vertices);
+		cbc_ptr->optixView, cbc_ptr->patches, cbc_ptr->mesh);
 }
