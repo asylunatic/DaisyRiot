@@ -24,16 +24,16 @@ public:
 	optix::prime::Model model;
 	optix::prime::Context contextP;
 	bool intersectMouse(bool &left, double xpos, double ypos, int optixW, int optixH, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
-		std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, std::vector<Vertex> &vertices);
-	bool shootPatchRay(std::vector<optix_functionality::Hit> &patches, std::vector<Vertex> &vertices);
-	float p2pFormfactor(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands);
-	float p2pFormfactorNusselt(int originPatch, int destPatch, std::vector<Vertex> &vertices, std::vector<UV> &rands);
-	float calculatePointLightVisibility(optix::float3 &lightpos, int patchindex, std::vector<Vertex> &vertices, std::vector<UV> &rands);
-	void calculateRadiosityMatrix(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands);
-	void calculateRadiosityMatrixStochastic(SpMat &RadMat, std::vector<Vertex> &vertices, std::vector<UV> &rands);
-	void initOptixPrime(std::vector<Vertex> &vertices);
-	void doOptixPrime(int &optixW, int &optixH, std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, 
-		std::vector<Vertex> &vertices);
-	static float calculateVisibility(int originPatch, int destPatch, std::vector<Vertex> &vertices, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands);
+		std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh);
+	bool shootPatchRay(std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh);
+	float p2pFormfactor(int originPatch, int destPatch, vertex::MeshS& mesh, std::vector<UV> &rands);
+	float p2pFormfactorNusselt(int originPatch, int destPatch, vertex::MeshS& mesh, std::vector<UV> &rands);
+	float calculatePointLightVisibility(optix::float3 &lightpos, int patchindex, vertex::MeshS& mesh, std::vector<UV> &rands);
+	void calculateRadiosityMatrix(SpMat &RadMat, vertex::MeshS& mesh, std::vector<UV> &rands);
+	void calculateRadiosityMatrixStochastic(SpMat &RadMat, vertex::MeshS& mesh, std::vector<UV> &rands);
+	void initOptixPrime(vertex::MeshS& mesh);
+	void doOptixPrime(int optixW, int optixH, std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
+		vertex::MeshS& mesh);
+	static float calculateVisibility(int originPatch, int destPatch, vertex::MeshS& mesh, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands);
 };
 

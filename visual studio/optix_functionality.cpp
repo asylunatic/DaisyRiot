@@ -1,6 +1,6 @@
 #include "optix_functionality.h"
 
-void optix_functionality::initOptix(optix::Context &context, std::vector<Vertex> &vertices) {
+void optix_functionality::initOptix(optix::Context &context, vertex::MeshS& mesh) {
 
 	/* *******************************************************OPTIX******************************************************* */
 	//initializing context -> holds all programs and variables
@@ -22,12 +22,12 @@ void optix_functionality::initOptix(optix::Context &context, std::vector<Vertex>
 	rtBufferCreate(context->get(), RT_BUFFER_INPUT, &buffer);
 	rtBufferSetFormat(buffer, RT_FORMAT_USER);
 	rtBufferSetElementSize(buffer, sizeof(glm::vec3));
-	rtBufferSetSize1D(buffer, vertices.size());
+	rtBufferSetSize1D(buffer, mesh.vertices.size());
 	void* data;
 	rtBufferMap(buffer, &data);
 	glm::vec3* vertex_data = (glm::vec3*) data;
-	for (int i = 0; i < vertices.size(); i++) {
-		vertex_data[i] = vertices[i].normal;
+	for (int i = 0; i < mesh.normals.size(); i++) {
+		vertex_data[i] = mesh.normals[i];
 	}
 	rtBufferUnmap(buffer);
 

@@ -15,19 +15,20 @@ public:
 		double old_x, old_y;
 	};
 	struct callback_context {
-		callback_context(bool &left, bool &hitB, std::vector<Vertex> &debugline, int optixW, int optixH, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
-			std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, std::vector<Vertex> &vertices, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, 
+callback_context(bool &left, bool &hitB, std::vector<vertex::Vertex> &debugline, int optixW, int optixH, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
+			std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, 
 			Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, input_state &inputstate);
+
 		bool &left;
 		bool &hitB;
-		std::vector<Vertex> &debugline;
+		std::vector<vertex::Vertex> &debugline;
 		int optixW;
 		int optixH;
 		Camera &camera;
 		std::vector<std::vector<MatrixIndex>> &trianglesonScreen;
 		std::vector<glm::vec3> &optixView;
 		std::vector<optix_functionality::Hit> &patches;
-		std::vector<Vertex> &vertices;
+		vertex::MeshS& mesh;
 		std::vector<UV> &rands;
 		OptixPrimeFunctionality &optixP;
 		Eigen::VectorXf &lightningvalues;

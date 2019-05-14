@@ -55,12 +55,15 @@ bool radiosityRendering;
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
 
-std::vector<Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
+std::vector<vertex::Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
 { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
 
 optix::Context context;
 OptixPrimeFunctionality optixP;
-std::vector<Vertex> vertices;
+vertex::MeshS mesh = { std::vector<glm::vec3>(), 
+	std::vector<glm::vec3>(), 
+	std::vector<vertex::TriangleIndex>(), 
+	std::vector<std::vector<int>>()};
 // optixview is an array containing all pixel values
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
@@ -114,7 +117,7 @@ int main() {
 	glewInit();
 
 	// load scene
-	Vertex::loadVertices(vertices, obj_filepath);
+	vertex::loadVertices(mesh, obj_filepath);
 
 	// set up randoms to be reused
 	rands.resize(RAYS_PER_PATCH);
@@ -129,11 +132,11 @@ int main() {
 
 	//initializing optix
 	optixP = OptixPrimeFunctionality();
-	optixP.initOptixPrime(vertices);
+	optixP.initOptixPrime(mesh);
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	optixP.doOptixPrime(optixW, optixH, optixView, camera, trianglesonScreen, vertices);
+	optixP.doOptixPrime(optixW, optixH, optixView, camera, trianglesonScreen, mesh);
 	Drawer::initRes(optixShader, optixVao, optixTex, optixW, optixH, optixView);
 
 	//initializing debugline
@@ -141,9 +144,9 @@ int main() {
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
 	// initialize radiosity matrix
-	int numtriangles = vertices.size() / 3;
+	int numtriangles = mesh.triangleIndices.size();
 	SpMat RadMat(numtriangles, numtriangles);
-	optixP.calculateRadiosityMatrixStochastic(RadMat, vertices, rands);
+	optixP.calculateRadiosityMatrixStochastic(RadMat, mesh, rands);
 
 	// set up lightning
 	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
@@ -168,7 +171,7 @@ int main() {
 
 	// set up callback context
 	patches.resize(2);
-	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, camera, trianglesonScreen, optixView, patches, vertices, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputstate);
+	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputstate);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// print menu
@@ -178,7 +181,7 @@ int main() {
 	f_menu.close();
 
 	if (radiosityRendering){
-		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, optixW, optixH);
+		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, optixW, optixH, mesh);
 		Drawer::refreshTexture(optixW, optixH, optixView);
 	}
 
