@@ -99,13 +99,14 @@ int main() {
 	radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
 	
 	// set camera
-	camera.eye = optix::make_float3(0.0f, 10.0f, 0.0f);
+	camera.eye = optix::make_float3(0.0f, -10.0f, 0.0f);
 	camera.dir = optix::make_float3(0.0f, 0.0f, 0.0f);
 	camera.up = optix::make_float3(0.0f, 0.0f, 1.0f);
-	camera.origin = optix::make_float3(0.0f, 0.0f, 0.0f);
 	camera.viewport = { 0.0f, 0.0f, float(WIDTH), float(HEIGHT) };
 	camera.pixwidth = WIDTH;
 	camera.pixheight = HEIGHT;
+	camera.debug_marijn_eye = optix::make_float3(0.0f, 0.0f, -7.0f);
+	camera.debug_marijn_dir = optix::make_float3(0.0f, 0.0f, 1.0f);
 
 	//initialize window
 	GLFWwindow* window = Drawer::initWindow(WIDTH, HEIGHT);

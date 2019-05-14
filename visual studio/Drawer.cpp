@@ -77,7 +77,12 @@ void Drawer::setResDrawing(GLuint &optixVao, GLuint &optixTex, int optixW, int o
 	//bind it as (possible) source for the vao
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	//insert data into the current array_buffer: the vbo
-	std::vector<glm::vec3> quad = { glm::vec3(-1, 1, -1), glm::vec3(1, 1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, -1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, 1, -1) };
+	std::vector<glm::vec3> quad = { glm::vec3(-1.0f, -1.0f, 0.0f), 
+									glm::vec3(1.0f, -1.0f, 0.0f), 
+									glm::vec3(-1.0f, 1.0f, 0.0f), 
+									glm::vec3(-1.0f, 1.0f, 0.0f), 
+									glm::vec3(1.0f, -1.0f, 0.0f), 
+									glm::vec3(1.0f, 1.0f, 0.0f) };
 	glBufferData(GL_ARRAY_BUFFER, quad.size() * sizeof(glm::vec3), quad.data(), GL_STATIC_DRAW);
 
 	// Bind vertex data to shader inputs using their index (location)
@@ -87,7 +92,7 @@ void Drawer::setResDrawing(GLuint &optixVao, GLuint &optixTex, int optixW, int o
 
 	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
 	// Stride is the distance in bytes between vertices
-	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
+	// INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
@@ -113,7 +118,7 @@ void Drawer::initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, 
 	ShaderLoader::loadShader(vertexShader, "shaders/optixShader.vert", GL_VERTEX_SHADER);
 
 	GLuint fragmentShader;
-	ShaderLoader::loadShader(fragmentShader, "shaders/optixShader.frag", GL_FRAGMENT_SHADER);
+	ShaderLoader::loadShader(fragmentShader, "shaders/optixShader_passthrough.frag", GL_FRAGMENT_SHADER);
 
 	// Combine vertex and fragment shaders into single shader program
 	shaderProgram = glCreateProgram();
@@ -140,10 +145,10 @@ void Drawer::initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, 
 void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 	// Bind the shader
 	glUseProgram(shaderProgram);
-	GLuint loc;
 
-	// upload texture coordinates
-	loc = glGetUniformLocation(shaderProgram, "texToon");
+	// bind texture to variable
+	GLuint loc;
+	loc = glGetUniformLocation(shaderProgram, "tex");
 	glUniform1i(loc, 1);
 
 	// Bind vertex data

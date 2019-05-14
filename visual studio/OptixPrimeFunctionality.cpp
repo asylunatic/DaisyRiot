@@ -24,7 +24,7 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	std::vector<optix_functionality::Hit> hits;
 	hits.resize(optixW*optixH);
 	optixView.resize(optixW*optixH);
-	optix::float3 upperLeftCorner = camera.eye + camera.dir + optix::make_float3(-1.0f, 1.0f, 0.0f);
+	optix::float3 upperLeftCorner = camera.debug_marijn_eye + camera.debug_marijn_dir + optix::make_float3(-1.0f, 1.0f, 0.0f);
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 	std::vector<optix::float3> rays;
 	rays.resize(optixW*optixH * 2);
@@ -32,21 +32,24 @@ void  OptixPrimeFunctionality::doOptixPrime(int optixW, int optixH, std::vector<
 	//// generate rays the marijn way
 	//for (size_t j = 0; j < optixH; j++) {
 	//	for (size_t i = 0; i < optixW; i++) {
-	//		rays[(j*optixH + i) * 2] = camera.eye;
-	//		rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner + optix::make_float3(i*2.0f / optixW, -1.0f*(j*2.0f / optixH), 0) - camera.eye);
+	//		rays[(j*optixH + i) * 2] = camera.debug_marijn_eye;
+	//		rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner + optix::make_float3(i*2.0f / optixW, -1.0f*(j*2.0f / optixH), 0) - camera.debug_marijn_eye);
 	//	}
 	//}
 
 	// generate rays the un_project way
-	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.origin), optix_functionality::optix2glmf3(camera.up));
-	glm::mat4x4 projection = glm::ortho(-10.0, 10.0, -10.0, 10.0);
+	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.dir), optix_functionality::optix2glmf3(camera.up));
+	glm::mat4x4 projection = glm::ortho(10.0, -10.0, -10.0, 10.0);
 	//glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
 	for (size_t x = 0; x < optixW; x++) {
 		for (size_t y = 0; y < optixH; y++) {
 			glm::vec3 win(x, y, 0.0);
 			glm::vec3 world_coord = glm::unProject(win, lookat, projection, camera.viewport);
+			if (x % 10 == 0 && y % 10 == 0){
+				//std::cout << "unprojected (x " << x << " y " << y << ") = " << world_coord.x << " " << world_coord.y << " " << world_coord.z << std::endl;
+			}
 			rays[(y*optixW + x) * 2] = optix_functionality::glm2optixf3(world_coord);
-			optix::float3 dir = (camera.origin - camera.eye);
+			optix::float3 dir = (camera.dir - camera.eye);
 			dir = normalize(dir);
 			rays[((y*optixW + x) * 2) + 1] = dir;
 		}
