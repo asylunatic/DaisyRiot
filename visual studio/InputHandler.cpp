@@ -69,8 +69,7 @@ void InputHandler::save_screenshot(GLFWwindow* window){
 void InputHandler::move_left(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
 	std::cout << "left" << std::endl;
-	cbc_ptr->camera.eye = cbc_ptr->camera.eye - optix::make_float3(0.5f, 0.0f, 0.0f);
-	cbc_ptr->camera.dir = cbc_ptr->camera.dir - optix::make_float3(0.0005f, 0.0f, 0.0f);
+	cbc_ptr->camera.rotate(-10.0, 0.0, 0.0);
 	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->camera, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
 	if (cbc_ptr->radiosityRendering){
 		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
@@ -81,8 +80,7 @@ void InputHandler::move_left(GLFWwindow* window){
 void InputHandler::move_right(GLFWwindow *window){
 	callback_context* cbc_ptr = get_context(window);
 	std::cout << "right" << std::endl;
-	cbc_ptr->camera.eye = cbc_ptr->camera.eye + optix::make_float3(0.5f, 0.0f, 0.0f);
-	cbc_ptr->camera.dir = cbc_ptr->camera.dir + optix::make_float3(0.0005f, 0.0f, 0.0f);
+	cbc_ptr->camera.rotate(10.0, 0.0, 0.0);
 	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->camera, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
 	if (cbc_ptr->radiosityRendering){
 		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
@@ -93,8 +91,7 @@ void InputHandler::move_right(GLFWwindow *window){
 void InputHandler::move_up(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
 	std::cout << "up" << std::endl;
-	cbc_ptr->camera.eye = cbc_ptr->camera.eye + optix::make_float3(0.0f, 0.5f, 0.0f);
-	cbc_ptr->camera.dir = cbc_ptr->camera.dir + optix::make_float3(0.0005f, 0.0f, 0.0f);
+	cbc_ptr->camera.rotate(0.0, 10.0, 0.0);
 	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->camera, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
 	if (cbc_ptr->radiosityRendering){
 		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
@@ -106,8 +103,7 @@ void InputHandler::move_up(GLFWwindow* window){
 void InputHandler::move_down(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
 	std::cout << "down" << std::endl;
-	cbc_ptr->camera.eye = cbc_ptr->camera.eye - optix::make_float3(0.0f, 0.5f, 0.0f);
-	cbc_ptr->camera.dir = cbc_ptr->camera.dir + optix::make_float3(0.0005f, 0.0f, 0.0f);
+	cbc_ptr->camera.rotate(0.0, -10.0, 0.0);
 	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->camera, cbc_ptr->trianglesonScreen, cbc_ptr->vertices);
 	if (cbc_ptr->radiosityRendering){
 		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH);
