@@ -41,8 +41,8 @@ Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, vertex
 
 	// generate rays the un_project way
 	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.dir), optix_functionality::optix2glmf3(camera.up));
-	glm::mat4x4 projection = glm::ortho(-10.0, 10.0, -10.0, 10.0);
-	//glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
+	//glm::mat4x4 projection = glm::ortho(-10.0, 10.0, -10.0, 10.0);
+	glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
 	for (size_t x = 0; x < width; x++) {
 		for (size_t y = 0; y < height; y++) {
 			glm::vec3 win(x, y, 0.0);
@@ -51,9 +51,12 @@ Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, vertex
 				//std::cout << "unprojected (x " << x << " y " << y << ") = " << world_coord.x << " " << world_coord.y << " " << world_coord.z << std::endl;
 			}
 			rays[(y*width + x) * 2] = optix_functionality::glm2optixf3(world_coord);
-			optix::float3 dir = (camera.dir - camera.eye);
-			dir = normalize(dir);
-			rays[((y*width + x) * 2) + 1] = dir;
+
+			glm::vec3 win_dir(x, y, 1.0);
+			glm::vec3 dir_coord = glm::unProject(win_dir, lookat, projection, camera.viewport);
+			//optix::float3 dir = (camera.dir - camera.eye);
+			//dir = normalize(dir);
+			rays[((y*width + x) * 2) + 1] = optix_functionality::glm2optixf3(dir_coord); //dir;
 		}
 	}
 

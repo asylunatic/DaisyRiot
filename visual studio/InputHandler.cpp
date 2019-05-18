@@ -63,6 +63,17 @@ void InputHandler::save_screenshot(GLFWwindow* window){
 	glfwGetWindowSize(window, &WIDTH, &HEIGHT);
 	ImageExporter ie = ImageExporter(WIDTH, HEIGHT);
 	glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, ie.encodepixels);
+	glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, ie.encodepixels_flipped);
+	for(int x = 0; x < WIDTH; x++){
+		for(int y = 0; y < HEIGHT; y++){
+			int indexflipped = (y * WIDTH + x) * 3;
+			int newindex = WIDTH*HEIGHT*3 - indexflipped;
+			ie.encodepixels[newindex] = ie.encodepixels_flipped[indexflipped];
+			ie.encodepixels[newindex + 1] = ie.encodepixels_flipped[indexflipped + 1];
+			ie.encodepixels[newindex + 2] = ie.encodepixels_flipped[indexflipped + 2];
+		}
+	}
+
 	if (GL_NO_ERROR != glGetError()) throw "Error: Unable to read pixels.";
 	ie.encodeOneStep("screenshots/output", ".png", WIDTH, HEIGHT);
 }
@@ -189,6 +200,23 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
 	if (key == GLFW_KEY_X && action == GLFW_PRESS) {
 		clear_light(window);
 	}
+
+	if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
+		zoom_out(window);
+	}
+}
+
+void InputHandler::zoom_out(GLFWwindow* window){
+	callback_context* cbc_ptr = get_context(window);
+	cbc_ptr->camera.eye = cbc_ptr->camera.eye*2.0;
+	std::cout << "zoomed out, new cam eye = " << cbc_ptr->camera.eye << std::endl;
+
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->camera, cbc_ptr->trianglesonScreen, cbc_ptr->mesh);
+
+	if (cbc_ptr->radiosityRendering){
+		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
+	}
+	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
 }
 
 void InputHandler::calc_full_lightning(GLFWwindow* window){
