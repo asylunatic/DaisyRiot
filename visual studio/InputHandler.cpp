@@ -65,15 +65,16 @@ void InputHandler::save_screenshot(GLFWwindow* window){
 	glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, ie.encodepixels);
 	glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, ie.encodepixels_flipped);
 	for(int x = 0; x < WIDTH; x++){
-		for(int y = 0; y < HEIGHT; y++){
+		for (int y = 0; y < HEIGHT; y++){
 			int indexflipped = (y * WIDTH + x) * 3;
-			int newindex = WIDTH*HEIGHT*3 - indexflipped;
+			// flip over y axis
+			int y_flip = HEIGHT - 1 - y;
+			int newindex = (y_flip * WIDTH + x) * 3;
 			ie.encodepixels[newindex] = ie.encodepixels_flipped[indexflipped];
 			ie.encodepixels[newindex + 1] = ie.encodepixels_flipped[indexflipped + 1];
 			ie.encodepixels[newindex + 2] = ie.encodepixels_flipped[indexflipped + 2];
 		}
 	}
-
 	if (GL_NO_ERROR != glGetError()) throw "Error: Unable to read pixels.";
 	ie.encodeOneStep("screenshots/output", ".png", WIDTH, HEIGHT);
 }
