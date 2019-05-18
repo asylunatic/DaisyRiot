@@ -6,6 +6,7 @@
 #include "ImageExporter.h"
 #include "OptixPrimeFunctionality.h"
 #include "Camera.h"
+#include <chrono>
 
 class InputHandler
 {
@@ -60,5 +61,6 @@ private:
 	static void clear_light(GLFWwindow* window);
 	static void calc_full_lightning(GLFWwindow* window);
 	static void zoom_out(GLFWwindow* window);
+	static void zoom_in(GLFWwindow* window);
 };
 

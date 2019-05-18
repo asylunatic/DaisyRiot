@@ -2,9 +2,10 @@
 
 All is set up. Get ready to play around!
 	
-Left click and drag to rotate view.	
+Left click and drag to rotate view. 	
 Right click on a triangle to select it, click on a second triangle to calculate if they can see each other.
-Press arrow keys to move around the scene
+Press arrow keys to rotate around the scene
+Press - and + to zoom.
 Press P to make a screenshot
 Press B to calculate a form factor between two selected patches
 Press F to find a triangle by id

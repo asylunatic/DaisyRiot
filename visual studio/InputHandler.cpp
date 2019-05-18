@@ -10,8 +10,7 @@ InputHandler::callback_context::callback_context(bool & left, bool & hitB, std::
 	vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, input_state &inputstate) :
 	left(left), hitB(hitB), debugline(debugline),optixW(optixW),optixH(optixH), camera(camera),trianglesonScreen(trianglesonScreen), optixView(optixView),
 	patches(patches), mesh(mesh), rands(rands), optixP(optixP), lightningvalues(lightningvalues), RadMat(RadMat), emission(emission), numpasses(numpasses), residualvector(residualvector), radiosityRendering(radiosityRendering), inputstate(inputstate)
-{
-	
+{	
 }
 
 void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -31,6 +30,8 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
 
 void InputHandler::cursor_pos_callback(GLFWwindow * window, double xpos, double ypos)
 {
+	auto start = std::chrono::high_resolution_clock::now();
+
 	callback_context* cbc_ptr = get_context(window);
 	if (!cbc_ptr->inputstate.leftbuttonpressed)
 	{
@@ -54,6 +55,9 @@ void InputHandler::cursor_pos_callback(GLFWwindow * window, double xpos, double 
 
 	cbc_ptr->inputstate.old_x = xpos;
 	cbc_ptr->inputstate.old_y = ypos;
+
+	auto finish = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> elapsed = finish - start;
 }
 
 void InputHandler::save_screenshot(GLFWwindow* window){
@@ -202,7 +206,10 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
 		clear_light(window);
 	}
 
-	if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS) {
+		zoom_in(window);
+	}
+	if (key == GLFW_KEY_MINUS  && action == GLFW_PRESS) {
 		zoom_out(window);
 	}
 }
@@ -214,6 +221,18 @@ void InputHandler::zoom_out(GLFWwindow* window){
 
 	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->camera, cbc_ptr->trianglesonScreen, cbc_ptr->mesh);
 
+	if (cbc_ptr->radiosityRendering){
+		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
+	}
+	Drawer::refreshTexture(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView);
+}
+
+void InputHandler::zoom_in(GLFWwindow* window){
+	callback_context* cbc_ptr = get_context(window);
+	cbc_ptr->camera.eye = cbc_ptr->camera.eye*0.5;
+	std::cout << "zoomed in, new cam eye = " << cbc_ptr->camera.eye << std::endl;
+
+	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->optixView, cbc_ptr->camera, cbc_ptr->trianglesonScreen, cbc_ptr->mesh);
 	if (cbc_ptr->radiosityRendering){
 		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->mesh);
 	}
