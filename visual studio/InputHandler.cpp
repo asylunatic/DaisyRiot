@@ -294,15 +294,18 @@ void InputHandler::rightclick(GLFWwindow* window)
 	glfwGetWindowSize(window, &width, &height);
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
-	//xpos = width - xpos;
-	ypos = height - ypos;
+	double ypos_corrected = height - ypos;
 	printf("\nclick!: %f %f", xpos, ypos);
+	cbc_ptr->hitB = cbc_ptr->optixP.intersectMouse(cbc_ptr->left, xpos, ypos_corrected, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->camera, cbc_ptr->trianglesonScreen,
+		cbc_ptr->optixView, cbc_ptr->patches, cbc_ptr->mesh);
+
+	xpos = xpos * 2 / width - 1;
+	ypos = 1 - ypos * 2 / height;
 	if (cbc_ptr->left) {
 		cbc_ptr->debugline.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
 	}
 	else {
 		cbc_ptr->debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
 	}
-cbc_ptr->hitB = cbc_ptr->optixP.intersectMouse(cbc_ptr->left, xpos, ypos, cbc_ptr->optixW, cbc_ptr->optixH, cbc_ptr->camera, cbc_ptr->trianglesonScreen,
-		cbc_ptr->optixView, cbc_ptr->patches, cbc_ptr->mesh);
+
 }

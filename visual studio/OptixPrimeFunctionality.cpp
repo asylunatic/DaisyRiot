@@ -338,25 +338,16 @@ bool OptixPrimeFunctionality::shootPatchRay(std::vector<optix_functionality::Hit
 	optix::float3  pointA = triangle_math::uv2xyz(patches[0].triangleId, patches[0].uv, mesh);
 	optix::float3  pointB = triangle_math::uv2xyz(patches[1].triangleId, patches[1].uv, mesh);
 	std::vector<optix::float3> ray = { pointA + optix::normalize(pointB - pointA)*0.000001f, optix::normalize(pointB - pointA) };
-	optix_functionality::Hit hit;
+	std::vector<optix_functionality::Hit> hit;
+	hit.resize(1);
 
-	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
-	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
-	try {
-		query->execute(RTP_QUERY_HINT_NONE);
-	}
-	catch (optix::prime::Exception &e) {
-		std::cerr << "An error occurred with error code "
-			<< e.getErrorCode() << " and message "
-			<< e.getErrorString() << std::endl;
-	}
-	if (hit.triangleId == patches[1].triangleId) {
+	optixQuery(1, ray, hit);
+
+	if (hit[0].triangleId == patches[1].triangleId) {
 		return true;
 	}
 	else return false;
 }
-
 
 bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypos, int width, int height, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
 	std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh) {
@@ -364,6 +355,8 @@ bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypo
 	bool hitB = true;
 	std::vector<optix::float3> ray;
 	ray.resize(2);
+	std::vector<optix_functionality::Hit> hit;
+	hit.resize(1);
 
 	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.dir), optix_functionality::optix2glmf3(camera.up));
 	glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
@@ -377,25 +370,13 @@ bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypo
 	glm::vec3 dir_coord = glm::unProject(win_dir, lookat, projection, camera.viewport);
 	ray[1] = optix_functionality::glm2optixf3(dir_coord);
 
-	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
-	optix_functionality::Hit hit;
-	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
-	try {
-		query->execute(RTP_QUERY_HINT_NONE);
-	}
-	catch (optix::prime::Exception &e) {
-		std::cerr << "An error occurred with error code "
-			<< e.getErrorCode() << " and message "
-			<< e.getErrorString() << std::endl;
-	}
-	query->finish();
+	optixQuery(1, ray, hit);
 
-	if (hit.t > 0) {
-		printf("\nhit triangle: %i ", hit.triangleId);
-		if (left) patches[0] = hit;
+	if (hit[0].t > 0) {
+		printf("\nhit triangle: %i ", hit[0].triangleId);
+		if (left) patches[0] = hit[0];
 		else {
-			patches[1] = hit;
+			patches[1] = hit[0];
 			printf("\nshoot ray between patches \n");
 			printf("patch triangle 1: %i \n", patches[0].triangleId);
 			printf("patch triangle 2: %i \n", patches[1].triangleId);
@@ -403,7 +384,7 @@ bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypo
 			printf("\ndid it hit? %i", hitB);
 		}
 		left = !left;
-		for (MatrixIndex index : trianglesonScreen[hit.triangleId]) {
+		for (MatrixIndex index : trianglesonScreen[hit[0].triangleId]) {
 			optixView[(index.row*width + index.col)] = glm::vec3(1.0, 1.0, 1.0);
 		}
 		Drawer::refreshTexture(width, height, optixView);
