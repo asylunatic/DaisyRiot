@@ -3,6 +3,9 @@
 
 class Camera{
 public:
+	float totalyaw, totalpitch;
+	const float max_yaw = 45.f;
+	const float max_pitch = 45.f;
 	optix::float3 debug_marijn_eye;
 	optix::float3 debug_marijn_dir;
 	optix::float3 eye;
@@ -13,6 +16,12 @@ public:
 	int pixwidth, pixheight;
 
 	void rotate(float yaw, float pitch, float roll){
+
+		if ( max_pitch - abs(totalpitch + pitch) < 0){ //max_yaw - abs(totalyaw + yaw) < 0 ||
+			std::cout << "preventing gimbal lok, totalpitch is = "<< totalpitch << " want to add " << pitch << " pitch " << std::endl;
+			return;
+		}
+
 		// let's rotate the camera
 		optix::float3 new_eye = eye;
 		optix::float3 new_up = up;
@@ -23,25 +32,32 @@ public:
 		new_eye = rotated_r + dir;
 
 		// get new up vec
-		optix::float3 n_vec = cross(r_vec, new_up);
-		new_up = cross(n_vec, r_vec);
+		optix::float3 uppie = optix::make_float3(0.0f, 1.0f, 0.0f);
+		//optix::float3 n_vec = cross(r_vec, uppie); //0.0, 1.0, 0.0
+		//new_up = cross(n_vec, r_vec);
 		new_up = normalize(new_up);
 
+		std::cout << "new eye vec = " << new_eye << std::endl;
+		std::cout << "new up vec = " << new_up << std::endl;
 		// store our proud new vecs
 		up = new_up;
 		eye = new_eye;
+
+		totalpitch += pitch;
+		//totalyaw += yaw;
 	}
 
 	optix::float3 yaw_pitch_eye(optix::float3 &eye_in, double yaw, double pitch){
-		// this function actually first inputted yaw 0.0 pitch :s
-		glm::mat4x4 rotation_mat = yaw_pitch_roll_in_degrees_to_mat(0.0, yaw, pitch);
+		// this function actually first inputted yaw 0.0 pitch 
+		glm::mat4x4 rotation_mat = yaw_pitch_roll_in_degrees_to_mat(yaw, 0.0, pitch);
+		//glm::mat4x4 rot_mat = glm::yawPitchRoll(yaw, pitch, 0.0);
 		glm::vec4 homogen_eye = { eye_in.x, eye_in.y, eye_in.z, 1.0 };
 		glm::vec4 rotated = rotation_mat * homogen_eye;
 		optix::float3 res = {rotated.x, rotated.y, rotated.z};
 		return res;	
+
 	}
 
-	// IN THIS FUNCTION SOMETHING IS WRONG, somehow swaps pitch and roll
 	glm::mat4x4 yaw_pitch_roll_in_degrees_to_mat(double yaw, double pitch, double roll){
 		//derived from http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/ but on a side note, it does not comply with the code stated there
 		yaw = to_radians(yaw);

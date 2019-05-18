@@ -249,13 +249,13 @@ void InputHandler::leftclick(GLFWwindow* window)
 	glfwGetCursorPos(window, &xpos, &ypos);
 	cbc_ptr->inputstate.old_x = xpos;
 	cbc_ptr->inputstate.old_y = ypos;
-	std::cout << "press" << std::endl;
+	//std::cout << "press" << std::endl;
 }
 
 void InputHandler::leftrelease(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
 	cbc_ptr->inputstate.leftbuttonpressed = false;
-	std::cout << "release" << std::endl;
+	//std::cout << "release" << std::endl;
 }
 
 void InputHandler::rightclick(GLFWwindow* window)
