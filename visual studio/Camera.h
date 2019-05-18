@@ -12,23 +12,31 @@ public:
 	bool moving = false;
 	int pixwidth, pixheight;
 
+	Camera(int width, int height){
+		eye = optix::make_float3(0.0f, 0.0f, 10.0f);
+		dir = optix::make_float3(0.0f, 0.0f, 0.0f);
+		up = optix::make_float3(0.0f, 1.0f, 0.0f);
+		totalpitch = 0.0;
+		viewport = { 0.0f, 0.0f, float(width), float(height) };
+		pixwidth = width;
+		pixheight = height;
+	}
+
 	void rotate(float yaw, float pitch, float roll){
 
-		if ( max_pitch - abs(totalpitch + pitch) < 0){ //max_yaw - abs(totalyaw + yaw) < 0 ||
+		if ( max_pitch - abs(totalpitch + pitch) < 0){ 
 			std::cout << "preventing gimbal lok, totalpitch is = "<< totalpitch << " want to add " << pitch << " pitch " << std::endl;
-			return;
+			pitch = 0;
 		}
 
 		// let's rotate the camera
-		optix::float3 new_eye = eye;
-		optix::float3 new_up = up;
-
 		// r is the vector from center to eye
-		optix::float3 r_vec = new_eye - dir;
+		optix::float3 r_vec = eye - dir;
 		optix::float3 rotated_r = yaw_pitch_eye(r_vec, yaw, pitch);
-		new_eye = rotated_r + dir;
+		optix::float3 new_eye = rotated_r + dir;
 
-		// get new up vec
+		// get new up 
+		optix::float3 new_up = up;
 		optix::float3 uppie = optix::make_float3(0.0f, 1.0f, 0.0f);
 		//optix::float3 n_vec = cross(r_vec, uppie); //0.0, 1.0, 0.0
 		//new_up = cross(n_vec, r_vec);
@@ -41,7 +49,6 @@ public:
 		eye = new_eye;
 
 		totalpitch += pitch;
-		//totalyaw += yaw;
 	}
 
 private:

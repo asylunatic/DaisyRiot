@@ -45,25 +45,25 @@
 #include "visual studio\Camera.h"
 
 // Variables to be set from config.ini file
-int WIDTH, HEIGHT, optixW, optixH;
+int WIDTH, HEIGHT;
 char * obj_filepath;
 int emission_index;
 float emission_value;
 bool radiosityRendering;
 
-
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
 
-std::vector<vertex::Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
-{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
-
+std::vector<vertex::Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), 
+											glm::vec3(0.0f, 1.0f, 0.0f) },
+										  { glm::vec3(0.0f, 0.0f, 0.0f), 
+											glm::vec3(0.0f, 1.0f, 0.0f) } };
 optix::Context context;
 OptixPrimeFunctionality optixP;
 vertex::MeshS mesh = { std::vector<glm::vec3>(), 
-	std::vector<glm::vec3>(), 
-	std::vector<vertex::TriangleIndex>(), 
-	std::vector<std::vector<int>>()};
+					   std::vector<glm::vec3>(), 
+					   std::vector<vertex::TriangleIndex>(), 
+					   std::vector<std::vector<int>>()};
 // optixview is an array containing all pixel values
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
@@ -73,7 +73,6 @@ bool hitB = false;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
 Eigen::VectorXf lightningvalues;
-Camera camera;
 InputHandler::input_state inputstate;
 
 int main() {
@@ -89,24 +88,17 @@ int main() {
 		std::cout << "Can't load 'config.ini'\n";
 		return 1;
 	}
+	// set variables from config
 	WIDTH = reader.GetInteger("window", "width", -1);
 	HEIGHT = reader.GetInteger("window", "height", -1);
-	optixW = reader.GetInteger("optix", "optixW", -1);
-	optixH = reader.GetInteger("optix", "optixH", -1);
 	obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
 	emission_index = reader.GetInteger("lightning", "emission_index", -1);
 	emission_value = reader.GetReal("lightning", "emission_value", -1);
 	radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
 	
-	// set camera
-	camera.eye = optix::make_float3(0.0f, 0.0f, 10.0f);
-	camera.dir = optix::make_float3(0.0f, 0.0f, 0.0f);
-	camera.up = optix::make_float3(0.0f, 1.0f, 0.0f);
-	camera.totalpitch = 0.0;
-	camera.viewport = { 0.0f, 0.0f, float(WIDTH), float(HEIGHT) };
-	camera.pixwidth = WIDTH;
-	camera.pixheight = HEIGHT;
+	// set up camera
+	Camera camera(WIDTH, HEIGHT);
 
 	//initialize window
 	GLFWwindow* window = Drawer::initWindow(WIDTH, HEIGHT);
@@ -135,8 +127,8 @@ int main() {
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	optixP.doOptixPrime(optixW, optixH, optixView, camera, trianglesonScreen, mesh);
-	Drawer::initRes(optixShader, optixVao, optixTex, optixW, optixH, optixView);
+	optixP.doOptixPrime(WIDTH, HEIGHT, optixView, camera, trianglesonScreen, mesh);
+	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
 
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
@@ -170,7 +162,7 @@ int main() {
 
 	// set up callback context
 	patches.resize(2);
-	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputstate);
+	InputHandler::callback_context cbc(left, hitB, debugline, WIDTH, HEIGHT, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputstate);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// print menu
@@ -180,8 +172,8 @@ int main() {
 	f_menu.close();
 
 	if (radiosityRendering){
-		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, optixW, optixH, mesh);
-		Drawer::refreshTexture(optixW, optixH, optixView);
+		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, WIDTH, HEIGHT, mesh);
+		Drawer::refreshTexture(WIDTH, HEIGHT, optixView);
 	}
 
 	// Main loop
