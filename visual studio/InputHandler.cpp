@@ -294,8 +294,8 @@ void InputHandler::rightclick(GLFWwindow* window)
 	glfwGetWindowSize(window, &width, &height);
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
-	xpos = xpos * 2 / width - 1;
-	ypos = 1 - ypos * 2 / height;
+	//xpos = width - xpos;
+	ypos = height - ypos;
 	printf("\nclick!: %f %f", xpos, ypos);
 	if (cbc_ptr->left) {
 		cbc_ptr->debugline.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };

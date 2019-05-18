@@ -20,51 +20,12 @@ void OptixPrimeFunctionality::initOptixPrime(vertex::MeshS& mesh) {
 	}
 }
 
-void  OptixPrimeFunctionality::doOptixPrime(int width, int height, std::vector<glm::vec3> &optixView,
-Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, vertex::MeshS& mesh) {
-
-	std::vector<optix_functionality::Hit> hits;
-	hits.resize(width*height);
-	optixView.resize(width*height);
-	optix::float3 upperLeftCorner = camera.debug_marijn_eye + camera.debug_marijn_dir + optix::make_float3(-1.0f, 1.0f, 0.0f);
+void OptixPrimeFunctionality::optixQuery(int number_of_rays, std::vector<optix::float3> &rays, std::vector<optix_functionality::Hit> &hits){
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-	std::vector<optix::float3> rays;
-	rays.resize(width*height * 2);
-
-	//// generate rays the marijn way
-	//for (size_t j = 0; j < optixH; j++) {
-	//	for (size_t i = 0; i < optixW; i++) {
-	//		rays[(j*optixH + i) * 2] = camera.debug_marijn_eye;
-	//		rays[((j*optixH + i) * 2) + 1] = optix::normalize(upperLeftCorner + optix::make_float3(i*2.0f / optixW, -1.0f*(j*2.0f / optixH), 0) - camera.debug_marijn_eye);
-	//	}
-	//}
-
-	// generate rays the un_project way
-	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.dir), optix_functionality::optix2glmf3(camera.up));
-	//glm::mat4x4 projection = glm::ortho(-10.0, 10.0, -10.0, 10.0);
-	glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
-	for (size_t x = 0; x < width; x++) {
-		for (size_t y = 0; y < height; y++) {
-			glm::vec3 win(x, y, 0.0);
-			glm::vec3 world_coord = glm::unProject(win, lookat, projection, camera.viewport);
-			if (x % 10 == 0 && y % 10 == 0){
-				//std::cout << "unprojected (x " << x << " y " << y << ") = " << world_coord.x << " " << world_coord.y << " " << world_coord.z << std::endl;
-			}
-			rays[(y*width + x) * 2] = optix_functionality::glm2optixf3(world_coord);
-
-			glm::vec3 win_dir(x, y, 1.0);
-			glm::vec3 dir_coord = glm::unProject(win_dir, lookat, projection, camera.viewport);
-			//optix::float3 dir = (camera.dir - camera.eye);
-			//dir = normalize(dir);
-			rays[((y*width + x) * 2) + 1] = optix_functionality::glm2optixf3(dir_coord); //dir;
-		}
-	}
-
-	query->setRays(width*height, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
+	query->setRays(number_of_rays, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
 	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
-	hitBuffer->setRange(0, width*height);
+	hitBuffer->setRange(0, number_of_rays);
 	query->setHits(hitBuffer);
-
 	try {
 		query->execute(RTP_QUERY_HINT_NONE);
 	}
@@ -74,6 +35,35 @@ Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, vertex
 			<< e.getErrorString() << std::endl;
 	}
 	query->finish();
+}
+
+void  OptixPrimeFunctionality::doOptixPrime(int width, int height, std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, vertex::MeshS& mesh) {
+
+	optixView.resize(width*height);
+
+	std::vector<optix_functionality::Hit> hits;
+	hits.resize(width*height);
+
+	std::vector<optix::float3> rays;
+	rays.resize(width*height * 2);
+
+	// generate rays the un_project way
+	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.dir), optix_functionality::optix2glmf3(camera.up));
+	glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
+	for (size_t x = 0; x < width; x++) {
+		for (size_t y = 0; y < height; y++) {
+			// get ray origin
+			glm::vec3 win(x, y, 0.0);
+			glm::vec3 world_coord = glm::unProject(win, lookat, projection, camera.viewport);
+			rays[(y*width + x) * 2] = optix_functionality::glm2optixf3(world_coord);
+			// get ray direction
+			glm::vec3 win_dir(x, y, 1.0);
+			glm::vec3 dir_coord = glm::unProject(win_dir, lookat, projection, camera.viewport);
+			rays[((y*width + x) * 2) + 1] = optix_functionality::glm2optixf3(dir_coord); 
+		}
+	}
+
+	optixQuery(width * height, rays, hits);
 
 	trianglesonScreen.clear();
 	trianglesonScreen.resize(mesh.triangleIndices.size());
@@ -148,19 +138,7 @@ float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatc
 		rays[i * 2 + 1] = optix::normalize(dest - origin);
 	}
 
-	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-	query->setRays(RAYS_PER_PATCH, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
-	optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
-	hitBuffer->setRange(0, RAYS_PER_PATCH);
-	query->setHits(hitBuffer);
-	try {
-		query->execute(RTP_QUERY_HINT_NONE);
-	}
-	catch (optix::prime::Exception &e) {
-		std::cerr << "An error occurred with error code "
-			<< e.getErrorCode() << " and message "
-			<< e.getErrorString() << std::endl;
-	}
+	optixQuery(RAYS_PER_PATCH, rays, hits);
 
 	float visibility = 0;
 
@@ -211,8 +189,6 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 
 }
 
-// TODO: optimize insertion, this is probably best done with triplets, as explained on:
-// https://eigen.tuxfamily.org/dox/group__TutorialSparse.html
 void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, vertex::MeshS& mesh, std::vector<UV> &rands) {
 	std::cout << "Calculating radiosity matrix..." << std::endl;
 	int numtriangles = mesh.triangleIndices.size();
@@ -291,7 +267,6 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 
 		// generate random rays
 		for (int i = 0; i < numrays; i++) {
-			
 			float x = ((float)(rand() % RAND_MAX)) / RAND_MAX;
 			float y = ((float)(rand() % RAND_MAX)) / RAND_MAX;
 			float theta = acosf(sqrtf(1.0 - x));
@@ -313,19 +288,7 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 		}
 
 		// now shoot the rays
-		optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-		query->setRays(numrays, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, rays.data());
-		optix::prime::BufferDesc hitBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, hits.data());
-		hitBuffer->setRange(0, numrays);
-		query->setHits(hitBuffer);
-		try {
-			query->execute(RTP_QUERY_HINT_NONE);
-		}
-		catch (optix::prime::Exception &e) {
-			std::cerr << "An error occurred with error code "
-				<< e.getErrorCode() << " and message "
-				<< e.getErrorString() << std::endl;
-		}
+		optixQuery(numrays, rays, hits);
 
 		// initialize vector with all zeroes and store in this the number of hits
 		std::vector<float> hitarray(numtriangles, 0.0);
@@ -374,10 +337,11 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 bool OptixPrimeFunctionality::shootPatchRay(std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh) {
 	optix::float3  pointA = triangle_math::uv2xyz(patches[0].triangleId, patches[0].uv, mesh);
 	optix::float3  pointB = triangle_math::uv2xyz(patches[1].triangleId, patches[1].uv, mesh);
-	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
 	std::vector<optix::float3> ray = { pointA + optix::normalize(pointB - pointA)*0.000001f, optix::normalize(pointB - pointA) };
-	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
 	optix_functionality::Hit hit;
+
+	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
+	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
 	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
 	try {
 		query->execute(RTP_QUERY_HINT_NONE);
@@ -394,11 +358,26 @@ bool OptixPrimeFunctionality::shootPatchRay(std::vector<optix_functionality::Hit
 }
 
 
-bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypos, int optixW, int optixH, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
+bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypos, int width, int height, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
 	std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh) {
+	
 	bool hitB = true;
+	std::vector<optix::float3> ray;
+	ray.resize(2);
+
+	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.dir), optix_functionality::optix2glmf3(camera.up));
+	glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
+
+	// get ray origin
+	glm::vec3 win(xpos, ypos, 0.0);
+	glm::vec3 world_coord = glm::unProject(win, lookat, projection, camera.viewport);
+	ray[0] = optix_functionality::glm2optixf3(world_coord);
+	// get ray direction
+	glm::vec3 win_dir(xpos, ypos, 1.0);
+	glm::vec3 dir_coord = glm::unProject(win_dir, lookat, projection, camera.viewport);
+	ray[1] = optix_functionality::glm2optixf3(dir_coord);
+
 	optix::prime::Query query = model->createQuery(RTP_QUERY_TYPE_CLOSEST);
-	std::vector<optix::float3> ray = { camera.eye, optix::normalize(optix::make_float3(xpos + camera.dir.x, ypos + camera.dir.y, camera.dir.z)) };
 	query->setRays(1, RTP_BUFFER_FORMAT_RAY_ORIGIN_DIRECTION, RTP_BUFFER_TYPE_HOST, ray.data());
 	optix_functionality::Hit hit;
 	query->setHits(1, RTP_BUFFER_FORMAT_HIT_T_TRIID_U_V, RTP_BUFFER_TYPE_HOST, &hit);
@@ -411,6 +390,7 @@ bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypo
 			<< e.getErrorString() << std::endl;
 	}
 	query->finish();
+
 	if (hit.t > 0) {
 		printf("\nhit triangle: %i ", hit.triangleId);
 		if (left) patches[0] = hit;
@@ -424,9 +404,9 @@ bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypo
 		}
 		left = !left;
 		for (MatrixIndex index : trianglesonScreen[hit.triangleId]) {
-			optixView[(index.row*optixH + index.col)] = glm::vec3(1.0, 1.0, 1.0);
+			optixView[(index.row*width + index.col)] = glm::vec3(1.0, 1.0, 1.0);
 		}
-		Drawer::refreshTexture(optixW, optixH, optixView);
+		Drawer::refreshTexture(width, height, optixView);
 	}
 	else {
 		printf("miss!");

@@ -3,11 +3,8 @@
 
 class Camera{
 public:
-	float totalyaw, totalpitch;
-	const float max_yaw = 45.f;
+	float totalpitch;
 	const float max_pitch = 45.f;
-	optix::float3 debug_marijn_eye;
-	optix::float3 debug_marijn_dir;
 	optix::float3 eye;
 	optix::float3 up;
 	optix::float3 dir;
@@ -47,6 +44,7 @@ public:
 		//totalyaw += yaw;
 	}
 
+private:
 	optix::float3 yaw_pitch_eye(optix::float3 &eye_in, double yaw, double pitch){
 		// this function actually first inputted yaw 0.0 pitch 
 		glm::mat4x4 rotation_mat = yaw_pitch_roll_in_degrees_to_mat(yaw, 0.0, pitch);
