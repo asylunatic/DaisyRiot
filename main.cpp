@@ -69,7 +69,6 @@ Drawer::DebugLine debugline;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
 Eigen::VectorXf lightningvalues;
-InputHandler::input_state inputstate;
 
 int main() {
 	// print header
@@ -150,16 +149,25 @@ int main() {
 		numpasses++;
 	}
 
-	// Set up OpenGL debug callback
-	glDebugMessageCallback(Drawer::debugCallback, nullptr);
-	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
-	glfwSetCursorPosCallback(window, InputHandler::cursor_pos_callback);
-	glfwSetKeyCallback(window, InputHandler::key_callback);
-
 	// set up callback context
 	patches.resize(2);
-	InputHandler::callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputstate);
+	InputHandler inputhandler;
+	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputhandler);
 	glfwSetWindowUserPointer(window, &cbc);
+	// Some neat casting of member functions such we can use them as callback AND have state too, as explained per:
+	// https://stackoverflow.com/a/28660673/7925249
+	auto func_key = [](GLFWwindow* window, int key, int scancode, int action, int mods) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->key_callback(window, key, scancode, action, mods); };
+	auto func_mouse = [](GLFWwindow* window, int button, int action, int mods) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->mouse_button_callback(window, button, action, mods); };
+	auto func_cursor = [](GLFWwindow* window, double xpos, double ypos) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->cursor_pos_callback(window, xpos, ypos); };
+
+	// Set up OpenGL debug callback
+	glDebugMessageCallback(Drawer::debugCallback, nullptr);
+	// Set up input callbacks
+	glfwSetMouseButtonCallback(window, func_mouse);
+	glfwSetCursorPosCallback(window, func_cursor);
+	glfwSetKeyCallback(window, func_key);
+
+
 
 	std::cout << "All is set up! Get ready to play around!" << std::endl;
 	// print menu

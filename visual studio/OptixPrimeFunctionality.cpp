@@ -331,7 +331,7 @@ void OptixPrimeFunctionality::calculateRadiosityMatrixStochastic(SpMat &RadMat, 
 	}
 
 	RadMat.setFromTriplets(tripletList.begin(), tripletList.end());
-	std::cout << "... done!                                                                                       " << std::endl;
+	std::cout << "... done calculating radiosity matrix!                                                                                       " << std::endl;
 }
 
 bool OptixPrimeFunctionality::shootPatchRay(std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh) {

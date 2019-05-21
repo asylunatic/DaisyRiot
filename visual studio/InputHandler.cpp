@@ -1,15 +1,21 @@
 #include "InputHandler.h"
 
+InputHandler::InputHandler(){
+	leftbuttonpressed = false;
+	old_x = 0.0;
+	old_y = 0.0;
+}
+
 // And a function to get the context from a window:
-InputHandler::callback_context* InputHandler::get_context(GLFWwindow* w) {
+callback_context* InputHandler::get_context(GLFWwindow* w) {
 	return static_cast<callback_context*>(glfwGetWindowUserPointer(w));
 }
 
-InputHandler::callback_context::callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView, 
-	std::vector<optix_functionality::Hit>& patches, vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, 
-	Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, input_state &inputstate) :
-	debugline(debugline), camera(camera), trianglesonScreen(trianglesonScreen), optixView(optixView), patches(patches), mesh(mesh), rands(rands), optixP(optixP), lightningvalues(lightningvalues), 
-	RadMat(RadMat), emission(emission), numpasses(numpasses), residualvector(residualvector), radiosityRendering(radiosityRendering), inputstate(inputstate)
+callback_context::callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView,
+	std::vector<optix_functionality::Hit>& patches, vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat,
+	Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, InputHandler &inputhandler) :
+	debugline(debugline), camera(camera), trianglesonScreen(trianglesonScreen), optixView(optixView), patches(patches), mesh(mesh), rands(rands), optixP(optixP), lightningvalues(lightningvalues),
+	RadMat(RadMat), emission(emission), numpasses(numpasses), residualvector(residualvector), radiosityRendering(radiosityRendering), inputhandler(inputhandler)
 {
 }
 
@@ -107,14 +113,14 @@ void InputHandler::print_menu(){
 void InputHandler::cursor_pos_callback(GLFWwindow * window, double xpos, double ypos)
 {
 	callback_context* cbc_ptr = get_context(window);
-	if (!cbc_ptr->inputstate.leftbuttonpressed)
+	if (!leftbuttonpressed)
 	{
 		return;
 	}
 
 	// update yaw and pitch of camera
-	double deltax = xpos - cbc_ptr->inputstate.old_x;
-	double deltay = ypos - cbc_ptr->inputstate.old_y;
+	double deltax = xpos - old_x;
+	double deltay = ypos - old_y;
 
 	double yaw = (180.0 / float(cbc_ptr->camera.pixwidth)) * deltax;
 	double pitch = (180.0 / float(cbc_ptr->camera.pixheight)) * deltay;
@@ -123,8 +129,8 @@ void InputHandler::cursor_pos_callback(GLFWwindow * window, double xpos, double 
 
 	recalculate_screen(cbc_ptr);
 
-	cbc_ptr->inputstate.old_x = xpos;
-	cbc_ptr->inputstate.old_y = ypos;
+	old_x = xpos;
+	old_y = ypos;
 }
 
 void InputHandler::save_screenshot(GLFWwindow* window){
@@ -269,17 +275,17 @@ void InputHandler::clear_light(GLFWwindow* window) {
 void InputHandler::leftclick(GLFWwindow* window)
 {
 	callback_context* cbc_ptr = get_context(window);
-	cbc_ptr->inputstate.leftbuttonpressed = true;
+	leftbuttonpressed = true;
 	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
-	cbc_ptr->inputstate.old_x = xpos;
-	cbc_ptr->inputstate.old_y = ypos;
+	old_x = xpos;
+	old_y = ypos;
 	//std::cout << "press" << std::endl;
 }
 
 void InputHandler::leftrelease(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
-	cbc_ptr->inputstate.leftbuttonpressed = false;
+	leftbuttonpressed = false;
 	//std::cout << "release" << std::endl;
 }
 
