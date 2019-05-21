@@ -36,7 +36,6 @@ callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::
 		bool radiosityRendering;
 		input_state &inputstate;
 	};
-	
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 	static void cursor_pos_callback(GLFWwindow * window, double xpos, double ypos);
@@ -59,5 +58,6 @@ private:
 	static void zoom_out(GLFWwindow* window);
 	static void zoom_in(GLFWwindow* window);
 	static void recalculate_screen(callback_context* cbc_ptr);
+	static void print_menu();
 };
 

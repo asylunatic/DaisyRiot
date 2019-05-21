@@ -6,7 +6,7 @@ InputHandler::callback_context* InputHandler::get_context(GLFWwindow* w) {
 }
 
 InputHandler::callback_context::callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView, 
-	std::vector<optix_functionality::Hit>& patches, 	vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, 
+	std::vector<optix_functionality::Hit>& patches, vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, 
 	Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, input_state &inputstate) :
 	debugline(debugline), camera(camera), trianglesonScreen(trianglesonScreen), optixView(optixView), patches(patches), mesh(mesh), rands(rands), optixP(optixP), lightningvalues(lightningvalues), 
 	RadMat(RadMat), emission(emission), numpasses(numpasses), residualvector(residualvector), radiosityRendering(radiosityRendering), inputstate(inputstate)
@@ -36,10 +36,18 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
 	cbc_ptr->debugline.line.at(0) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
 	cbc_ptr->debugline.line.at(1) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
 
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
+		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	}
 
 	if (key == GLFW_KEY_P && action == GLFW_PRESS){
 		save_screenshot(window);
 	}
+
+	if (key == GLFW_KEY_M && action == GLFW_PRESS){
+		print_menu();
+	}
+
 	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
 		move_left(window);
 	}
@@ -83,9 +91,17 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
 	if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS) {
 		zoom_in(window);
 	}
+
 	if (key == GLFW_KEY_MINUS  && action == GLFW_PRESS) {
 		zoom_out(window);
 	}
+}
+
+void InputHandler::print_menu(){
+	std::ifstream f_menu("print_menu.txt");
+	if (f_menu.is_open())
+		std::cout << f_menu.rdbuf();
+	f_menu.close();
 }
 
 void InputHandler::cursor_pos_callback(GLFWwindow * window, double xpos, double ypos)
@@ -159,7 +175,6 @@ void InputHandler::move_up(GLFWwindow* window){
 	cbc_ptr->camera.rotate(0.0, 10.0, 0.0);
 	
 	recalculate_screen(cbc_ptr);
-
 }
 
 void InputHandler::move_down(GLFWwindow* window){

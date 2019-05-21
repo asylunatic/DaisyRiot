@@ -161,6 +161,7 @@ int main() {
 	InputHandler::callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputstate);
 	glfwSetWindowUserPointer(window, &cbc);
 
+	std::cout << "All is set up! Get ready to play around!" << std::endl;
 	// print menu
 	std::ifstream f_menu("print_menu.txt");
 	if (f_menu.is_open())
@@ -174,7 +175,9 @@ int main() {
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
-		glfwPollEvents();
+		// glfwWaitEvents is preferred over glwfPollEvents as we do not have to render in between input callbacks
+		//glfwPollEvents();
+		glfwWaitEvents();
 		Drawer::draw(window, optixShader, optixVao, debugprogram, linevao, linevbo, debugline);
 	}
 
