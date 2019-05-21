@@ -38,14 +38,14 @@ private:
 	void calc_full_lightning(GLFWwindow* window);
 	void zoom_out(GLFWwindow* window);
 	void zoom_in(GLFWwindow* window);
-	void recalculate_screen(callback_context* cbc_ptr);
+	void recalculate_screen(GLFWwindow* window);
 	void print_menu();
 };
 
 struct callback_context {
 	callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches,
 		vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &emission,
-		int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, InputHandler &inputhandler);
+		int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, InputHandler &inputhandler, GLuint &shaderProgram, GLuint &vao);
 	InputHandler inputhandler;
 	Drawer::DebugLine &debugline;
 	Camera &camera;
@@ -61,4 +61,6 @@ struct callback_context {
 	int numpasses;
 	Eigen::VectorXf &residualvector;
 	bool radiosityRendering;
+	GLuint &shaderProgram;
+	GLuint &vao;
 };

@@ -36,9 +36,6 @@ public:
 						glm::vec3(0.0f, 1.0f, 0.0f) } };
 		}
 	};
-	struct RenderContext{
-
-	};
 
 	static GLFWwindow* initWindow(int width, int height);
 	static void debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgram);

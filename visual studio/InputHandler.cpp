@@ -13,9 +13,9 @@ callback_context* InputHandler::get_context(GLFWwindow* w) {
 
 callback_context::callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView,
 	std::vector<optix_functionality::Hit>& patches, vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat,
-	Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, InputHandler &inputhandler) :
+	Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, InputHandler &inputhandler, GLuint &shaderProgram, GLuint &vao) :
 	debugline(debugline), camera(camera), trianglesonScreen(trianglesonScreen), optixView(optixView), patches(patches), mesh(mesh), rands(rands), optixP(optixP), lightningvalues(lightningvalues),
-	RadMat(RadMat), emission(emission), numpasses(numpasses), residualvector(residualvector), radiosityRendering(radiosityRendering), inputhandler(inputhandler)
+	RadMat(RadMat), emission(emission), numpasses(numpasses), residualvector(residualvector), radiosityRendering(radiosityRendering), inputhandler(inputhandler), shaderProgram(shaderProgram), vao(vao)
 {
 }
 
@@ -127,7 +127,7 @@ void InputHandler::cursor_pos_callback(GLFWwindow * window, double xpos, double 
 
 	cbc_ptr->camera.rotate(yaw, pitch, 0.0);
 
-	recalculate_screen(cbc_ptr);
+	recalculate_screen(window);
 
 	old_x = xpos;
 	old_y = ypos;
@@ -162,7 +162,7 @@ void InputHandler::move_left(GLFWwindow* window){
 
 	cbc_ptr->camera.rotate(-10.0, 0.0, 0.0);
 	
-	recalculate_screen(cbc_ptr);
+	recalculate_screen(window);
 }
 
 void InputHandler::move_right(GLFWwindow *window){
@@ -171,7 +171,7 @@ void InputHandler::move_right(GLFWwindow *window){
 
 	cbc_ptr->camera.rotate(10.0, 0.0, 0.0);
 	
-	recalculate_screen(cbc_ptr);
+	recalculate_screen(window);
 }
 
 void InputHandler::move_up(GLFWwindow* window){
@@ -180,7 +180,7 @@ void InputHandler::move_up(GLFWwindow* window){
 
 	cbc_ptr->camera.rotate(0.0, 10.0, 0.0);
 	
-	recalculate_screen(cbc_ptr);
+	recalculate_screen(window);
 }
 
 void InputHandler::move_down(GLFWwindow* window){
@@ -189,7 +189,7 @@ void InputHandler::move_down(GLFWwindow* window){
 
 	cbc_ptr->camera.rotate(0.0, -10.0, 0.0);
 	
-	recalculate_screen(cbc_ptr);
+	recalculate_screen(window);
 }
 
 void InputHandler::calculate_form_vector(GLFWwindow* window){
@@ -215,7 +215,7 @@ void InputHandler::zoom_out(GLFWwindow* window){
 	cbc_ptr->camera.eye = cbc_ptr->camera.eye*2.0;
 	std::cout << "zoomed out, new cam eye = " << cbc_ptr->camera.eye << std::endl;
 
-	recalculate_screen(cbc_ptr);
+	recalculate_screen(window);
 }
 
 void InputHandler::zoom_in(GLFWwindow* window){
@@ -223,7 +223,7 @@ void InputHandler::zoom_in(GLFWwindow* window){
 	cbc_ptr->camera.eye = cbc_ptr->camera.eye*0.5;
 	std::cout << "zoomed in, new cam eye = " << cbc_ptr->camera.eye << std::endl;
 
-	recalculate_screen(cbc_ptr);
+	recalculate_screen(window);
 }
 
 void InputHandler::calc_full_lightning(GLFWwindow* window){
@@ -245,7 +245,7 @@ void InputHandler::toggle_view(GLFWwindow* window) {
 	callback_context* cbc_ptr = get_context(window);
 	cbc_ptr->radiosityRendering = !cbc_ptr->radiosityRendering;
 
-	recalculate_screen(cbc_ptr);
+	recalculate_screen(window);
 }
 
 void InputHandler::increment_lightpasses(GLFWwindow* window) {
@@ -313,10 +313,19 @@ void InputHandler::rightclick(GLFWwindow* window)
 	}
 }
 
-void InputHandler::recalculate_screen(callback_context* cbc_ptr){
+void InputHandler::recalculate_screen(GLFWwindow* window){
+	callback_context* cbc_ptr = get_context(window);
 	cbc_ptr->optixP.traceScreen(cbc_ptr->optixView, cbc_ptr->camera, cbc_ptr->trianglesonScreen, cbc_ptr->mesh);
 	if (cbc_ptr->radiosityRendering){
 		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->mesh);
 	}
 	Drawer::refreshTexture(cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->optixView);
+
+	// bit weird to do the drawing call here but see if it works first
+	// Clear the framebuffer to black and depth to maximum value
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Drawer::drawRes(cbc_ptr->shaderProgram, cbc_ptr->vao);
+	// Present result to the screen
+	glfwSwapBuffers(window);
 }

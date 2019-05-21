@@ -150,7 +150,7 @@ int main() {
 	// set up callback context
 	patches.resize(2);
 	InputHandler inputhandler;
-	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputhandler);
+	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputhandler, optixShader, optixVao);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// Some neat casting of member functions such we can use them as callback AND have state too, as explained per:
