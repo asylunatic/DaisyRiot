@@ -198,12 +198,27 @@ float Drawer::interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &l
 	return lightningvalue;
 }
 
-void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Drawer::DebugLine &debugline, OptixPrimeFunctionality optixP, Drawer::RenderContext rendercontext){
+void Drawer::debugtrianglesDraw(DebugLine &debugline, RenderContext &rendercontext){
+	for (int i = 0; i < debugline.debugtriangles.size(); i++){
+		int tri = debugline.debugtriangles[i];
+		for (MatrixIndex index : rendercontext.trianglesonScreen[tri]) {
+			rendercontext.optixView[(index.row*rendercontext.camera.pixwidth + index.col)] = glm::vec3(1.0, 1.0, 1.0);
+		}
+	}
+}
+
+void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Drawer::DebugLine &debugline, OptixPrimeFunctionality &optixP, Drawer::RenderContext &rendercontext){
 	// Do Optix stuff
 	optixP.traceScreen(rendercontext.optixView, rendercontext.camera, rendercontext.trianglesonScreen, rendercontext.mesh);
 	if (rendercontext.radiosityRendering){
 		Drawer::setRadiosityTex(rendercontext.trianglesonScreen, rendercontext.lightningvalues, rendercontext.optixView, rendercontext.camera.pixwidth, rendercontext.camera.pixheight, rendercontext.mesh);
 	}
+
+	// debug triangles
+	if (!debugline.cleared){
+		debugtrianglesDraw(debugline, rendercontext);
+	}
+
 	Drawer::refreshTexture(rendercontext.camera.pixwidth, rendercontext.camera.pixheight, rendercontext.optixView);
 
 	// Clear the framebuffer to black and depth to maximum value
@@ -211,8 +226,10 @@ void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Dra
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	Drawer::drawRes(optixShader, optixVao);
 
-	//DRAWING DEBUGLINE
-	Drawer::debuglineDraw(rendercontext.debugprogram, rendercontext.linevao, rendercontext.linevbo, debugline);
+	//debugline drawing
+	if (!debugline.cleared){
+		Drawer::debuglineDraw(rendercontext.debugprogram, rendercontext.linevao, rendercontext.linevbo, debugline);
+	}
 
 	// Present result to the screen
 	glfwSwapBuffers(window);

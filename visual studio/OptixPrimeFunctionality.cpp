@@ -349,7 +349,7 @@ bool OptixPrimeFunctionality::shootPatchRay(std::vector<optix_functionality::Hit
 	else return false;
 }
 
-bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypos, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
+bool OptixPrimeFunctionality::intersectMouse(Drawer::DebugLine &debugline, double xpos, double ypos, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
 	std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh) {
 	
 	bool hitB = true;
@@ -374,7 +374,7 @@ bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypo
 
 	if (hit[0].t > 0) {
 		printf("\nhit triangle: %i ", hit[0].triangleId);
-		if (left) patches[0] = hit[0];
+		if (debugline.left) patches[0] = hit[0];
 		else {
 			patches[1] = hit[0];
 			printf("\nshoot ray between patches \n");
@@ -383,18 +383,19 @@ bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypo
 			hitB = shootPatchRay(patches, mesh);
 			printf("\ndid it hit? %i", hitB);
 		}
-		left = !left;
-		for (MatrixIndex index : trianglesonScreen[hit[0].triangleId]) {
+		debugline.left = !debugline.left;
+		
+		debugline.debugtriangles.push_back(hit[0].triangleId);
+		/*for (MatrixIndex index : trianglesonScreen[hit[0].triangleId]) {
 			optixView[(index.row*camera.pixwidth + index.col)] = glm::vec3(1.0, 1.0, 1.0);
-		}
-		Drawer::refreshTexture(camera.pixwidth, camera.pixheight, optixView);
+		}*/
 	}
 	else {
 		printf("miss!");
 		hitB = false;
 		patches.clear();
 		patches.resize(2);
-		left = true;
+		debugline.left = true;
 	}
 	return hitB;
 }

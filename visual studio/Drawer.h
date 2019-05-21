@@ -25,11 +25,13 @@ class Drawer
 {
 public:
 	struct DebugLine{
+		bool cleared;
 		bool left;
 		bool hitB;
 		std::vector<vertex::Vertex> line;
-
+		std::vector<int> debugtriangles;
 		DebugLine(){
+			cleared = true;
 			left = true;
 			hitB = false;
 			line = { { glm::vec3(0.0f, 0.0f, 0.0f),
@@ -37,6 +39,14 @@ public:
 						{ glm::vec3(0.0f, 0.0f, 0.0f),
 						glm::vec3(0.0f, 1.0f, 0.0f) } };
 		};
+		void reset(){
+			cleared = true;
+			left = true;
+			hitB = false;
+			line.at(0) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+			line.at(1) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
+			debugtriangles.clear();
+		}
 	};
 
 	struct RenderContext{
@@ -65,6 +75,7 @@ public:
 	static void drawRes(GLuint &shaderProgram, GLuint &vao);
 	static void setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int width, int height, vertex::MeshS& mesh);
 	static float interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &lightningvalues, vertex::MeshS& mesh);
-	static void draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Drawer::DebugLine &debugline, OptixPrimeFunctionality optixP, Drawer::RenderContext rendercontext);
+	static void draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Drawer::DebugLine &debugline, OptixPrimeFunctionality &optixP, Drawer::RenderContext &rendercontext);
+	static void debugtrianglesDraw(DebugLine &debugline, RenderContext &rendercontext);
 };
 

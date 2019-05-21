@@ -36,11 +36,8 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
 
 // key button callback to print screen
 void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
-	// reset debug line
 	callback_context* cbc_ptr = get_context(window);
-	cbc_ptr->debugline.left = true;
-	cbc_ptr->debugline.line.at(0) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
-	cbc_ptr->debugline.line.at(1) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
+	cbc_ptr->debugline.reset();
 
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -117,6 +114,8 @@ void InputHandler::cursor_pos_callback(GLFWwindow * window, double xpos, double 
 	{
 		return;
 	}
+	// reset debugline
+	cbc_ptr->debugline.reset();
 
 	// update yaw and pitch of camera
 	double deltax = xpos - old_x;
@@ -189,10 +188,11 @@ void InputHandler::find_triangle_by_id(GLFWwindow* window){
 	int id;
 	std::cout << "\nenter the id of the triangle you want to find" << std::endl;
 	std::cin >> id;
-	for (MatrixIndex index : cbc_ptr->trianglesonScreen[id]) {
+	cbc_ptr->debugline.debugtriangles.push_back(id);
+	cbc_ptr->debugline.cleared = false;
+	/*for (MatrixIndex index : cbc_ptr->trianglesonScreen[id]) {
 		cbc_ptr->optixView[(index.row*cbc_ptr->camera.pixwidth + index.col)] = glm::vec3(0.0, 1.0, 0.0);
-	}
-	Drawer::refreshTexture(cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->optixView);
+	}*/
 }
 
 void InputHandler::zoom_out(GLFWwindow* window){
@@ -214,8 +214,6 @@ void InputHandler::calc_full_lightning(GLFWwindow* window){
 		cbc_ptr->numpasses++;
 	}
 	std::cout << "Number of light passes " << cbc_ptr->numpasses << ". Amount of residual light in scene " << cbc_ptr->residualvector.sum() << std::endl;
-	Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->mesh);
-	Drawer::refreshTexture(cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->optixView);
 }
 
 void InputHandler::toggle_view(GLFWwindow* window) {
@@ -225,27 +223,22 @@ void InputHandler::toggle_view(GLFWwindow* window) {
 }
 
 void InputHandler::increment_lightpasses(GLFWwindow* window) {
-	std::cout << "Add another light pass and set radiosity drawing as result" << std::endl;
+	std::cout << "Add another light pass" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
 	// calculate consecutive lighting pass
 	cbc_ptr->residualvector = cbc_ptr->RadMat * cbc_ptr->residualvector;
 	cbc_ptr->lightningvalues = cbc_ptr->lightningvalues + cbc_ptr->residualvector;
 	cbc_ptr->numpasses++;
-
 	std::cout << "Number of light passes " << cbc_ptr->numpasses << ". Amount of residual light in scene " << cbc_ptr->residualvector.sum() << std::endl;
-	Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->mesh);
-	Drawer::refreshTexture(cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->optixView);
 }
 
 void InputHandler::clear_light(GLFWwindow* window) {
-	std::cout << "Clear radiosity" << std::endl;
+	std::cout << "Reset light passes to 0" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
 	// clear light passes
 	cbc_ptr->residualvector = cbc_ptr->emission;
 	cbc_ptr->lightningvalues = cbc_ptr->emission;
 	cbc_ptr->numpasses = 0;
-	Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->mesh);
-	Drawer::refreshTexture(cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->optixView);
 }
 
 void InputHandler::leftclick(GLFWwindow* window)
@@ -266,6 +259,7 @@ void InputHandler::leftrelease(GLFWwindow* window){
 void InputHandler::rightclick(GLFWwindow* window)
 {
 	callback_context* cbc_ptr = get_context(window);
+	cbc_ptr->debugline.cleared = false;
 	int width, height;
 	double xpos, ypos;
 	glfwGetWindowSize(window, &width, &height);
@@ -273,7 +267,7 @@ void InputHandler::rightclick(GLFWwindow* window)
 	printf("\nclick!: %f %f", xpos, ypos);
 	// calculate intersection
 	double ypos_corrected = height - ypos;
-	cbc_ptr->debugline.hitB = cbc_ptr->optixP.intersectMouse(cbc_ptr->debugline.left, xpos, ypos_corrected, cbc_ptr->camera, cbc_ptr->trianglesonScreen,
+	cbc_ptr->debugline.hitB = cbc_ptr->optixP.intersectMouse(cbc_ptr->debugline, xpos, ypos_corrected, cbc_ptr->camera, cbc_ptr->trianglesonScreen,
 		cbc_ptr->optixView, cbc_ptr->patches, cbc_ptr->mesh);
 
 	// adjust debug line
