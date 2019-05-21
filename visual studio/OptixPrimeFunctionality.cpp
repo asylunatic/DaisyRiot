@@ -386,9 +386,6 @@ bool OptixPrimeFunctionality::intersectMouse(Drawer::DebugLine &debugline, doubl
 		debugline.left = !debugline.left;
 		
 		debugline.debugtriangles.push_back(hit[0].triangleId);
-		/*for (MatrixIndex index : trianglesonScreen[hit[0].triangleId]) {
-			optixView[(index.row*camera.pixwidth + index.col)] = glm::vec3(1.0, 1.0, 1.0);
-		}*/
 	}
 	else {
 		printf("miss!");
