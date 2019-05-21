@@ -127,7 +127,7 @@ int main() {
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	optixP.doOptixPrime(WIDTH, HEIGHT, optixView, camera, trianglesonScreen, mesh);
+	optixP.doOptixPrime(optixView, camera, trianglesonScreen, mesh);
 	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
 
 	//initializing debugline
@@ -162,7 +162,7 @@ int main() {
 
 	// set up callback context
 	patches.resize(2);
-	InputHandler::callback_context cbc(left, hitB, debugline, WIDTH, HEIGHT, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputstate);
+	InputHandler::callback_context cbc(left, hitB, debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputstate);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// print menu

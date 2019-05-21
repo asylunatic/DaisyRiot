@@ -37,40 +37,40 @@ void OptixPrimeFunctionality::optixQuery(int number_of_rays, std::vector<optix::
 	query->finish();
 }
 
-void  OptixPrimeFunctionality::doOptixPrime(int width, int height, std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, vertex::MeshS& mesh) {
+void  OptixPrimeFunctionality::doOptixPrime(std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, vertex::MeshS& mesh) {
 
-	optixView.resize(width*height);
+	optixView.resize(camera.pixwidth*camera.pixheight);
 
 	std::vector<optix_functionality::Hit> hits;
-	hits.resize(width*height);
+	hits.resize(camera.pixwidth*camera.pixheight);
 
 	std::vector<optix::float3> rays;
-	rays.resize(width*height * 2);
+	rays.resize(camera.pixwidth*camera.pixheight * 2);
 
 	// generate rays the un_project way
 	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(camera.eye), optix_functionality::optix2glmf3(camera.dir), optix_functionality::optix2glmf3(camera.up));
 	glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
-	for (size_t x = 0; x < width; x++) {
-		for (size_t y = 0; y < height; y++) {
+	for (size_t x = 0; x < camera.pixwidth; x++) {
+		for (size_t y = 0; y < camera.pixheight; y++) {
 			// get ray origin
 			glm::vec3 win(x, y, 0.0);
 			glm::vec3 world_coord = glm::unProject(win, lookat, projection, camera.viewport);
-			rays[(y*width + x) * 2] = optix_functionality::glm2optixf3(world_coord);
+			rays[(y*camera.pixwidth + x) * 2] = optix_functionality::glm2optixf3(world_coord);
 			// get ray direction
 			glm::vec3 win_dir(x, y, 1.0);
 			glm::vec3 dir_coord = glm::unProject(win_dir, lookat, projection, camera.viewport);
-			rays[((y*width + x) * 2) + 1] = optix_functionality::glm2optixf3(dir_coord); 
+			rays[((y*camera.pixwidth + x) * 2) + 1] = optix_functionality::glm2optixf3(dir_coord);
 		}
 	}
 
-	optixQuery(width * height, rays, hits);
+	optixQuery(camera.pixwidth * camera.pixheight, rays, hits);
 
 	trianglesonScreen.clear();
 	trianglesonScreen.resize(mesh.triangleIndices.size());
 
-	for (size_t x = 0; x < width; x++) {
-		for (size_t y = 0; y < height; y++) {
-			int pixelIndex = y*width + x;
+	for (size_t x = 0; x < camera.pixwidth; x++) {
+		for (size_t y = 0; y < camera.pixheight; y++) {
+			int pixelIndex = y*camera.pixwidth + x;
 			optixView[pixelIndex] = (hits[pixelIndex].t > 0) ? glm::vec3(glm::abs(mesh.normals[mesh.triangleIndices[hits[pixelIndex].triangleId].normal.x])) : glm::vec3(0.0f, 0.0f, 0.0f);
 			if (hits[pixelIndex].t > 0 
 				&& !triangle_math::isFacingBack(optix_functionality::optix2glmf3(camera.eye), hits[pixelIndex].triangleId, mesh)
