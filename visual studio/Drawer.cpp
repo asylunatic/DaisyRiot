@@ -43,13 +43,13 @@ void Drawer::debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgr
 	glLinkProgram(shaderProgram);
 }
 
-void Drawer::debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<vertex::Vertex> &debugline, bool hitB) {
+void Drawer::debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, Drawer::DebugLine debugline) {
 	glUseProgram(debugprogram);
 	glBindVertexArray(linevao);
 	// vao will get info from linevbo now
 	glBindBuffer(GL_ARRAY_BUFFER, linevbo);
 	//insert data into the current array_buffer: the vbo
-	glBufferData(GL_ARRAY_BUFFER, debugline.size() * sizeof(vertex::Vertex), debugline.data(), GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, debugline.line.size() * sizeof(vertex::Vertex), debugline.line.data(), GL_STREAM_DRAW);
 	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
 	// Stride is the distance in bytes between vertices
 	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the current VertexArray
@@ -59,7 +59,7 @@ void Drawer::debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevb
 	glEnableVertexAttribArray(1);
 
 	GLuint hitLoc = glGetUniformLocation(debugprogram, "hit");
-	glUniform1i(hitLoc, hitB);
+	glUniform1i(hitLoc, debugline.hitB);
 	glDrawArrays(GL_LINES, 0, 2);
 }
 
@@ -113,7 +113,7 @@ void Drawer::refreshTexture(int optixW, int optixH, std::vector<glm::vec3> &opti
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
 }
 
-void Drawer::initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, int optixW, int optixH, std::vector<glm::vec3> &optixView) {
+void Drawer::initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, int width, int height, std::vector<glm::vec3> &optixView) {
 	GLuint vertexShader;
 	ShaderLoader::loadShader(vertexShader, "shaders/optixShader.vert", GL_VERTEX_SHADER);
 
@@ -131,7 +131,7 @@ void Drawer::initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, 
 		//return EXIT_FAILURE;
 	}
 
-	setResDrawing(optixVao, optixTex, optixW, optixH, optixView);
+	setResDrawing(optixVao, optixTex, width, height, optixView);
 
 	// Set behaviour for when texture coordinates are outside the [0, 1] range
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -157,16 +157,16 @@ void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, Drawer::DebugLine &debugline) {
+void Drawer::draw(GLFWwindow* window, GLuint &shader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, Drawer::DebugLine &debugline) {
 	// Clear the framebuffer to black and depth to maximum value
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Drawing result from optix raytracing!
-	Drawer::drawRes(optixShader, optixVao);
+	Drawer::drawRes(shader, optixVao);
 
 	//DRAWING DEBUGLINE
-	Drawer::debuglineDraw(debugprogram, linevao, linevbo, debugline.line, debugline.hitB);
+	Drawer::debuglineDraw(debugprogram, linevao, linevbo, debugline);
 
 	// Present result to the screen
 	glfwSwapBuffers(window);
