@@ -314,7 +314,7 @@ void InputHandler::rightclick(GLFWwindow* window)
 }
 
 void InputHandler::recalculate_screen(callback_context* cbc_ptr){
-	cbc_ptr->optixP.doOptixPrime(cbc_ptr->optixView, cbc_ptr->camera, cbc_ptr->trianglesonScreen, cbc_ptr->mesh);
+	cbc_ptr->optixP.traceScreen(cbc_ptr->optixView, cbc_ptr->camera, cbc_ptr->trianglesonScreen, cbc_ptr->mesh);
 	if (cbc_ptr->radiosityRendering){
 		Drawer::setRadiosityTex(cbc_ptr->trianglesonScreen, cbc_ptr->lightningvalues, cbc_ptr->optixView, cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->mesh);
 	}

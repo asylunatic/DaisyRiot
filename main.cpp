@@ -55,7 +55,6 @@ bool radiosityRendering;
 typedef Eigen::SparseMatrix<float> SpMat;
 
 optix::Context context;
-OptixPrimeFunctionality optixP;
 vertex::MeshS mesh = { std::vector<glm::vec3>(), 
 					   std::vector<glm::vec3>(), 
 					   std::vector<vertex::TriangleIndex>(), 
@@ -117,12 +116,11 @@ int main() {
 	}
 
 	//initializing optix
-	optixP = OptixPrimeFunctionality();
-	optixP.initOptixPrime(mesh);
+	OptixPrimeFunctionality optixP(mesh);
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	optixP.doOptixPrime(optixView, camera, trianglesonScreen, mesh);
+	optixP.traceScreen(optixView, camera, trianglesonScreen, mesh);
 	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
 
 	//initializing debugline
@@ -154,6 +152,7 @@ int main() {
 	InputHandler inputhandler;
 	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputhandler);
 	glfwSetWindowUserPointer(window, &cbc);
+
 	// Some neat casting of member functions such we can use them as callback AND have state too, as explained per:
 	// https://stackoverflow.com/a/28660673/7925249
 	auto func_key = [](GLFWwindow* window, int key, int scancode, int action, int mods) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->key_callback(window, key, scancode, action, mods); };
@@ -166,8 +165,6 @@ int main() {
 	glfwSetMouseButtonCallback(window, func_mouse);
 	glfwSetCursorPosCallback(window, func_cursor);
 	glfwSetKeyCallback(window, func_key);
-
-
 
 	std::cout << "All is set up! Get ready to play around!" << std::endl;
 	// print menu

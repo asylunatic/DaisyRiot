@@ -37,7 +37,7 @@ void OptixPrimeFunctionality::optixQuery(int number_of_rays, std::vector<optix::
 	query->finish();
 }
 
-void  OptixPrimeFunctionality::doOptixPrime(std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, vertex::MeshS& mesh) {
+void  OptixPrimeFunctionality::traceScreen(std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, vertex::MeshS& mesh) {
 
 	optixView.resize(camera.pixwidth*camera.pixheight);
 
