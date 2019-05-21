@@ -1,6 +1,6 @@
 ﻿#include "OptixPrimeFunctionality.h"
 
-void OptixPrimeFunctionality::initOptixPrime(vertex::MeshS& mesh) {
+OptixPrimeFunctionality::OptixPrimeFunctionality(vertex::MeshS& mesh) {
 	contextP = optix::prime::Context::create(RTP_CONTEXT_TYPE_CUDA);
 	optix::prime::BufferDesc vertexBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_VERTEX_FLOAT3, RTP_BUFFER_TYPE_HOST, mesh.vertices.data());
 	vertexBuffer->setRange(0, mesh.vertices.size());

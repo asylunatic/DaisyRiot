@@ -21,6 +21,8 @@ typedef Eigen::Triplet<double> Tripl;
 class OptixPrimeFunctionality
 {
 public:
+
+	OptixPrimeFunctionality(vertex::MeshS& mesh);
 	optix::prime::Model model;
 	optix::prime::Context contextP;
 	bool intersectMouse(bool &left, double xpos, double ypos, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
@@ -31,7 +33,6 @@ public:
 	float calculatePointLightVisibility(optix::float3 &lightpos, int patchindex, vertex::MeshS& mesh, std::vector<UV> &rands);
 	void calculateRadiosityMatrix(SpMat &RadMat, vertex::MeshS& mesh, std::vector<UV> &rands);
 	void calculateRadiosityMatrixStochastic(SpMat &RadMat, vertex::MeshS& mesh, std::vector<UV> &rands);
-	void initOptixPrime(vertex::MeshS& mesh);
 	void optixQuery(int number_of_rays, std::vector<optix::float3> &rays, std::vector<optix_functionality::Hit> &hits);
 	void doOptixPrime(std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
 		vertex::MeshS& mesh);
