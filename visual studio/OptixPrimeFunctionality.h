@@ -23,7 +23,7 @@ class OptixPrimeFunctionality
 public:
 	optix::prime::Model model;
 	optix::prime::Context contextP;
-	bool intersectMouse(bool &left, double xpos, double ypos, int optixW, int optixH, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
+	bool intersectMouse(bool &left, double xpos, double ypos, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
 		std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh);
 	bool shootPatchRay(std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh);
 	float p2pFormfactor(int originPatch, int destPatch, vertex::MeshS& mesh, std::vector<UV> &rands);

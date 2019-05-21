@@ -349,7 +349,7 @@ bool OptixPrimeFunctionality::shootPatchRay(std::vector<optix_functionality::Hit
 	else return false;
 }
 
-bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypos, int width, int height, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
+bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypos, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
 	std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh) {
 	
 	bool hitB = true;
@@ -385,9 +385,9 @@ bool OptixPrimeFunctionality::intersectMouse(bool &left, double xpos, double ypo
 		}
 		left = !left;
 		for (MatrixIndex index : trianglesonScreen[hit[0].triangleId]) {
-			optixView[(index.row*width + index.col)] = glm::vec3(1.0, 1.0, 1.0);
+			optixView[(index.row*camera.pixwidth + index.col)] = glm::vec3(1.0, 1.0, 1.0);
 		}
-		Drawer::refreshTexture(width, height, optixView);
+		Drawer::refreshTexture(camera.pixwidth, camera.pixheight, optixView);
 	}
 	else {
 		printf("miss!");

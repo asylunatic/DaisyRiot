@@ -157,7 +157,7 @@ void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<vertex::Vertex> &debugline, bool hitB) {
+void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, Drawer::DebugLine &debugline) {
 	// Clear the framebuffer to black and depth to maximum value
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -166,7 +166,7 @@ void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLu
 	Drawer::drawRes(optixShader, optixVao);
 
 	//DRAWING DEBUGLINE
-	Drawer::debuglineDraw(debugprogram, linevao, linevbo, debugline, hitB);
+	Drawer::debuglineDraw(debugprogram, linevao, linevbo, debugline.line, debugline.hitB);
 
 	// Present result to the screen
 	glfwSwapBuffers(window);

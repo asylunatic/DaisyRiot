@@ -54,10 +54,6 @@ bool radiosityRendering;
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
 
-std::vector<vertex::Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), 
-											glm::vec3(0.0f, 1.0f, 0.0f) },
-										  { glm::vec3(0.0f, 0.0f, 0.0f), 
-											glm::vec3(0.0f, 1.0f, 0.0f) } };
 optix::Context context;
 OptixPrimeFunctionality optixP;
 vertex::MeshS mesh = { std::vector<glm::vec3>(), 
@@ -68,8 +64,8 @@ vertex::MeshS mesh = { std::vector<glm::vec3>(),
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
 std::vector<optix_functionality::Hit> patches;
-bool left = true; 
-bool hitB = false;
+
+Drawer::DebugLine debugline;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
 Eigen::VectorXf lightningvalues;
@@ -162,7 +158,7 @@ int main() {
 
 	// set up callback context
 	patches.resize(2);
-	InputHandler::callback_context cbc(left, hitB, debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputstate);
+	InputHandler::callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputstate);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// print menu
@@ -179,7 +175,7 @@ int main() {
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
-		Drawer::draw(window, optixShader, optixVao, debugprogram, linevao, linevbo, debugline, hitB);
+		Drawer::draw(window, optixShader, optixVao, debugprogram, linevao, linevbo, debugline);
 	}
 
 	// clean up

@@ -5,11 +5,11 @@ InputHandler::callback_context* InputHandler::get_context(GLFWwindow* w) {
 	return static_cast<callback_context*>(glfwGetWindowUserPointer(w));
 }
 
-
-InputHandler::callback_context::callback_context(bool & left, bool & hitB, std::vector<vertex::Vertex>& debugline, Camera &camera, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView, std::vector<optix_functionality::Hit>& patches,
-	vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, input_state &inputstate) :
-	left(left), hitB(hitB), debugline(debugline), camera(camera), trianglesonScreen(trianglesonScreen), optixView(optixView),
-	patches(patches), mesh(mesh), rands(rands), optixP(optixP), lightningvalues(lightningvalues), RadMat(RadMat), emission(emission), numpasses(numpasses), residualvector(residualvector), radiosityRendering(radiosityRendering), inputstate(inputstate)
+InputHandler::callback_context::callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView, 
+	std::vector<optix_functionality::Hit>& patches, 	vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, 
+	Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, input_state &inputstate) :
+	debugline(debugline), camera(camera), trianglesonScreen(trianglesonScreen), optixView(optixView), patches(patches), mesh(mesh), rands(rands), optixP(optixP), lightningvalues(lightningvalues), 
+	RadMat(RadMat), emission(emission), numpasses(numpasses), residualvector(residualvector), radiosityRendering(radiosityRendering), inputstate(inputstate)
 {
 }
 
@@ -28,10 +28,68 @@ void InputHandler::mouse_button_callback(GLFWwindow* window, int button, int act
 	}
 }
 
+// key button callback to print screen
+void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
+	// reset debug line
+	callback_context* cbc_ptr = get_context(window);
+	cbc_ptr->debugline.left = true;
+	cbc_ptr->debugline.line.at(0) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+	cbc_ptr->debugline.line.at(1) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
+
+
+	if (key == GLFW_KEY_P && action == GLFW_PRESS){
+		save_screenshot(window);
+	}
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+		move_left(window);
+	}
+
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+		move_right(window);
+	}
+
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		move_up(window);
+	}
+
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+		move_down(window);
+	}
+
+	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
+		calculate_form_vector(window);
+	}
+
+	if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+		find_triangle_by_id(window);
+	}
+
+	if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+		toggle_view(window);
+	}
+
+	if (key == GLFW_KEY_L && action == GLFW_PRESS) {
+		increment_lightpasses(window);
+	}
+
+	if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+		calc_full_lightning(window);
+	}
+
+	if (key == GLFW_KEY_X && action == GLFW_PRESS) {
+		clear_light(window);
+	}
+
+	if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS) {
+		zoom_in(window);
+	}
+	if (key == GLFW_KEY_MINUS  && action == GLFW_PRESS) {
+		zoom_out(window);
+	}
+}
+
 void InputHandler::cursor_pos_callback(GLFWwindow * window, double xpos, double ypos)
 {
-	auto start = std::chrono::high_resolution_clock::now();
-
 	callback_context* cbc_ptr = get_context(window);
 	if (!cbc_ptr->inputstate.leftbuttonpressed)
 	{
@@ -51,9 +109,6 @@ void InputHandler::cursor_pos_callback(GLFWwindow * window, double xpos, double 
 
 	cbc_ptr->inputstate.old_x = xpos;
 	cbc_ptr->inputstate.old_y = ypos;
-
-	auto finish = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> elapsed = finish - start;
 }
 
 void InputHandler::save_screenshot(GLFWwindow* window){
@@ -132,66 +187,6 @@ void InputHandler::find_triangle_by_id(GLFWwindow* window){
 		cbc_ptr->optixView[(index.row*cbc_ptr->camera.pixwidth + index.col)] = glm::vec3(0.0, 1.0, 0.0);
 	}
 	Drawer::refreshTexture(cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->optixView);
-}
-
-// key button callback to print screen
-void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
-	// reset debug line
-	callback_context* cbc_ptr = get_context(window);
-	cbc_ptr->left = true;
-	cbc_ptr->debugline.at(0) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
-	cbc_ptr->debugline.at(1) = { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
-
-
-	if (key == GLFW_KEY_P && action == GLFW_PRESS){
-		save_screenshot(window);
-	}
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
-		move_left(window);
-	}
-
-	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
-		move_right(window);
-	}
-
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		move_up(window);
-	}
-
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-		move_down(window);
-	}
-
-	if (key == GLFW_KEY_B && action == GLFW_PRESS) {
-		calculate_form_vector(window);
-	}
-
-	if (key == GLFW_KEY_F && action == GLFW_PRESS) {
-		find_triangle_by_id(window);
-	}
-
-	if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-		toggle_view(window);
-	}
-
-	if (key == GLFW_KEY_L && action == GLFW_PRESS) {
-		increment_lightpasses(window);
-	}
-
-	if (key == GLFW_KEY_C && action == GLFW_PRESS) {
-		calc_full_lightning(window);
-	}
-
-	if (key == GLFW_KEY_X && action == GLFW_PRESS) {
-		clear_light(window);
-	}
-
-	if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS) {
-		zoom_in(window);
-	}
-	if (key == GLFW_KEY_MINUS  && action == GLFW_PRESS) {
-		zoom_out(window);
-	}
 }
 
 void InputHandler::zoom_out(GLFWwindow* window){
@@ -283,17 +278,17 @@ void InputHandler::rightclick(GLFWwindow* window)
 	printf("\nclick!: %f %f", xpos, ypos);
 	// calculate intersection
 	double ypos_corrected = height - ypos;
-	cbc_ptr->hitB = cbc_ptr->optixP.intersectMouse(cbc_ptr->left, xpos, ypos_corrected, cbc_ptr->camera.pixwidth, cbc_ptr->camera.pixheight, cbc_ptr->camera, cbc_ptr->trianglesonScreen,
+	cbc_ptr->debugline.hitB = cbc_ptr->optixP.intersectMouse(cbc_ptr->debugline.left, xpos, ypos_corrected, cbc_ptr->camera, cbc_ptr->trianglesonScreen,
 		cbc_ptr->optixView, cbc_ptr->patches, cbc_ptr->mesh);
 
 	// adjust debug line
 	xpos = xpos * 2 / width - 1;
 	ypos = 1 - ypos * 2 / height;
-	if (cbc_ptr->left) {
-		cbc_ptr->debugline.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
+	if (cbc_ptr->debugline.left) {
+		cbc_ptr->debugline.line.at(0) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) };
 	}
 	else {
-		cbc_ptr->debugline.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
+		cbc_ptr->debugline.line.at(1) = { glm::vec3((float)xpos, (float)ypos, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f) };
 	}
 }
 
