@@ -150,7 +150,7 @@ int main() {
 	// set up callback context
 	patches.resize(2);
 	InputHandler inputhandler;
-	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputhandler, optixShader, optixVao);
+	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputhandler);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// Some neat casting of member functions such we can use them as callback AND have state too, as explained per:
@@ -178,12 +178,13 @@ int main() {
 		Drawer::refreshTexture(WIDTH, HEIGHT, optixView);
 	}
 
+	Drawer::RenderContext rendercontext(trianglesonScreen, lightningvalues, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering);
+
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
-		// glfwWaitEvents is preferred over glwfPollEvents as we do not have to render in between input callbacks
-		//glfwPollEvents();
+		// glfwWaitEvents is preferred over glwfPollEvents for our application as we do not have to render in between input callbacks
 		glfwWaitEvents();
-		Drawer::draw(window, optixShader, optixVao, debugprogram, linevao, linevbo, debugline);
+		Drawer::draw(window, optixShader, optixVao, debugline, optixP, rendercontext);
 	}
 
 	// clean up

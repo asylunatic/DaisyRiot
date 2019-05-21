@@ -1,3 +1,4 @@
+#pragma once
 // Library for OpenGL function loading
 // Must be included before GLFW
 #define GLEW_STATIC
@@ -10,18 +11,19 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <Eigen/Sparse>
+
 #include "ShaderLoader.h"
 #include "Vertex.h"
 #include "Defines.h"
 
-#include <Eigen/Sparse>
+// some forward declarations here bc poor design is my signature
+struct Camera;
+class OptixPrimeFunctionality;
 
-
-#pragma once
 class Drawer
 {
 public:
-
 	struct DebugLine{
 		bool left;
 		bool hitB;
@@ -34,7 +36,23 @@ public:
 						glm::vec3(0.0f, 1.0f, 0.0f) },
 						{ glm::vec3(0.0f, 0.0f, 0.0f),
 						glm::vec3(0.0f, 1.0f, 0.0f) } };
-		}
+		};
+	};
+
+	struct RenderContext{
+		RenderContext(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, vertex::MeshS &mesh, Camera &camera, 
+			GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, bool &radiosityRendering) :
+			trianglesonScreen(trianglesonScreen), lightningvalues(lightningvalues), optixView(optixView), mesh(mesh), camera(camera), debugprogram(debugprogram), linevao(linevao), 
+			linevbo(linevbo), radiosityRendering(radiosityRendering){};
+		std::vector<std::vector<MatrixIndex>> &trianglesonScreen;
+		Eigen::VectorXf &lightningvalues;
+		std::vector<glm::vec3> &optixView;
+		vertex::MeshS &mesh;
+		Camera &camera;
+		GLuint &debugprogram;
+		GLuint &linevao;
+		GLuint &linevbo;
+		bool &radiosityRendering;
 	};
 
 	static GLFWwindow* initWindow(int width, int height);
@@ -45,8 +63,8 @@ public:
 	static void refreshTexture(int optixW, int optixH, std::vector<glm::vec3> &optixView);
 	static void initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, int width, int height, std::vector<glm::vec3> &optixView);
 	static void drawRes(GLuint &shaderProgram, GLuint &vao);
-	static void draw(GLFWwindow* window, GLuint &shader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, Drawer::DebugLine &debugline);
-	static void setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH, vertex::MeshS& mesh);
+	static void setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int width, int height, vertex::MeshS& mesh);
 	static float interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &lightningvalues, vertex::MeshS& mesh);
+	static void draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Drawer::DebugLine &debugline, OptixPrimeFunctionality optixP, Drawer::RenderContext rendercontext);
 };
 

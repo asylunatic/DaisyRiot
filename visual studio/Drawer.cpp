@@ -1,4 +1,5 @@
 #include "Drawer.h"
+#include "InputHandler.h"
 
 GLFWwindow* Drawer::initWindow(int width, int height) {
 	if (!glfwInit()) {
@@ -157,30 +158,15 @@ void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Drawer::draw(GLFWwindow* window, GLuint &shader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, Drawer::DebugLine &debugline) {
-	// Clear the framebuffer to black and depth to maximum value
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//Drawing result from optix raytracing!
-	Drawer::drawRes(shader, optixVao);
-
-	//DRAWING DEBUGLINE
-	Drawer::debuglineDraw(debugprogram, linevao, linevbo, debugline);
-
-	// Present result to the screen
-	glfwSwapBuffers(window);
-}
-
-void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH, vertex::MeshS& mesh) {
+void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int width, int height, vertex::MeshS& mesh) {
 	optixView.clear();
-	optixView.resize(optixW * optixH);
+	optixView.resize(width * height);
 	for (int i = 0; i < lightningvalues.size(); i++) {
 		if (trianglesonScreen[i].size() > 0) {
 			//for each pixel of the current triangle i that you can see on the screen
 			for (MatrixIndex index : trianglesonScreen[i]) {
 				float intensity = Drawer::interpolate(index, i, lightningvalues, mesh);
-				optixView[(index.row*optixW + index.col)] = glm::vec3(intensity, intensity, intensity);
+				optixView[(index.row*width + index.col)] = glm::vec3(intensity, intensity, intensity);
 			}
 		}
 	}
@@ -212,3 +198,22 @@ float Drawer::interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &l
 	return lightningvalue;
 }
 
+void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Drawer::DebugLine &debugline, OptixPrimeFunctionality optixP, Drawer::RenderContext rendercontext){
+	// Do Optix stuff
+	optixP.traceScreen(rendercontext.optixView, rendercontext.camera, rendercontext.trianglesonScreen, rendercontext.mesh);
+	if (rendercontext.radiosityRendering){
+		Drawer::setRadiosityTex(rendercontext.trianglesonScreen, rendercontext.lightningvalues, rendercontext.optixView, rendercontext.camera.pixwidth, rendercontext.camera.pixheight, rendercontext.mesh);
+	}
+	Drawer::refreshTexture(rendercontext.camera.pixwidth, rendercontext.camera.pixheight, rendercontext.optixView);
+
+	// Clear the framebuffer to black and depth to maximum value
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Drawer::drawRes(optixShader, optixVao);
+
+	//DRAWING DEBUGLINE
+	Drawer::debuglineDraw(rendercontext.debugprogram, rendercontext.linevao, rendercontext.linevbo, debugline);
+
+	// Present result to the screen
+	glfwSwapBuffers(window);
+}

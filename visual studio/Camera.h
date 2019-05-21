@@ -42,8 +42,6 @@ public:
 		//new_up = cross(n_vec, r_vec);
 		new_up = normalize(new_up);
 
-		std::cout << "new eye vec = " << new_eye << std::endl;
-		std::cout << "new up vec = " << new_up << std::endl;
 		// store our proud new vecs
 		up = new_up;
 		eye = new_eye;
