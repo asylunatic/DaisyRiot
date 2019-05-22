@@ -2,18 +2,20 @@
 
 
 
-void vertex::loadVertices(vertex::MeshS& mesh, char * filepath)
+void vertex::loadVertices(vertex::MeshS& mesh, char * filepath, char * mtldirpath)
 {
 	// Load vertices of model
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
-	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filepath)) {
+	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filepath, mtldirpath, false)) {
 		std::cerr << err << std::endl;
 		//return EXIT_FAILURE;
 	}
 
+	std::cout << "size of shapes = " << shapes.size() << std::endl;
+	std::cout << "size of materials = " << materials.size() << std::endl;
 	mesh.trianglesPerVertex.resize(attrib.vertices.size()/3);
 
 	for (int i = 0; i < attrib.vertices.size(); i += 3) {
@@ -37,7 +39,7 @@ void vertex::loadVertices(vertex::MeshS& mesh, char * filepath)
 	int currTriangleIndex = 0;
 	for (int i = 0; i < shapes.size(); i++) {
 		tinyobj::shape_t shape = shapes[i];
-
+		
 		//loop over each triangle in shape
 		for (int j = 0; j < shape.mesh.indices.size(); j += 3) {
 
@@ -60,6 +62,7 @@ void vertex::loadVertices(vertex::MeshS& mesh, char * filepath)
 
 			currTriangleIndex += 1;
 			mesh.triangleIndices.push_back(triangle);
+
 		}
 	}
 }

@@ -25,7 +25,7 @@ public:
 	void rotate(float yaw, float pitch, float roll){
 
 		if ( max_pitch - abs(totalpitch + pitch) < 0){ 
-			std::cout << "preventing gimbal lok, totalpitch is = "<< totalpitch << " want to add " << pitch << " pitch " << std::endl;
+			std::cout << "preventing gimbal lock, totalpitch is = "<< totalpitch << " want to add " << pitch << " pitch " << std::endl;
 			pitch = 0;
 		}
 

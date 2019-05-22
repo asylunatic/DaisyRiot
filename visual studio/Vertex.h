@@ -30,6 +30,6 @@ namespace vertex
 		std::vector<std::vector<int>>& trianglesPerVertex;
 	};
 
-	void loadVertices(vertex::MeshS& mesh, char* filepath);
+	void loadVertices(vertex::MeshS& mesh, char* filepath, char* mtlpath);
 };
 

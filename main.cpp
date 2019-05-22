@@ -47,6 +47,7 @@
 // Variables to be set from config.ini file
 int WIDTH, HEIGHT;
 char * obj_filepath;
+char * mtl_dirpath;
 int emission_index;
 float emission_value;
 bool radiosityRendering;
@@ -87,6 +88,8 @@ int main() {
 	HEIGHT = reader.GetInteger("window", "height", -1);
 	obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
+	mtl_dirpath = new char[reader.Get("filepaths", "mtl_dir", "testscenes/").length() + 1];
+	std::strcpy(mtl_dirpath, reader.Get("filepaths", "mtl_dir", "testscenes/").c_str());
 	emission_index = reader.GetInteger("lightning", "emission_index", -1);
 	emission_value = reader.GetReal("lightning", "emission_value", -1);
 	radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
@@ -101,8 +104,11 @@ int main() {
 	glewExperimental = GL_TRUE;
 	glewInit();
 
+	// this should load from init but somehow that does not work, so we'll hardcode for now:
+	mtl_dirpath = "testscenes/";
+
 	// load scene
-	vertex::loadVertices(mesh, obj_filepath);
+	vertex::loadVertices(mesh, obj_filepath, mtl_dirpath);
 
 	// set up randoms to be reused
 	rands.resize(RAYS_PER_PATCH);

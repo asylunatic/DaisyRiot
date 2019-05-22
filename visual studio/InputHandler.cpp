@@ -190,9 +190,6 @@ void InputHandler::find_triangle_by_id(GLFWwindow* window){
 	std::cin >> id;
 	cbc_ptr->debugline.debugtriangles.push_back(id);
 	cbc_ptr->debugline.cleared = false;
-	/*for (MatrixIndex index : cbc_ptr->trianglesonScreen[id]) {
-		cbc_ptr->optixView[(index.row*cbc_ptr->camera.pixwidth + index.col)] = glm::vec3(0.0, 1.0, 0.0);
-	}*/
 }
 
 void InputHandler::zoom_out(GLFWwindow* window){
