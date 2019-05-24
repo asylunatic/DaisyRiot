@@ -10,12 +10,21 @@ public:
 	glm::vec3 emission;
 	glm::mat3x3 xyz2srgb;
 	glm::mat3x3 srgb2xyz;
+	glm::mat3x4 wave2xyz;
 
-	//float wavebins[4] = { 0.f, 0.f, 0.f, 0.f }; // contains wavelengths of respectively 456.4, 490.9, 557.7 and 631.4 nm
+	glm::vec4 wavebins;// = { 0.f, 0.f, 0.f, 0.f }; // contains wavelengths of respectively 456.4, 490.9, 557.7 and 631.4 nm
 	
 	Material(glm::vec3 rgbcolor, glm::vec3 emission) :rgbcolor(rgbcolor), emission(emission){
 		xyz2srgb = xyz_to_srgb();
 		srgb2xyz = srgb_to_xyz();
+		/*wave2xyz = { 0.1986f, -0.0569f, 0.4934f, 0.4228f,
+					-0.0034f, 0.1856f, 0.6770f, 0.1998f,
+					0.9632f, 0.0931f, 0.0806f, -0.0791f };*/
+		// col major definition?
+		wave2xyz = { 0.1986f, -0.0034f, 0.9632f, 
+					-0.0569f, 0.1856f, 0.0931f, 
+					0.4934f, 0.6770f, 0.0806f, 
+					0.4228f, 0.1998f, -0.0791f };
 	};
 	
 	Material(){
@@ -24,6 +33,14 @@ public:
 		emission = glm::vec3();
 		xyz2srgb = xyz_to_srgb();
 		srgb2xyz = srgb_to_xyz();
+		/*wave2xyz = { 0.1986f, -0.0569f, 0.4934f, 0.4228f,
+		-0.0034f, 0.1856f, 0.6770f, 0.1998f,
+		0.9632f, 0.0931f, 0.0806f, -0.0791f };*/
+		// col major definition?
+		wave2xyz = { 0.1986f, -0.0034f, 0.9632f,
+					-0.0569f, 0.1856f, 0.0931f,
+					0.4934f, 0.6770f, 0.0806f,
+					0.4228f, 0.1998f, -0.0791f };
 	};
 
 	// debug function, aught to return same color as rgb value as this is a linear conversion
@@ -33,7 +50,22 @@ public:
 		return srgb;
 	}
 
+	// debug function, aught to return same color as rgb value as this is a linear conversion
+	glm::vec3 get_double_triple_converted_color(){
+		glm::vec3 xyz = rgbcolor * srgb2xyz;
+		// convert to wavelengths
+		glm::mat3x4 xyz2wave = glm::transpose(wave2xyz);
+		glm::vec4 wave = xyz2wave * xyz;
+		xyz = wave2xyz * wave;
+		glm::vec3 srgb = xyz * xyz2srgb;
+		return srgb;
+	}
+
 private:
+	glm::vec3 wavelength2xyz(glm::vec4 waves){
+		return waves * wave2xyz;
+	}
+
 	glm::mat3x3 xyz_to_srgb(){
 		return glm::inverse(srgb_to_xyz());
 	}
