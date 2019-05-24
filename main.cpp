@@ -42,35 +42,29 @@
 #include "visual studio\Defines.h"
 #include "visual studio\InputHandler.h"
 #include "visual studio\INIReader.h"
+#include "visual studio\Camera.h"
 
 // Variables to be set from config.ini file
-int WIDTH, HEIGHT, optixW, optixH;
+int WIDTH, HEIGHT;
 char * obj_filepath;
 int emission_index;
 float emission_value;
 bool radiosityRendering;
 
-
 // The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
 
-std::vector<vertex::Vertex> debugline = { { glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) },
-{ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f) } };
-
-optix::float3 eye = optix::make_float3(0.0f, 0.0f, -7.0f);
-optix::float3 viewDirection = optix::make_float3(0.0f, 0.0f, 1.0f);
 optix::Context context;
-OptixPrimeFunctionality optixP;
 vertex::MeshS mesh = { std::vector<glm::vec3>(), 
-	std::vector<glm::vec3>(), 
-	std::vector<vertex::TriangleIndex>(), 
-	std::vector<std::vector<int>>()};
+					   std::vector<glm::vec3>(), 
+					   std::vector<vertex::TriangleIndex>(), 
+					   std::vector<std::vector<int>>()};
 // optixview is an array containing all pixel values
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
 std::vector<optix_functionality::Hit> patches;
-bool left = true; 
-bool hitB = false;
+
+Drawer::DebugLine debugline;
 GLuint optixTex, optixVao;
 std::vector<UV> rands;
 Eigen::VectorXf lightningvalues;
@@ -88,16 +82,18 @@ int main() {
 		std::cout << "Can't load 'config.ini'\n";
 		return 1;
 	}
+	// set variables from config
 	WIDTH = reader.GetInteger("window", "width", -1);
 	HEIGHT = reader.GetInteger("window", "height", -1);
-	optixW = reader.GetInteger("optix", "optixW", -1);
-	optixH = reader.GetInteger("optix", "optixH", -1);
 	obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
 	emission_index = reader.GetInteger("lightning", "emission_index", -1);
 	emission_value = reader.GetReal("lightning", "emission_value", -1);
 	radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
 	
+	// set up camera
+	Camera camera(WIDTH, HEIGHT);
+
 	//initialize window
 	GLFWwindow* window = Drawer::initWindow(WIDTH, HEIGHT);
 
@@ -120,13 +116,12 @@ int main() {
 	}
 
 	//initializing optix
-	optixP = OptixPrimeFunctionality();
-	optixP.initOptixPrime(mesh);
+	OptixPrimeFunctionality optixP(mesh);
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	optixP.doOptixPrime(optixW, optixH, optixView, eye, viewDirection, trianglesonScreen, mesh);
-	Drawer::initRes(optixShader, optixVao, optixTex, optixW, optixH, optixView);
+	optixP.traceScreen(optixView, camera, trianglesonScreen, mesh);
+	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
 
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
@@ -135,12 +130,7 @@ int main() {
 	// initialize radiosity matrix
 	int numtriangles = mesh.triangleIndices.size();
 	SpMat RadMat(numtriangles, numtriangles);
-
 	optixP.calculateRadiosityMatrixStochastic(RadMat, mesh, rands);
-	//// little debug output to check something happened while calculating the matrix:
-	//std::cout << "total entries in matrix = " << numtriangles*numtriangles << std::endl;
-	//std::cout << "non zeros in matrix = " << RadMat.nonZeros() << std::endl;
-	//std::cout << "percentage non zero entries = " << (float(RadMat.nonZeros()) / float(numtriangles*numtriangles))*100 << std::endl;
 
 	// set up lightning
 	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
@@ -157,16 +147,26 @@ int main() {
 		numpasses++;
 	}
 
-	// Set up OpenGL debug callback
-	glDebugMessageCallback(Drawer::debugCallback, nullptr);
-	glfwSetMouseButtonCallback(window, InputHandler::mouse_button_callback);
-	glfwSetKeyCallback(window, InputHandler::key_callback);
-
 	// set up callback context
 	patches.resize(2);
-	InputHandler::callback_context cbc(left, hitB, debugline, optixW, optixH, viewDirection, eye, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering);
+	InputHandler inputhandler;
+	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputhandler);
 	glfwSetWindowUserPointer(window, &cbc);
 
+	// Some neat casting of member functions such we can use them as callback AND have state too, as explained per:
+	// https://stackoverflow.com/a/28660673/7925249
+	auto func_key = [](GLFWwindow* window, int key, int scancode, int action, int mods) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->key_callback(window, key, scancode, action, mods); };
+	auto func_mouse = [](GLFWwindow* window, int button, int action, int mods) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->mouse_button_callback(window, button, action, mods); };
+	auto func_cursor = [](GLFWwindow* window, double xpos, double ypos) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->cursor_pos_callback(window, xpos, ypos); };
+
+	// Set up OpenGL debug callback
+	glDebugMessageCallback(Drawer::debugCallback, nullptr);
+	// Set up input callbacks
+	glfwSetMouseButtonCallback(window, func_mouse);
+	glfwSetCursorPosCallback(window, func_cursor);
+	glfwSetKeyCallback(window, func_key);
+
+	std::cout << "All is set up! Get ready to play around!" << std::endl;
 	// print menu
 	std::ifstream f_menu("print_menu.txt");
 	if (f_menu.is_open())
@@ -174,14 +174,17 @@ int main() {
 	f_menu.close();
 
 	if (radiosityRendering){
-		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, optixW, optixH, mesh);
-		Drawer::refreshTexture(optixW, optixH, optixView);
+		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, WIDTH, HEIGHT, mesh);
+		Drawer::refreshTexture(WIDTH, HEIGHT, optixView);
 	}
+
+	Drawer::RenderContext rendercontext(trianglesonScreen, lightningvalues, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering);
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {
-		glfwPollEvents();
-		Drawer::draw(window, optixShader, optixVao, debugprogram, linevao, linevbo, debugline, hitB);
+		// glfwWaitEvents is preferred over glwfPollEvents for our application as we do not have to render in between input callbacks
+		glfwWaitEvents();
+		Drawer::draw(window, optixShader, optixVao, debugline, optixP, rendercontext);
 	}
 
 	// clean up

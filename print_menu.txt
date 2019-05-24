@@ -1,9 +1,10 @@
 
 
-All is set up. Get ready to play around!
-		
-Click on a triangle to select it, click on a second triangle to calculate if they can see each other.
-Press arrow keys to move around the scene
+Menu:
+Left click and drag to rotate view. 	
+Right click on a triangle to select it, click on a second triangle to calculate if they can see each other.
+Press arrow keys to rotate around the scene
+Press - and + to zoom.
 Press P to make a screenshot
 Press B to calculate a form factor between two selected patches
 Press F to find a triangle by id
@@ -11,3 +12,5 @@ Press R to toggle Radiosity vs normal color drawing
 Press X to clear the radiosity calculations (so you can calculate the light passes again!)
 Press L to calculate one light pass
 Press C to converge the radiosity calculations
+Press M to print this menu again
+Press Esc to exit

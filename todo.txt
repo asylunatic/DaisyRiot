@@ -1,21 +1,18 @@
-H betere triangle visualisatie:
-	- interpolate between triangles
-? calculaten van form factors kan miss in optix
+H materials laden
 H renderen met kleur
-L normale renderer voor vergelijking
-M van optix prime naar optix
 H set different lightning by keyboard input or manual selection 
-L debug drawin of form factors (nice for report lol)
+H divide lightning value of surface by area
+M van optix prime naar optix
 M debug drawing of rays (also nice for report) 
 M gamma correction in result rendering
+L normale renderer voor vergelijking
+L debug drawin of form factors (nice for report lol)
 ? normal interpolation (for calculation of form factor?)
-H arcball controlls for satisfying interaction
-H divide lightning value of surface by area
+? calculaten van form factors kan miss in optix
 
 Vera:
-- renderen met kleur onderzoeken
-- arcball
+- laad materials
+- set up wavelength passes of radiosity
 
 Marijn: 
-- triangle interpolation
 - divide lightning value of surface by area

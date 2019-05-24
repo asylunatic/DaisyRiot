@@ -18,6 +18,7 @@ public:
 	// making these global is a very elegant solution for the stack overflow 
 	// that would inevitably follow when declaring it in the function scope where it actually belongs
 	GLubyte* encodepixels;
+	GLubyte* encodepixels_flipped;
 
 	static char* findFilename(const char* filename, const char* extension);
 
