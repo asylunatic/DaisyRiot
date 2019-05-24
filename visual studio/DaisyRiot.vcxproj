@@ -33,6 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include\cctype" />
+    <None Include="..\config.ini" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="FirstTry.cu">
@@ -54,9 +55,11 @@
   <ItemGroup>
     <ClInclude Include="..\lodepng.h" />
     <ClInclude Include="..\stdafx.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="Drawer.h" />
     <ClInclude Include="ImageExporter.h" />
+    <ClInclude Include="INIReader.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="optix_functionality.h" />
     <ClInclude Include="OptixPrimeFunctionality.h" />

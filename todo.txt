@@ -1,12 +1,18 @@
-* betere triangle visualisatie:
-	- triangles hebben maar een kant
-	- interpolate between triangles
-* calculaten van form factors moet in cuda
-* stochastic form factor
-* renderen met optix ipv optix prime
-* renderen met kleur
-* static classes naar namespaces
-* normale renderer voor vergelijking
-* van optix prime naar optix
+H materials laden
+H renderen met kleur
+H set different lightning by keyboard input or manual selection 
+H divide lightning value of surface by area
+M van optix prime naar optix
+M debug drawing of rays (also nice for report) 
+M gamma correction in result rendering
+L normale renderer voor vergelijking
+L debug drawin of form factors (nice for report lol)
+? normal interpolation (for calculation of form factor?)
+? calculaten van form factors kan miss in optix
 
+Vera:
+- laad materials
+- set up wavelength passes of radiosity
 
+Marijn: 
+- divide lightning value of surface by area

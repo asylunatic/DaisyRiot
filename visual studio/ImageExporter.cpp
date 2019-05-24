@@ -7,6 +7,7 @@
 ImageExporter::ImageExporter(int width, int height)
 {
 	encodepixels = new GLubyte[width*height * 3];
+	encodepixels_flipped = new GLubyte[width*height * 3];
 }
 
 char* ImageExporter::findFilename(const char* filename, const char* extension){
@@ -48,5 +49,7 @@ void ImageExporter::encodeOneStep(const char* filename, const char* extension, u
 ImageExporter::~ImageExporter()
 {
 	delete encodepixels;
+	delete encodepixels_flipped;
 	encodepixels = nullptr;
+	encodepixels_flipped = nullptr;
 }

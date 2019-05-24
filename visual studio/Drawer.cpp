@@ -1,4 +1,5 @@
 #include "Drawer.h"
+#include "InputHandler.h"
 
 GLFWwindow* Drawer::initWindow(int width, int height) {
 	if (!glfwInit()) {
@@ -43,23 +44,23 @@ void Drawer::debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgr
 	glLinkProgram(shaderProgram);
 }
 
-void Drawer::debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<Vertex> &debugline, bool hitB) {
+void Drawer::debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, Drawer::DebugLine debugline) {
 	glUseProgram(debugprogram);
 	glBindVertexArray(linevao);
 	// vao will get info from linevbo now
 	glBindBuffer(GL_ARRAY_BUFFER, linevbo);
 	//insert data into the current array_buffer: the vbo
-	glBufferData(GL_ARRAY_BUFFER, debugline.size() * sizeof(Vertex), debugline.data(), GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, debugline.line.size() * sizeof(vertex::Vertex), debugline.line.data(), GL_STREAM_DRAW);
 	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
 	// Stride is the distance in bytes between vertices
 	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the current VertexArray
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, pos)));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex::Vertex), reinterpret_cast<void*>(offsetof(vertex::Vertex, pos)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex::Vertex), reinterpret_cast<void*>(offsetof(vertex::Vertex, normal)));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
 	GLuint hitLoc = glGetUniformLocation(debugprogram, "hit");
-	glUniform1i(hitLoc, hitB);
+	glUniform1i(hitLoc, debugline.hitB);
 	glDrawArrays(GL_LINES, 0, 2);
 }
 
@@ -77,7 +78,12 @@ void Drawer::setResDrawing(GLuint &optixVao, GLuint &optixTex, int optixW, int o
 	//bind it as (possible) source for the vao
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	//insert data into the current array_buffer: the vbo
-	std::vector<glm::vec3> quad = { glm::vec3(-1, 1, -1), glm::vec3(1, 1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, -1, -1), glm::vec3(-1, -1, -1), glm::vec3(1, 1, -1) };
+	std::vector<glm::vec3> quad = { glm::vec3(-1.0f, -1.0f, 0.0f), 
+									glm::vec3(1.0f, -1.0f, 0.0f), 
+									glm::vec3(-1.0f, 1.0f, 0.0f), 
+									glm::vec3(-1.0f, 1.0f, 0.0f), 
+									glm::vec3(1.0f, -1.0f, 0.0f), 
+									glm::vec3(1.0f, 1.0f, 0.0f) };
 	glBufferData(GL_ARRAY_BUFFER, quad.size() * sizeof(glm::vec3), quad.data(), GL_STATIC_DRAW);
 
 	// Bind vertex data to shader inputs using their index (location)
@@ -87,7 +93,7 @@ void Drawer::setResDrawing(GLuint &optixVao, GLuint &optixTex, int optixW, int o
 
 	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
 	// Stride is the distance in bytes between vertices
-	//INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
+	// INFO: glVertexAttribPointer always loads the data from GL_ARRAY_BUFFER, and puts it into the VertexArray
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
@@ -108,7 +114,7 @@ void Drawer::refreshTexture(int optixW, int optixH, std::vector<glm::vec3> &opti
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
 }
 
-void Drawer::initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, int optixW, int optixH, std::vector<glm::vec3> &optixView) {
+void Drawer::initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, int width, int height, std::vector<glm::vec3> &optixView) {
 	GLuint vertexShader;
 	ShaderLoader::loadShader(vertexShader, "shaders/optixShader.vert", GL_VERTEX_SHADER);
 
@@ -126,7 +132,7 @@ void Drawer::initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, 
 		//return EXIT_FAILURE;
 	}
 
-	setResDrawing(optixVao, optixTex, optixW, optixH, optixView);
+	setResDrawing(optixVao, optixTex, width, height, optixView);
 
 	// Set behaviour for when texture coordinates are outside the [0, 1] range
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -140,10 +146,10 @@ void Drawer::initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, 
 void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 	// Bind the shader
 	glUseProgram(shaderProgram);
-	GLuint loc;
 
-	// upload texture coordinates
-	loc = glGetUniformLocation(shaderProgram, "texToon");
+	// bind texture to variable
+	GLuint loc;
+	loc = glGetUniformLocation(shaderProgram, "tex");
 	glUniform1i(loc, 1);
 
 	// Bind vertex data
@@ -152,33 +158,79 @@ void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, std::vector<Vertex> &debugline, bool hitB) {
+void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int width, int height, vertex::MeshS& mesh) {
+	optixView.clear();
+	optixView.resize(width * height);
+	for (int i = 0; i < lightningvalues.size(); i++) {
+		if (trianglesonScreen[i].size() > 0) {
+			//for each pixel of the current triangle i that you can see on the screen
+			for (MatrixIndex index : trianglesonScreen[i]) {
+				float intensity = Drawer::interpolate(index, i, lightningvalues, mesh);
+				optixView[(index.row*width + index.col)] = glm::vec3(intensity, intensity, intensity);
+			}
+		}
+	}
+}
+
+float Drawer::interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &lightningvalues, vertex::MeshS& mesh) {
+	UV uv = index.uv;
+
+	//average lightvalues of the three cornerpoints
+	float a = 0;
+	float b = 0;
+	float c = 0;
+
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.x]) {
+		a += lightningvalues[adjTriangle];
+	}
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.y]) {
+		b += lightningvalues[adjTriangle];
+	}
+	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.z]) {
+		c += lightningvalues[adjTriangle];
+	}
+	a = a / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.x].size();
+	b = b / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.y].size();
+	c = c / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.z].size();
+
+	float w = (1 - uv.u - uv.v);
+	float lightningvalue = uv.u * a + uv.v * b + w * c;
+	return lightningvalue;
+}
+
+void Drawer::debugtrianglesDraw(DebugLine &debugline, RenderContext &rendercontext){
+	for (int i = 0; i < debugline.debugtriangles.size(); i++){
+		int tri = debugline.debugtriangles[i];
+		for (MatrixIndex index : rendercontext.trianglesonScreen[tri]) {
+			rendercontext.optixView[(index.row*rendercontext.camera.pixwidth + index.col)] = glm::vec3(1.0, 1.0, 1.0);
+		}
+	}
+}
+
+void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Drawer::DebugLine &debugline, OptixPrimeFunctionality &optixP, Drawer::RenderContext &rendercontext){
+	// Do Optix stuff
+	optixP.traceScreen(rendercontext.optixView, rendercontext.camera, rendercontext.trianglesonScreen, rendercontext.mesh);
+	if (rendercontext.radiosityRendering){
+		Drawer::setRadiosityTex(rendercontext.trianglesonScreen, rendercontext.lightningvalues, rendercontext.optixView, rendercontext.camera.pixwidth, rendercontext.camera.pixheight, rendercontext.mesh);
+	}
+
+	// debug triangles
+	if (!debugline.cleared){
+		debugtrianglesDraw(debugline, rendercontext);
+	}
+
+	Drawer::refreshTexture(rendercontext.camera.pixwidth, rendercontext.camera.pixheight, rendercontext.optixView);
+
 	// Clear the framebuffer to black and depth to maximum value
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//Drawing result from optix raytracing!
 	Drawer::drawRes(optixShader, optixVao);
 
-	//DRAWING DEBUGLINE
-	Drawer::debuglineDraw(debugprogram, linevao, linevbo, debugline, hitB);
+	//debugline drawing
+	if (!debugline.cleared){
+		Drawer::debuglineDraw(rendercontext.debugprogram, rendercontext.linevao, rendercontext.linevbo, debugline);
+	}
 
 	// Present result to the screen
 	glfwSwapBuffers(window);
-}
-
-void Drawer::drawRadiosity(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int optixW, int optixH) {
-	optixView.clear();
-	optixView.resize(optixW * optixH);
-	for (int i = 0; i < lightningvalues.size(); i++) {
-		if (trianglesonScreen[i].size() > 0) {
-			for (MatrixIndex index : trianglesonScreen[i]) {
-				float intensity = lightningvalues[i];
-				optixView[(index.row*optixH + index.col)] = glm::vec3(intensity, intensity, intensity);
-			}
-		}
-		
-	}
-
-	Drawer::refreshTexture(optixW, optixH, optixView);
 }
