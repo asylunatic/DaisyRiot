@@ -194,6 +194,7 @@ float Drawer::interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &l
 	c = c / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.z].size();
 
 	float w = (1 - uv.u - uv.v);
+	//float lightningvalue = uv.u * b + uv.v * c + w * a;
 	float lightningvalue = uv.u * a + uv.v * b + w * c;
 	return lightningvalue;
 }

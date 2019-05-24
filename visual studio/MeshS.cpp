@@ -76,6 +76,11 @@ void MeshS::loadFromFile(char * filepath, char * mtldirpath)
 				shape.mesh.indices[j + 2].normal_index
 			};
 
+			// uncomment for artistic rendering
+			/*trianglesPerVertex[shape.mesh.indices[0].vertex_index].push_back(i);
+			trianglesPerVertex[shape.mesh.indices[1].vertex_index].push_back(i);
+			trianglesPerVertex[shape.mesh.indices[2].vertex_index].push_back(i);*/
+
 			trianglesPerVertex[shape.mesh.indices[j + 0].vertex_index].push_back(currTriangleIndex);
 			trianglesPerVertex[shape.mesh.indices[j + 1].vertex_index].push_back(currTriangleIndex);
 			trianglesPerVertex[shape.mesh.indices[j + 2].vertex_index].push_back(currTriangleIndex);
@@ -84,7 +89,6 @@ void MeshS::loadFromFile(char * filepath, char * mtldirpath)
 
 			// add material
 			materialIndexPerTriangle.push_back(shape.mesh.material_ids[j/3]);
-			std::cout << shape.mesh.material_ids.at(j/3) << std::endl;
 			
 			currTriangleIndex += 1;
 		}

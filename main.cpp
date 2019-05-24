@@ -102,13 +102,8 @@ int main() {
 	glewInit();
 
 	// load scene
-	/*std::vector<glm::vec3> vertices;
-	std::vector<glm::vec3> normals;
-	std::vector<vertex::TriangleIndex> triangleIndices;
-	std::vector<std::vector<int>> trianglesPerVertex;*/
 	MeshS mesh;
-
-	mesh.loadVertices(obj_filepath, mtl_dirpath);
+	mesh.loadFromFile(obj_filepath, mtl_dirpath);
 
 	// set up randoms to be reused
 	rands.resize(RAYS_PER_PATCH);
@@ -140,7 +135,13 @@ int main() {
 
 	// set up lightning
 	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
-	emission(emission_index) = emission_value;	
+	//emission(emission_index) = emission_value;	
+	// set emissive values from material
+	for (int i = 0; i < numtriangles; i++){
+		if (mesh.materials[mesh.materialIndexPerTriangle[i]].emission[0] > 0.0){
+			emission(i) = mesh.materials[mesh.materialIndexPerTriangle[i]].emission[0] * emission_value;
+		}
+	}
 	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
 	lightningvalues = emission; 
 	Eigen::VectorXf residualvector = Eigen::VectorXf::Zero(numtriangles);
