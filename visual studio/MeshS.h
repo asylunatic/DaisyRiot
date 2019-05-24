@@ -2,6 +2,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "Vertex.h"
+#include "Material.h"
 
 class MeshS
 {
@@ -15,8 +16,10 @@ public:
 	std::vector<glm::vec3> normals;
 	std::vector<vertex::TriangleIndex> triangleIndices;
 	std::vector<std::vector<int>> trianglesPerVertex;
+	std::vector<Material> materials;
+	std::vector<int> materialIndexPerTriangle;
 
-	void loadVertices(char* filepath, char* mtlpath);
+	void loadFromFile(char* filepath, char* mtlpath);
 	MeshS();
 	~MeshS();
 };

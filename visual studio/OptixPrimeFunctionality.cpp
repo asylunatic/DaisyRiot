@@ -71,7 +71,8 @@ void  OptixPrimeFunctionality::traceScreen(std::vector<glm::vec3> &optixView, Ca
 	for (size_t x = 0; x < camera.pixwidth; x++) {
 		for (size_t y = 0; y < camera.pixheight; y++) {
 			int pixelIndex = y*camera.pixwidth + x;
-			optixView[pixelIndex] = (hits[pixelIndex].t > 0) ? glm::vec3(glm::abs(mesh.normals[mesh.triangleIndices[hits[pixelIndex].triangleId].normal.x])) : glm::vec3(0.0f, 0.0f, 0.0f);
+			//optixView[pixelIndex] = (hits[pixelIndex].t > 0) ? glm::vec3(glm::abs(mesh.normals[mesh.triangleIndices[hits[pixelIndex].triangleId].normal.x])) : glm::vec3(0.0f, 0.0f, 0.0f);
+			optixView[pixelIndex] = (hits[pixelIndex].t > 0) ? mesh.materials[mesh.materialIndexPerTriangle[hits[pixelIndex].triangleId]].rgbcolor : glm::vec3(0.0f, 0.0f, 0.0f);
 			if (hits[pixelIndex].t > 0 
 				&& !triangle_math::isFacingBack(optix_functionality::optix2glmf3(camera.eye), hits[pixelIndex].triangleId, mesh)
 				) {
