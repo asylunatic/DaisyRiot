@@ -116,7 +116,7 @@ float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, std
 		}
 	}
 	//printf("\nformfactor before including surfacearea: %f", formfactor);
-	formfactor = formfactor / triangle_math::calculateSurface(originPatch, vertices);
+	formfactor = formfactor / triangle_math::calculateSurface(vertices[originPatch * 3].pos, vertices[originPatch * 3 + 1].pos, vertices[originPatch * 3 + 2].pos);
 
 	//printf("\nformfactor: %f", formfactor);
 	float visibility = OptixPrimeFunctionality::calculateVisibility(originPatch, destPatch, vertices, contextP, model, rands);
@@ -230,12 +230,12 @@ void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, std::vecto
 		for (int col = (row +1); col < numtriangles; col++) {
 			float formfactorRC = p2pFormfactor(row, col, vertices, rands);
 			if (formfactorRC > 0.0) {
-				// at place (row, col) we want the form factor row->col 
-				//row->col means the amount of energy going from row to col
+				// at place (x, y) we want the form factor y->x 
+				// but as this is a col major matrix we store (x, y) at (y, x) -> confused yet?
 				RadMat.insert(row, col) = formfactorRC;
 				//std::cout << "Inserting form factor " << row << "->" << col << " with " << formfactorRC << " at ( " << row << ", " << col << " )" << std::endl;
 
-				float formfactorCR = (formfactorRC * triangle_math::calculateSurface(row, vertices)) / triangle_math::calculateSurface(col, vertices);
+				float formfactorCR = p2pFormfactorNusselt(col, row, vertices, rands);
 				RadMat.insert(col, row) = formfactorCR;
 				//std::cout << "Inserting form factor " << col << "->" << row << " with " << formfactorCR << " at ( " << col << ", " << row << " )" << std::endl;
 			}

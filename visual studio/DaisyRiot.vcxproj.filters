@@ -95,8 +95,5 @@
     <ClInclude Include="optix_functionality.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cuda_functionality.cuh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
