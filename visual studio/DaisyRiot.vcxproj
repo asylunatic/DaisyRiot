@@ -25,6 +25,7 @@
     <ClCompile Include="Drawer.cpp" />
     <ClCompile Include="ImageExporter.cpp" />
     <ClCompile Include="InputHandler.cpp" />
+    <ClCompile Include="MeshS.cpp" />
     <ClCompile Include="optix_functionality.cpp" />
     <ClCompile Include="OptixPrimeFunctionality.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
@@ -61,6 +62,8 @@
     <ClInclude Include="ImageExporter.h" />
     <ClInclude Include="INIReader.h" />
     <ClInclude Include="InputHandler.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="MeshS.h" />
     <ClInclude Include="optix_functionality.h" />
     <ClInclude Include="OptixPrimeFunctionality.h" />
     <ClInclude Include="ShaderLoader.h" />

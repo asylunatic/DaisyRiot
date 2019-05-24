@@ -158,7 +158,7 @@ void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int width, int height, vertex::MeshS& mesh) {
+void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int width, int height, MeshS& mesh) {
 	optixView.clear();
 	optixView.resize(width * height);
 	for (int i = 0; i < lightningvalues.size(); i++) {
@@ -172,7 +172,7 @@ void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonS
 	}
 }
 
-float Drawer::interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &lightningvalues, vertex::MeshS& mesh) {
+float Drawer::interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &lightningvalues, MeshS& mesh) {
 	UV uv = index.uv;
 
 	//average lightvalues of the three cornerpoints

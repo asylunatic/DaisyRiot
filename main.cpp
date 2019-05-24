@@ -43,6 +43,7 @@
 #include "visual studio\InputHandler.h"
 #include "visual studio\INIReader.h"
 #include "visual studio\Camera.h"
+#include "visual studio\MeshS.h"
 
 // Variables to be set from config.ini file
 int WIDTH, HEIGHT;
@@ -56,10 +57,6 @@ bool radiosityRendering;
 typedef Eigen::SparseMatrix<float> SpMat;
 
 optix::Context context;
-vertex::MeshS mesh = { std::vector<glm::vec3>(), 
-					   std::vector<glm::vec3>(), 
-					   std::vector<vertex::TriangleIndex>(), 
-					   std::vector<std::vector<int>>()};
 // optixview is an array containing all pixel values
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
@@ -104,11 +101,14 @@ int main() {
 	glewExperimental = GL_TRUE;
 	glewInit();
 
-	// this should load from init but somehow that does not work, so we'll hardcode for now:
-	mtl_dirpath = "testscenes/";
-
 	// load scene
-	vertex::loadVertices(mesh, obj_filepath, mtl_dirpath);
+	/*std::vector<glm::vec3> vertices;
+	std::vector<glm::vec3> normals;
+	std::vector<vertex::TriangleIndex> triangleIndices;
+	std::vector<std::vector<int>> trianglesPerVertex;*/
+	MeshS mesh;
+
+	mesh.loadVertices(obj_filepath, mtl_dirpath);
 
 	// set up randoms to be reused
 	rands.resize(RAYS_PER_PATCH);

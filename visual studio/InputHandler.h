@@ -6,6 +6,7 @@
 #include "ImageExporter.h"
 #include "OptixPrimeFunctionality.h"
 #include "Camera.h"
+#include "MeshS.h"
 #include <chrono>
 
 struct callback_context; 
@@ -43,7 +44,7 @@ private:
 
 struct callback_context {
 	callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches,
-		vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &emission,
+		MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat, Eigen::VectorXf &emission,
 		int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, InputHandler &inputhandler);
 	InputHandler inputhandler;
 	Drawer::DebugLine &debugline;
@@ -51,7 +52,7 @@ struct callback_context {
 	std::vector<std::vector<MatrixIndex>> &trianglesonScreen;
 	std::vector<glm::vec3> &optixView;
 	std::vector<optix_functionality::Hit> &patches;
-	vertex::MeshS& mesh;
+	MeshS& mesh;
 	std::vector<UV> &rands;
 	OptixPrimeFunctionality &optixP;
 	Eigen::VectorXf &lightningvalues;
