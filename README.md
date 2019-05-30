@@ -2,7 +2,7 @@
 Project for a global illumination renderer, using radiosity.
 
 ## Prerequisites
-Cuda version 9.0
+Cuda version 9.0 (https://developer.nvidia.com/cuda-toolkit-archive)  
 Optix SDK version 4.1.1 (https://developer.nvidia.com/designworks/optix/downloads/legacy)
 
 ## Installation
