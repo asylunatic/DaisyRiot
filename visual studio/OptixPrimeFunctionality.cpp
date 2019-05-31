@@ -56,23 +56,7 @@ void  OptixPrimeFunctionality::traceScreen(Drawer::RenderContext cntxt) {
 	hits.resize(cntxt.camera.pixwidth*cntxt.camera.pixheight);
 
 	std::vector<optix::float3> rays;
-	rays.resize(cntxt.camera.pixwidth*cntxt.camera.pixheight * 2);
-
-	// generate rays the un_project way
-	glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(cntxt.camera.eye), optix_functionality::optix2glmf3(cntxt.camera.dir), optix_functionality::optix2glmf3(cntxt.camera.up));
-	glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
-	for (size_t x = 0; x < cntxt.camera.pixwidth; x++) {
-		for (size_t y = 0; y < cntxt.camera.pixheight; y++) {
-			// get ray origin
-			glm::vec3 win(x, y, 0.0);
-			glm::vec3 world_coord = glm::unProject(win, lookat, projection, cntxt.camera.viewport);
-			rays[(y*cntxt.camera.pixwidth + x) * 2] = optix_functionality::glm2optixf3(world_coord);
-			// get ray direction
-			glm::vec3 win_dir(x, y, 1.0);
-			glm::vec3 dir_coord = glm::unProject(win_dir, lookat, projection, cntxt.camera.viewport);
-			rays[((y*cntxt.camera.pixwidth + x) * 2) + 1] = optix_functionality::glm2optixf3(dir_coord);
-		}
-	}
+	cntxt.camera.gen_rays_for_screen(rays);
 
 	optixQuery(cntxt.camera.pixwidth * cntxt.camera.pixheight, rays, hits);
 

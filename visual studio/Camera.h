@@ -48,6 +48,25 @@ public:
 
 		totalpitch += pitch;
 	}
+	void gen_rays_for_screen(std::vector<optix::float3> &rays){
+		rays.resize(pixwidth*pixheight * 2);
+
+		// generate rays the un_project way
+		glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(eye), optix_functionality::optix2glmf3(dir), optix_functionality::optix2glmf3(up));
+		glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
+		for (size_t x = 0; x < pixwidth; x++) {
+			for (size_t y = 0; y < pixheight; y++) {
+				// get ray origin
+				glm::vec3 win(x, y, 0.0);
+				glm::vec3 world_coord = glm::unProject(win, lookat, projection, viewport);
+				rays[(y*pixwidth + x) * 2] = optix_functionality::glm2optixf3(world_coord);
+				// get ray direction
+				glm::vec3 win_dir(x, y, 1.0);
+				glm::vec3 dir_coord = glm::unProject(win_dir, lookat, projection, viewport);
+				rays[((y*pixwidth + x) * 2) + 1] = optix_functionality::glm2optixf3(dir_coord);
+			}
+		}
+	}
 
 private:
 	optix::float3 yaw_pitch_eye(optix::float3 &eye_in, double yaw, double pitch){
