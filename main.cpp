@@ -65,7 +65,6 @@ int main() {
 		std::cout << "Can't load 'config.ini'\n";
 		return 1;
 	}
-	// set variables from config
 	int WIDTH = reader.GetInteger("window", "width", -1);
 	int HEIGHT = reader.GetInteger("window", "height", -1);
 	char * obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
@@ -88,17 +87,18 @@ int main() {
 	MeshS mesh(obj_filepath, mtl_dirpath);
 	OptixPrimeFunctionality optixP(mesh);
 
-	//initializing result optix drawing
-	GLuint optixShader;
-	optixP.traceScreen(optixView, camera, trianglesonScreen, mesh);
-	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
-
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
 	// set up lightning
 	Lightning lightning(mesh, optixP, emission_value);
+
+	//initializing result optix drawing
+	GLuint optixShader;
+	Drawer::RenderContext rendercontext(trianglesonScreen, lightning, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering);
+	optixP.traceScreen(rendercontext);
+	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
 
 	// set up callback context
 	patches.resize(2);
@@ -122,13 +122,6 @@ int main() {
 	if (f_menu.is_open())
 		std::cout << f_menu.rdbuf();
 	f_menu.close();
-
-	if (radiosityRendering){
-		Drawer::setRadiosityTex(trianglesonScreen, lightning.lightningvalues, optixView, WIDTH, HEIGHT, mesh);
-		Drawer::refreshTexture(WIDTH, HEIGHT, optixView);
-	}
-
-	Drawer::RenderContext rendercontext(trianglesonScreen, lightning.lightningvalues, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering);
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {

@@ -19,6 +19,8 @@
 typedef Eigen::SparseMatrix<float> SpMat;
 typedef Eigen::Triplet<double> Tripl;
 
+
+
 class OptixPrimeFunctionality
 {
 public:
@@ -34,8 +36,7 @@ public:
 	void calculateRadiosityMatrix(SpMat &RadMat, MeshS& mesh);
 	void calculateRadiosityMatrixStochastic(SpMat &RadMat, MeshS& mesh);
 	void optixQuery(int number_of_rays, std::vector<optix::float3> &rays, std::vector<optix_functionality::Hit> &hits);
-	void traceScreen(std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
-		MeshS& mesh);
+	void traceScreen(Drawer::RenderContext rendercontext);
 	float calculateVisibility(int originPatch, int destPatch, MeshS& mesh, optix::prime::Context &contextP, optix::prime::Model &model);
 private:
 	std::vector<UV> rands;

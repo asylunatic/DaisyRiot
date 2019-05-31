@@ -44,11 +44,11 @@ void Drawer::debuglineInit(GLuint &linevao, GLuint &linevbo, GLuint &shaderProgr
 	glLinkProgram(shaderProgram);
 }
 
-void Drawer::debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, Drawer::DebugLine debugline) {
-	glUseProgram(debugprogram);
-	glBindVertexArray(linevao);
+void Drawer::debuglineDraw(Drawer::RenderContext &cntxt, Drawer::DebugLine &debugline) {
+	glUseProgram(cntxt.debugprogram);
+	glBindVertexArray(cntxt.linevao);
 	// vao will get info from linevbo now
-	glBindBuffer(GL_ARRAY_BUFFER, linevbo);
+	glBindBuffer(GL_ARRAY_BUFFER, cntxt.linevbo);
 	//insert data into the current array_buffer: the vbo
 	glBufferData(GL_ARRAY_BUFFER, debugline.line.size() * sizeof(vertex::Vertex), debugline.line.data(), GL_STREAM_DRAW);
 	// The position vectors should be retrieved from the specified Vertex Buffer Object with given offset and stride
@@ -59,7 +59,7 @@ void Drawer::debuglineDraw(GLuint &debugprogram, GLuint &linevao, GLuint &linevb
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
-	GLuint hitLoc = glGetUniformLocation(debugprogram, "hit");
+	GLuint hitLoc = glGetUniformLocation(cntxt.debugprogram, "hit");
 	glUniform1i(hitLoc, debugline.hitB);
 	glDrawArrays(GL_LINES, 0, 2);
 }
@@ -108,10 +108,10 @@ void Drawer::setResDrawing(GLuint &optixVao, GLuint &optixTex, int optixW, int o
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
 }
 
-void Drawer::refreshTexture(int optixW, int optixH, std::vector<glm::vec3> &optixView) {
+void Drawer::refreshTexture(Drawer::RenderContext &cntxt) {
 	glActiveTexture(GL_TEXTURE1);
 	// Upload pixels into texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, optixW, optixH, 0, GL_RGB, GL_FLOAT, optixView.data());
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, cntxt.camera.pixwidth, cntxt.camera.pixheight, 0, GL_RGB, GL_FLOAT, cntxt.optixView.data());
 }
 
 void Drawer::initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, int width, int height, std::vector<glm::vec3> &optixView) {
@@ -158,19 +158,6 @@ void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Drawer::setRadiosityTex(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Eigen::VectorXf &lightningvalues, std::vector<glm::vec3> &optixView, int width, int height, MeshS& mesh) {
-	optixView.clear();
-	optixView.resize(width * height);
-	for (int i = 0; i < lightningvalues.size(); i++) {
-		if (trianglesonScreen[i].size() > 0) {
-			//for each pixel of the current triangle i that you can see on the screen
-			for (MatrixIndex index : trianglesonScreen[i]) {
-				float intensity = Drawer::interpolate(index, i, lightningvalues, mesh);
-				optixView[(index.row*width + index.col)] = glm::vec3(intensity, intensity, intensity);
-			}
-		}
-	}
-}
 
 float Drawer::interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &lightningvalues, MeshS& mesh) {
 	UV uv = index.uv;
@@ -210,17 +197,14 @@ void Drawer::debugtrianglesDraw(DebugLine &debugline, RenderContext &renderconte
 
 void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Drawer::DebugLine &debugline, OptixPrimeFunctionality &optixP, Drawer::RenderContext &rendercontext){
 	// Do Optix stuff
-	optixP.traceScreen(rendercontext.optixView, rendercontext.camera, rendercontext.trianglesonScreen, rendercontext.mesh);
-	if (rendercontext.radiosityRendering){
-		Drawer::setRadiosityTex(rendercontext.trianglesonScreen, rendercontext.lightningvalues, rendercontext.optixView, rendercontext.camera.pixwidth, rendercontext.camera.pixheight, rendercontext.mesh);
-	}
+	optixP.traceScreen(rendercontext);
 
 	// debug triangles
 	if (!debugline.cleared){
 		debugtrianglesDraw(debugline, rendercontext);
 	}
 
-	Drawer::refreshTexture(rendercontext.camera.pixwidth, rendercontext.camera.pixheight, rendercontext.optixView);
+	Drawer::refreshTexture(rendercontext);
 
 	// Clear the framebuffer to black and depth to maximum value
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -229,7 +213,7 @@ void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Dra
 
 	//debugline drawing
 	if (!debugline.cleared){
-		Drawer::debuglineDraw(rendercontext.debugprogram, rendercontext.linevao, rendercontext.linevbo, debugline);
+		Drawer::debuglineDraw(rendercontext, debugline);
 	}
 
 	// Present result to the screen

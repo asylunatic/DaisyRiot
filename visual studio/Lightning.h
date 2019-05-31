@@ -2,6 +2,7 @@
 
 class Lightning{
 public:
+
 	float emission_value;
 	Eigen::VectorXf emission;
 	Eigen::VectorXf residualvector;
