@@ -48,10 +48,10 @@ public:
 
 		totalpitch += pitch;
 	}
+
 	void gen_rays_for_screen(std::vector<optix::float3> &rays){
 		rays.resize(pixwidth*pixheight * 2);
 
-		// generate rays the un_project way
 		glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(eye), optix_functionality::optix2glmf3(dir), optix_functionality::optix2glmf3(up));
 		glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
 		for (size_t x = 0; x < pixwidth; x++) {
