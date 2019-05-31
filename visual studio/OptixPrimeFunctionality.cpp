@@ -66,26 +66,25 @@ void  OptixPrimeFunctionality::traceScreen(Drawer::RenderContext cntxt) {
 	for (size_t x = 0; x < cntxt.camera.pixwidth; x++) {
 		for (size_t y = 0; y < cntxt.camera.pixheight; y++) {
 			int pixelIndex = y*cntxt.camera.pixwidth + x;
+			glm::vec3 color(0.0f, 0.0f, 0.0f);
 			if (hits[pixelIndex].t > 0){
-				MatrixIndex index = {};
 				if (!triangle_math::isFacingBack(optix_functionality::optix2glmf3(cntxt.camera.eye), hits[pixelIndex].triangleId, cntxt.mesh)) {
+					MatrixIndex index = {};
 					index.col = x;
 					index.row = y;
 					index.uv = { hits[pixelIndex].uv.x, hits[pixelIndex].uv.y };
 					cntxt.trianglesonScreen[hits[pixelIndex].triangleId].push_back(index);
+					if (cntxt.radiosityRendering){
+						float intensity = Drawer::interpolate(index, hits[pixelIndex].triangleId, cntxt.lightning.lightningvalues, cntxt.mesh);
+						color = glm::vec3(intensity, intensity, intensity);
+					}
+					else{
+						color = cntxt.mesh.materials[cntxt.mesh.materialIndexPerTriangle[hits[pixelIndex].triangleId]].get_double_converted_color();
+					}
 				}
-				// set color in view
-				if (cntxt.radiosityRendering){
-					float intensity = Drawer::interpolate(index, hits[pixelIndex].triangleId, cntxt.lightning.lightningvalues, cntxt.mesh);
-					cntxt.optixView[pixelIndex] = glm::vec3(intensity, intensity, intensity);
-				}else{
-					cntxt.optixView[pixelIndex] = cntxt.mesh.materials[cntxt.mesh.materialIndexPerTriangle[hits[pixelIndex].triangleId]].get_double_converted_color();
-				}
+
 			}
-			// if not it, it blank
-			else{
-				cntxt.optixView[pixelIndex] = glm::vec3(0.0f, 0.0f, 0.0f);
-			}
+			cntxt.optixView[pixelIndex] = color;
 		}
 	}
 

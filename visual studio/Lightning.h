@@ -5,6 +5,8 @@ public:
 
 	float emission_value;
 	Eigen::VectorXf emission;
+	int numsamples = 3;
+	std::vector<Eigen::VectorXf> emissionSampled;
 	Eigen::VectorXf residualvector;
 	Eigen::VectorXf lightningvalues;
 
@@ -13,16 +15,15 @@ public:
 
 	Lightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval){
 		emission_value = emissionval;
+
+		setemission(mesh);
+		setSampledEmission(mesh);
+
 		// initialize radiosity matrix
 		RadMat = SpMat(mesh.numtriangles, mesh.numtriangles);
 		optixP.calculateRadiosityMatrixStochastic(RadMat, mesh);
 
-		setemission(mesh);
-		// init lightning values
-		lightningvalues = Eigen::VectorXf::Zero(mesh.numtriangles);
 		lightningvalues = emission;
-		// init residualvector
-		residualvector = Eigen::VectorXf::Zero(mesh.numtriangles);
 		residualvector = emission;
 		// first lightning
 		numpasses = 0;
@@ -52,6 +53,18 @@ public:
 	}
 
 private:
+	void setSampledEmission(MeshS &mesh){
+		emissionSampled.resize(numsamples);
+		for (int i = 0; i < numsamples; i++){
+			emissionSampled[i] = Eigen::VectorXf::Zero(mesh.numtriangles);
+			// set emissive values from material
+			for (int j = 0; j < mesh.numtriangles; j++){
+				if (mesh.materials[mesh.materialIndexPerTriangle[j]].emission[i] > 0.0){
+					emissionSampled[i](j) = mesh.materials[mesh.materialIndexPerTriangle[j]].emission[i] * emission_value;
+				}
+			}
+		}
+	}
 	void setemission(MeshS &mesh){
 		emission = Eigen::VectorXf::Zero(mesh.numtriangles);
 		// set emissive values from material
