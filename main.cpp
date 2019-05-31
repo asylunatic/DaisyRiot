@@ -14,10 +14,6 @@
 // Library for loading .OBJ model
 #define TINYOBJLOADER_IMPLEMENTATION
 
-// Library for loading an image
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -46,16 +42,8 @@
 #include "visual studio\MeshS.h"
 #include "visual studio\Lightning.h"
 
-// Variables to be set from config.ini file
-int WIDTH, HEIGHT;
-char * obj_filepath;
-char * mtl_dirpath;
-bool radiosityRendering;
-
-// The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
 
-optix::Context context;
 // optixview is an array containing all pixel values
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
@@ -78,30 +66,26 @@ int main() {
 		return 1;
 	}
 	// set variables from config
-	WIDTH = reader.GetInteger("window", "width", -1);
-	HEIGHT = reader.GetInteger("window", "height", -1);
-	obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
+	int WIDTH = reader.GetInteger("window", "width", -1);
+	int HEIGHT = reader.GetInteger("window", "height", -1);
+	char * obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
-	mtl_dirpath = new char[reader.Get("filepaths", "mtl_dir", "testscenes/").length() + 1];
+	char * mtl_dirpath = new char[reader.Get("filepaths", "mtl_dir", "testscenes/").length() + 1];
 	std::strcpy(mtl_dirpath, reader.Get("filepaths", "mtl_dir", "testscenes/").c_str());
 	float emission_value = reader.GetReal("lightning", "emission_value", -1);
-	radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
+	bool radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
 	
 	// set up camera
 	Camera camera(WIDTH, HEIGHT);
 
-	//initialize window
+	//initialize window, GLEW extension loader & OpenGL debug callback
 	GLFWwindow* window = Drawer::initWindow(WIDTH, HEIGHT);
-
-	// Initialize GLEW extension loader
 	glewExperimental = GL_TRUE;
 	glewInit();
+	glDebugMessageCallback(Drawer::debugCallback, nullptr);
 
-	// load scene
-	MeshS mesh;
-	mesh.loadFromFile(obj_filepath, mtl_dirpath);
-
-	//initializing optix
+	// load scene into mesh & initialize optix
+	MeshS mesh(obj_filepath, mtl_dirpath);
 	OptixPrimeFunctionality optixP(mesh);
 
 	//initializing result optix drawing
@@ -128,15 +112,12 @@ int main() {
 	auto func_mouse = [](GLFWwindow* window, int button, int action, int mods) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->mouse_button_callback(window, button, action, mods); };
 	auto func_cursor = [](GLFWwindow* window, double xpos, double ypos) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->cursor_pos_callback(window, xpos, ypos); };
 
-	// Set up OpenGL debug callback
-	glDebugMessageCallback(Drawer::debugCallback, nullptr);
 	// Set up input callbacks
 	glfwSetMouseButtonCallback(window, func_mouse);
 	glfwSetCursorPosCallback(window, func_cursor);
 	glfwSetKeyCallback(window, func_key);
 
 	std::cout << "All is set up! Get ready to play around!" << std::endl;
-	// print menu
 	std::ifstream f_menu("print_menu.txt");
 	if (f_menu.is_open())
 		std::cout << f_menu.rdbuf();
