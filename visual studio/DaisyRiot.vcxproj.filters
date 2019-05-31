@@ -111,5 +111,8 @@
     <ClInclude Include="MeshS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Lightning.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

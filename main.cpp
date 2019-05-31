@@ -44,13 +44,12 @@
 #include "visual studio\INIReader.h"
 #include "visual studio\Camera.h"
 #include "visual studio\MeshS.h"
+#include "visual studio\Lightning.h"
 
 // Variables to be set from config.ini file
 int WIDTH, HEIGHT;
 char * obj_filepath;
 char * mtl_dirpath;
-int emission_index;
-float emission_value;
 bool radiosityRendering;
 
 // The Matrix
@@ -64,8 +63,6 @@ std::vector<optix_functionality::Hit> patches;
 
 Drawer::DebugLine debugline;
 GLuint optixTex, optixVao;
-std::vector<UV> rands;
-Eigen::VectorXf lightningvalues;
 
 int main() {
 	// print header
@@ -87,8 +84,7 @@ int main() {
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
 	mtl_dirpath = new char[reader.Get("filepaths", "mtl_dir", "testscenes/").length() + 1];
 	std::strcpy(mtl_dirpath, reader.Get("filepaths", "mtl_dir", "testscenes/").c_str());
-	emission_index = reader.GetInteger("lightning", "emission_index", -1);
-	emission_value = reader.GetReal("lightning", "emission_value", -1);
+	float emission_value = reader.GetReal("lightning", "emission_value", -1);
 	radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
 	
 	// set up camera
@@ -105,17 +101,6 @@ int main() {
 	MeshS mesh;
 	mesh.loadFromFile(obj_filepath, mtl_dirpath);
 
-	// set up randoms to be reused
-	rands.resize(RAYS_PER_PATCH);
-	std::srand(std::time(nullptr)); // use current time as seed for random generator
- 	for (size_t i = 0; i < RAYS_PER_PATCH; i++) {
-		UV uv = UV();
-		uv.u = ((float)(rand() % RAND_MAX)) / RAND_MAX;
-		uv.v = ((float)(rand() % RAND_MAX)) / RAND_MAX;
-		uv.v = uv.v * (1 - uv.u);
-		rands[i] = uv;
-	}
-
 	//initializing optix
 	OptixPrimeFunctionality optixP(mesh);
 
@@ -128,36 +113,13 @@ int main() {
 	GLuint linevao, linevbo, debugprogram;
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
-	// initialize radiosity matrix
-	int numtriangles = mesh.triangleIndices.size();
-	SpMat RadMat(numtriangles, numtriangles);
-	optixP.calculateRadiosityMatrixStochastic(RadMat, mesh, rands);
-
 	// set up lightning
-	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
-	//emission(emission_index) = emission_value;	
-	// set emissive values from material
-	for (int i = 0; i < numtriangles; i++){
-		if (mesh.materials[mesh.materialIndexPerTriangle[i]].emission[0] > 0.0){
-			emission(i) = mesh.materials[mesh.materialIndexPerTriangle[i]].emission[0] * emission_value;
-		}
-	}
-	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
-	lightningvalues = emission; 
-	Eigen::VectorXf residualvector = Eigen::VectorXf::Zero(numtriangles);
-	residualvector = emission;
-	int numpasses = 0;
-	// converge lightning
-	while (residualvector.sum() > 0.0001){
-		residualvector = RadMat * residualvector;
-		lightningvalues = lightningvalues + residualvector;
-		numpasses++;
-	}
+	Lightning lightning(mesh, optixP, emission_value);
 
 	// set up callback context
 	patches.resize(2);
 	InputHandler inputhandler;
-	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputhandler);
+	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, optixP, lightning, radiosityRendering, inputhandler);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// Some neat casting of member functions such we can use them as callback AND have state too, as explained per:
@@ -181,11 +143,11 @@ int main() {
 	f_menu.close();
 
 	if (radiosityRendering){
-		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, WIDTH, HEIGHT, mesh);
+		Drawer::setRadiosityTex(trianglesonScreen, lightning.lightningvalues, optixView, WIDTH, HEIGHT, mesh);
 		Drawer::refreshTexture(WIDTH, HEIGHT, optixView);
 	}
 
-	Drawer::RenderContext rendercontext(trianglesonScreen, lightningvalues, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering);
+	Drawer::RenderContext rendercontext(trianglesonScreen, lightning.lightningvalues, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering);
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {

@@ -62,6 +62,7 @@
     <ClInclude Include="ImageExporter.h" />
     <ClInclude Include="INIReader.h" />
     <ClInclude Include="InputHandler.h" />
+    <ClInclude Include="Lightning.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshS.h" />
     <ClInclude Include="optix_functionality.h" />

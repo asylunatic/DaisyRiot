@@ -94,7 +94,7 @@ void MeshS::loadFromFile(char * filepath, char * mtldirpath)
 		}
 
 	}
-
+	numtriangles = triangleIndices.size();
 	std::cout << "num of mat indices loaded: " << materialIndexPerTriangle.size() << std::endl;
 }
 

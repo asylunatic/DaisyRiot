@@ -11,7 +11,7 @@ public:
 	//normals: the unique normals in the mesh
 	//triangleIndices: triangles indexing to vertices and normals
 	//trianglesPerVertices: an array, indexed per vertex like uniqvertices, pointing to triangles it is part of
-
+	int numtriangles;
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
 	std::vector<vertex::TriangleIndex> triangleIndices;
