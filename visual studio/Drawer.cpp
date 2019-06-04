@@ -181,7 +181,7 @@ glm::vec3 Drawer::interpolate(MatrixIndex& index, int triangleId, Lightning &lig
 	c = c / glm::vec3(mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.z].size());
 
 	float w = (1 - uv.u - uv.v);
-	//float lightningvalue = uv.u * b + uv.v * c + w * a;
+	//glm::vec3 lightningvalue = uv.u * b + uv.v * c + w * a;
 	glm::vec3 lightningvalue = uv.u * a + uv.v * b + w * c;
 	return lightningvalue;
 }
