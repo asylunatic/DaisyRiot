@@ -204,7 +204,6 @@ void InputHandler::calc_full_lightning(GLFWwindow* window){
 	std::cout << "Converging lightning calculation" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
 	cbc_ptr->lightning.converge_lightning();
-	std::cout << "Number of light passes " << cbc_ptr->lightning.numpasses << ". Amount of residual light in scene " << cbc_ptr->lightning.residualvector.sum() << std::endl;
 }
 
 void InputHandler::toggle_view(GLFWwindow* window) {
@@ -218,7 +217,6 @@ void InputHandler::increment_lightpasses(GLFWwindow* window) {
 	callback_context* cbc_ptr = get_context(window);
 	// calculate consecutive lighting pass
 	cbc_ptr->lightning.increment_lightpass();
-	std::cout << "Number of light passes " << cbc_ptr->lightning.numpasses << ". Amount of residual light in scene " << cbc_ptr->lightning.residualvector.sum() << std::endl;
 }
 
 void InputHandler::clear_light(GLFWwindow* window) {

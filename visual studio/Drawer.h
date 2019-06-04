@@ -75,7 +75,7 @@ public:
 	static void refreshTexture(Drawer::RenderContext &rendercontext);
 	static void initRes(GLuint &shaderProgram, GLuint &optixVao, GLuint &optixTex, int width, int height, std::vector<glm::vec3> &optixView);
 	static void drawRes(GLuint &shaderProgram, GLuint &vao);
-	static float interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &lightningvalues, MeshS& mesh);
+	static glm::vec3 interpolate(MatrixIndex& index, int triangleId, Lightning &lightning, MeshS& mesh);
 	static void draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Drawer::DebugLine &debugline, OptixPrimeFunctionality &optixP, Drawer::RenderContext &rendercontext);
 	static void debugtrianglesDraw(DebugLine &debugline, RenderContext &rendercontext);
 };

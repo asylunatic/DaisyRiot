@@ -159,30 +159,30 @@ void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 }
 
 
-float Drawer::interpolate(MatrixIndex& index, int triangleId, Eigen::VectorXf &lightningvalues, MeshS& mesh) {
+glm::vec3 Drawer::interpolate(MatrixIndex& index, int triangleId, Lightning &lightning, MeshS& mesh) {
 	UV uv = index.uv;
 
 	//average lightvalues of the three cornerpoints
-	float a = 0;
-	float b = 0;
-	float c = 0;
+	glm::vec3 a = { 0.f, 0.f, 0.f };
+	glm::vec3 b = { 0.f, 0.f, 0.f };
+	glm::vec3 c = { 0.f, 0.f, 0.f };
 
 	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.x]) {
-		a += lightningvalues[adjTriangle];
+		a += lightning.get_color_of_patch(adjTriangle);
 	}
 	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.y]) {
-		b += lightningvalues[adjTriangle];
+		b += lightning.get_color_of_patch(adjTriangle);
 	}
 	for (int adjTriangle : mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.z]) {
-		c += lightningvalues[adjTriangle];
+		c += lightning.get_color_of_patch(adjTriangle);
 	}
-	a = a / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.x].size();
-	b = b / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.y].size();
-	c = c / mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.z].size();
+	a = a / glm::vec3(mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.x].size());
+	b = b / glm::vec3(mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.y].size());
+	c = c / glm::vec3(mesh.trianglesPerVertex[mesh.triangleIndices[triangleId].vertex.z].size());
 
 	float w = (1 - uv.u - uv.v);
 	//float lightningvalue = uv.u * b + uv.v * c + w * a;
-	float lightningvalue = uv.u * a + uv.v * b + w * c;
+	glm::vec3 lightningvalue = uv.u * a + uv.v * b + w * c;
 	return lightningvalue;
 }
 

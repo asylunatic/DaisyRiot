@@ -92,7 +92,7 @@ int main() {
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
 	// set up lightning
-	Lightning lightning(mesh, optixP, emission_value);
+	BWLightning lightning(mesh, optixP, emission_value);
 
 	//initializing result optix drawing
 	GLuint optixShader;

@@ -75,8 +75,7 @@ void  OptixPrimeFunctionality::traceScreen(Drawer::RenderContext cntxt) {
 					index.uv = { hits[pixelIndex].uv.x, hits[pixelIndex].uv.y };
 					cntxt.trianglesonScreen[hits[pixelIndex].triangleId].push_back(index);
 					if (cntxt.radiosityRendering){
-						float intensity = Drawer::interpolate(index, hits[pixelIndex].triangleId, cntxt.lightning.lightningvalues, cntxt.mesh);
-						color = glm::vec3(intensity, intensity, intensity);
+						color = Drawer::interpolate(index, hits[pixelIndex].triangleId, cntxt.lightning, cntxt.mesh);
 					}
 					else{
 						color = cntxt.mesh.materials[cntxt.mesh.materialIndexPerTriangle[hits[pixelIndex].triangleId]].get_double_converted_color();

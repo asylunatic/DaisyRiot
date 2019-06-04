@@ -27,10 +27,7 @@ public:
 		return rgb;
 	}
 
-
 private:
-	
-
 	// color conversion according to pbrt
 	inline void XYZToRGB(glm::vec3 &xyz, glm::vec3 &rgb) {
 		rgb[0] = 3.240479f * xyz[0] - 1.537150f * xyz[1] - 0.498535f * xyz[2];
