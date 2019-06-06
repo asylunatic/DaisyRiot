@@ -87,6 +87,8 @@ int main() {
 	MeshS mesh(obj_filepath, mtl_dirpath);
 	OptixPrimeFunctionality optixP(mesh);
 
+	std::cout << "mesh num triangles: " << mesh.numtriangles << std::endl;
+
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);

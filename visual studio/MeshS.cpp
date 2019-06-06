@@ -30,7 +30,6 @@ void MeshS::loadFromFile(char * filepath, char * mtldirpath)
 	std::string err;
 	if (!tinyobj::LoadObj(&attrib, &shapes, &tinyobj_materials, &err, filepath, mtldirpath, false)) {
 		std::cerr << err << std::endl;
-		//return EXIT_FAILURE;
 	}
 
 	std::cout << "size of shapes = " << shapes.size() << std::endl;

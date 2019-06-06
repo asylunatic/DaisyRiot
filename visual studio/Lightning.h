@@ -29,16 +29,10 @@ public:
 		set_sampled_emission(mesh);
 		set_reflectionvalues(mesh);
 
-		// initialize radiosity matrix
 		RadMat = SpMat(mesh.numtriangles, mesh.numtriangles);
-		optixP.calculateRadiosityMatrixStochastic(RadMat, mesh);
+		optixP.calculateRadiosityMatrix(RadMat, mesh);
 
-		lightningvalues = emission;
-		residualvector = emission;
-		// first lightning
-		numpasses = 0;
-
-		// converge lightning
+		reset();
 		converge_lightning();
 	}
 
@@ -54,7 +48,7 @@ public:
 
 	void increment_lightpass(){
 		for (int i = 0; i < numsamples; i++){
-			residualvector[i] = (RadMat * residualvector[i]) * reflectionvalues[i];
+			residualvector[i] = (RadMat * residualvector[i]).cwiseProduct(reflectionvalues[i]);
 			lightningvalues[i] = lightningvalues[i] + residualvector[i];
 		}
 		numpasses++;
@@ -67,6 +61,9 @@ public:
 	}
 
 private:
+	// somehow both triangels get same material
+	// somehow emission is r: 120 g: 0 b: 0
+	// ??
 	void set_sampled_emission(MeshS &mesh){
 		emission.resize(numsamples);
 		for (int i = 0; i < numsamples; i++){
@@ -74,7 +71,7 @@ private:
 			// set emissive values from material
 			for (int j = 0; j < mesh.numtriangles; j++){
 				if (mesh.materials[mesh.materialIndexPerTriangle[j]].emission[i] > 0.0){
-					emission[i](j) = mesh.materials[mesh.materialIndexPerTriangle[j]].emission[i] * emission_value;
+					emission[i][j] = mesh.materials[mesh.materialIndexPerTriangle[j]].emission[i] * emission_value;
 				}
 			}
 		}
@@ -85,8 +82,8 @@ private:
 		for (int i = 0; i < numsamples; i++){
 			reflectionvalues[i] = Eigen::VectorXf::Zero(mesh.numtriangles);
 			for (int j = 0; j < mesh.numtriangles; j++){
-				if (mesh.materials[mesh.materialIndexPerTriangle[j]].rgbcolor[2-i] > 0.0){
-					reflectionvalues[i](j) = mesh.materials[mesh.materialIndexPerTriangle[j]].rgbcolor[2-i];
+				if (mesh.materials[mesh.materialIndexPerTriangle[j]].rgbcolor[i] > 0.0){
+					reflectionvalues[i](j) = mesh.materials[mesh.materialIndexPerTriangle[j]].rgbcolor[i];
 				}
 			}
 		}

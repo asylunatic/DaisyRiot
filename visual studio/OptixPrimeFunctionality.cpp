@@ -83,6 +83,8 @@ void  OptixPrimeFunctionality::traceScreen(Drawer::RenderContext cntxt) {
 				}
 
 			}
+			// clamp values of color vec
+			color = glm::clamp(color, 0.f, 1.f);
 			cntxt.optixView[pixelIndex] = color;
 		}
 	}
