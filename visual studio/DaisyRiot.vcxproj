@@ -28,6 +28,7 @@
     <ClCompile Include="MeshS.cpp" />
     <ClCompile Include="optix_functionality.cpp" />
     <ClCompile Include="OptixPrimeFunctionality.cpp" />
+    <ClCompile Include="rgb2spec.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="triangle_math.cpp" />
     <ClCompile Include="Vertex.cpp" />
@@ -67,6 +68,7 @@
     <ClInclude Include="MeshS.h" />
     <ClInclude Include="optix_functionality.h" />
     <ClInclude Include="OptixPrimeFunctionality.h" />
+    <ClInclude Include="rgb2spec.h" />
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="triangle_math.h" />
     <ClInclude Include="Vertex.h" />

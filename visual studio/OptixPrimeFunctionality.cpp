@@ -78,7 +78,7 @@ void  OptixPrimeFunctionality::traceScreen(Drawer::RenderContext cntxt) {
 						color = Drawer::interpolate(index, hits[pixelIndex].triangleId, cntxt.lightning, cntxt.mesh);
 					}
 					else{
-						color = cntxt.mesh.materials[cntxt.mesh.materialIndexPerTriangle[hits[pixelIndex].triangleId]].get_double_converted_color();
+						color = cntxt.mesh.materials[cntxt.mesh.materialIndexPerTriangle[hits[pixelIndex].triangleId]].get_color_from_spectrum();
 					}
 				}
 

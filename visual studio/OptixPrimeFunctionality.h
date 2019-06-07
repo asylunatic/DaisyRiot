@@ -7,7 +7,6 @@
 #include <glm/glm.hpp>
 #include <Eigen/Sparse>
 #include <random>
-
 #include "Vertex.h"
 #include "optix_functionality.h"
 #include "triangle_math.h"
@@ -18,8 +17,6 @@
 
 typedef Eigen::SparseMatrix<float> SpMat;
 typedef Eigen::Triplet<double> Tripl;
-
-
 
 class OptixPrimeFunctionality
 {

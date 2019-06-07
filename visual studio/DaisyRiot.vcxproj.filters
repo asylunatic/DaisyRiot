@@ -54,6 +54,9 @@
     <ClCompile Include="MeshS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rgb2spec.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include\cctype" />
@@ -112,6 +115,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Lightning.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rgb2spec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
