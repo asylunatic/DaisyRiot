@@ -194,6 +194,7 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 
 }
 
+
 void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, MeshS& mesh) {
 	std::cout << "Calculating radiosity matrix..." << std::endl;
 	int numtriangles = mesh.triangleIndices.size();

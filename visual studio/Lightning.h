@@ -1,8 +1,11 @@
 #pragma once
+#include "ImageExporter.h"
+#include <iostream>
+#include <fstream>
 
 class Lightning{
 public:
-	virtual glm::vec3 get_color_of_patch(int) = 0;
+	virtual glm::vec3 get_color_of_patch(int) = 0; 
 	virtual void converge_lightning() = 0;
 	virtual void increment_lightpass() = 0;
 	virtual void reset() = 0;
@@ -10,6 +13,60 @@ protected:
 	int numpasses;
 	SpMat RadMat;
 	float emission_value;
+	void SerializeMat(SpMat& m, char* matfile) {
+		std::vector<Tripl> res;
+		int sz = m.nonZeros();
+		m.makeCompressed();
+
+		std::fstream writeFile;
+		writeFile.open(matfile, std::ios::binary | std::ios::out);
+
+		if (writeFile.is_open())
+		{
+			int rows, cols, nnzs, outS, innS;
+			rows = m.rows();
+			cols = m.cols();
+			nnzs = m.nonZeros();
+			outS = m.outerSize();
+			innS = m.innerSize();
+
+			writeFile.write((const char *)&(rows), sizeof(int));
+			writeFile.write((const char *)&(cols), sizeof(int));
+			writeFile.write((const char *)&(nnzs), sizeof(int));
+			writeFile.write((const char *)&(outS), sizeof(int));
+			writeFile.write((const char *)&(innS), sizeof(int));
+
+			writeFile.write((const char *)(m.valuePtr()), sizeof(float) * m.nonZeros());
+			writeFile.write((const char *)(m.outerIndexPtr()), sizeof(int) * m.outerSize());
+			writeFile.write((const char *)(m.innerIndexPtr()), sizeof(int) * m.nonZeros());
+
+			writeFile.close();
+		}
+	}
+	void DeserializeMat(SpMat& m, char* matfile) {
+		std::fstream readFile;
+		readFile.open(matfile, std::ios::binary | std::ios::in);
+		if (readFile.is_open())
+		{
+			int rows, cols, nnz, inSz, outSz;
+			readFile.read((char*)&rows, sizeof(int));
+			readFile.read((char*)&cols, sizeof(int));
+			readFile.read((char*)&nnz, sizeof(int));
+			readFile.read((char*)&inSz, sizeof(int));
+			readFile.read((char*)&outSz, sizeof(int));
+
+			m.resize(rows, cols);
+			m.makeCompressed();
+			m.resizeNonZeros(nnz);
+
+			readFile.read((char*)(m.valuePtr()), sizeof(float) * nnz);
+			readFile.read((char*)(m.outerIndexPtr()), sizeof(int) * outSz);
+			readFile.read((char*)(m.innerIndexPtr()), sizeof(int) * nnz);
+
+			m.finalize();
+			readFile.close();
+		}
+	}
 };
 
 class RGBLightning : public Lightning{
@@ -32,6 +89,28 @@ public:
 		RadMat = SpMat(mesh.numtriangles, mesh.numtriangles);
 		optixP.calculateRadiosityMatrix(RadMat, mesh);
 
+		reset();
+		converge_lightning();
+	}
+
+	RGBLightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, char* matfile){
+		emission_value = emissionval;
+		set_sampled_emission(mesh);
+		set_reflectionvalues(mesh);
+
+		RadMat = SpMat(mesh.numtriangles, mesh.numtriangles);
+
+		bool fileExists = ImageExporter::exists(matfile);
+		if (fileExists){
+			DeserializeMat(RadMat, matfile);
+			std::cout << "Deserialized matrix" << std::endl;
+		}
+		else{
+			optixP.calculateRadiosityMatrix(RadMat, mesh);
+			SerializeMat(RadMat, matfile);
+			std::cout << "Loaded & Serialized matrix" << std::endl;
+		}
+		
 		reset();
 		converge_lightning();
 	}
@@ -61,9 +140,7 @@ public:
 	}
 
 private:
-	// somehow both triangels get same material
-	// somehow emission is r: 120 g: 0 b: 0
-	// ??
+
 	void set_sampled_emission(MeshS &mesh){
 		emission.resize(numsamples);
 		for (int i = 0; i < numsamples; i++){
@@ -88,6 +165,7 @@ private:
 			}
 		}
 	}
+
 };
 
 class BWLightning: public Lightning{

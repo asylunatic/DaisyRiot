@@ -67,12 +67,16 @@ int main() {
 	}
 	int WIDTH = reader.GetInteger("window", "width", -1);
 	int HEIGHT = reader.GetInteger("window", "height", -1);
+	float emission_value = reader.GetReal("lightning", "emission_value", -1);
+	bool radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
 	char * obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
 	char * mtl_dirpath = new char[reader.Get("filepaths", "mtl_dir", "testscenes/").length() + 1];
 	std::strcpy(mtl_dirpath, reader.Get("filepaths", "mtl_dir", "testscenes/").c_str());
-	float emission_value = reader.GetReal("lightning", "emission_value", -1);
-	bool radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
+	char * store_mat_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() - 4];
+	std::strncpy(store_mat_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str(), reader.Get("filepaths", "scene", "UNKNOWN").length() - 4);
+	store_mat_filepath[reader.Get("filepaths", "scene", "UNKNOWN").length() - 4] = 0;
+	std::cout << "mat file path " << store_mat_filepath << std::endl;
 	
 	// set up camera
 	Camera camera(WIDTH, HEIGHT);
@@ -94,7 +98,7 @@ int main() {
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
 	// set up lightning
-	RGBLightning lightning(mesh, optixP, emission_value);
+	RGBLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
 
 	//initializing result optix drawing
 	GLuint optixShader;
