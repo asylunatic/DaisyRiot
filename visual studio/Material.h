@@ -13,7 +13,7 @@ public:
 	glm::vec3 rgbspectralcolor;
 
 	std::vector<float> spectral_values;
-	//std::vector<float> spectral_emission; // not used yet
+	std::vector<float> spectral_emission; 
 	std::vector<float> wavelengths;
 	
 	Material(glm::vec3 rgbcolor, glm::vec3 emission, std::vector<float> wave_lengths) :rgbcolor(rgbcolor), emission(emission), wavelengths(wave_lengths){
@@ -24,8 +24,12 @@ public:
 		rgb2spec_fetch(model, rgb, coeff);
 
 		for (int i = 0; i < numwavelengths; i++){
+			// set spectral value
 			float wavelength_from_rgb = rgb2spec_eval_precise(coeff, wave_lengths[i]);
 			spectral_values.push_back(wavelength_from_rgb);
+			// set emission value
+			float emission_from_rgb = rgb2spec_eval_precise(coeff, wave_lengths[i]);
+			spectral_emission.push_back(emission_from_rgb);
 		}
 
 		// init rgbspectralcolor
@@ -71,6 +75,17 @@ public:
 		return rgb;
 	}
 
+	static glm::vec3 get_color_from_spectrum( std::vector<float> &wavelengths_vec, std::vector<float> &spectral_values_vec){
+		glm::vec3 xyz = { 0.0, 0.0, 0.0 };
+		int num_wavelengths = wavelengths_vec.size();
+		for (int i = 0; i < num_wavelengths; i++){
+			xyz += cie1931WavelengthToXYZFit(wavelengths_vec[i]) * spectral_values_vec[i];
+		}
+		glm::vec3 rgb;
+		XYZToRGB(xyz, rgb);
+		return rgb;
+	}
+
 private:
 	/**
 	* A multi-lobe, piecewise Gaussian fit of CIE 1931 XYZ Color Matching Functions by Wyman el al. from Nvidia. The
@@ -82,7 +97,7 @@ private:
 	* @param wavelength wavelength in nm
 	* @return XYZ in a double array in the order of X, Y, Z. each value in the range of [0.0, 1.0]
 	*/
-	glm::vec3 cie1931WavelengthToXYZFit(double wavelength) {
+	static glm::vec3 cie1931WavelengthToXYZFit(double wavelength) {
 		double x, y, z;
 		double wave = wavelength;
 
@@ -116,7 +131,7 @@ private:
 	}
 
 	// color conversion according to pbrt
-	inline void XYZToRGB(glm::vec3 &xyz, glm::vec3 &rgb) {
+	static inline void XYZToRGB(glm::vec3 &xyz, glm::vec3 &rgb) {
 		rgb[0] = 3.240479f * xyz[0] - 1.537150f * xyz[1] - 0.498535f * xyz[2];
 		rgb[1] = -0.969256f * xyz[0] + 1.875991f * xyz[1] + 0.041556f * xyz[2];
 		rgb[2] = 0.055648f * xyz[0] - 0.204043f * xyz[1] + 1.057311f * xyz[2];
