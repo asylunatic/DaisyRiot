@@ -120,7 +120,7 @@ public:
 
 	glm::vec3 get_color_of_patch(int index){
 		// get row from lightningvales
-		//Eigen::VectorXf spectral_values_vec = lightningvalues.row(index);
+		//Eigen::VectorXf spectral_values_vec = lightningmat.row(index);
 		std::vector<float> spectral_values_vec = {};
 		for (int i = 0; i < numsamples; i++){
 			spectral_values_vec.push_back(lightningvalues[i][index]);
