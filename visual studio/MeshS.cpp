@@ -11,14 +11,13 @@ MeshS::MeshS(){
 	materialIndexPerTriangle = std::vector<int>();
 }
 
-MeshS::MeshS(char* filepath, char* mtlpath){
+MeshS::MeshS(char* filepath, char* mtlpath, std::vector<float> &wavelengths){
 	vertices = std::vector<glm::vec3>();
 	normals = std::vector<glm::vec3>();
 	triangleIndices = std::vector<vertex::TriangleIndex>();
 	trianglesPerVertex = std::vector<std::vector<int>>();
 	materials = std::vector<Material>();
 	materialIndexPerTriangle = std::vector<int>();
-	std::vector<float> wavelengths = {};
 	loadFromFile(filepath, mtlpath, wavelengths);
 }
 

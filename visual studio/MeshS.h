@@ -20,7 +20,7 @@ public:
 	std::vector<int> materialIndexPerTriangle;
 
 	void loadFromFile(char* filepath, char* mtlpath, std::vector<float> &wavelengths);
-	MeshS(char* filepath, char* mtlpath);
+	MeshS(char* filepath, char* mtlpath, std::vector<float> &wavelengths);
 	MeshS();
 	~MeshS();
 };
