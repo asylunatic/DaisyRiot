@@ -3,12 +3,30 @@
 void OptixPrimeFunctionality::cudaCalculateRadiosityMatrix(SpMat &RadMat, vertex::MeshS& mesh, std::vector<UV> &rands) {
 	std::cout << "Calculating radiosity matrix..." << std::endl;
 
+	std::cout << "Number of triangles: " << mesh.triangleIndices.size() << std::endl;
+
+	auto start = std::chrono::high_resolution_clock::now();
+
 	std::vector<parallellism::Tripl> tripletList = parallellism::runCalculateRadiosityMatrix(mesh);
+
+	std::cout << "Calculating visibility..." << std::endl;
+
+	auto middle = std::chrono::high_resolution_clock::now();
 
 	std::vector<Tripl> eigenTriplets = calculateAllVisibility(tripletList, mesh, contextP, model, rands);
 
 	RadMat.setFromTriplets(eigenTriplets.begin(), eigenTriplets.end());
 	std::cout << "... done!                                                                                       " << std::endl;
+	auto finish = std::chrono::high_resolution_clock::now();
+
+	std::chrono::duration<double> formElapsed = middle - start; 
+	std::chrono::duration<double> visibilityElapsed = finish - middle;
+	std::chrono::duration<double> totalElapsed = finish - start;
+
+	std::cout << "Calculation time of form factors: " << formElapsed.count() << std::endl;
+	std::cout << "Calculation time of visibility: " << visibilityElapsed.count() << std::endl;
+	std::cout << "Total lapsed time: " << totalElapsed.count() << " s\n";
+
 
 
 }
@@ -145,6 +163,8 @@ std::vector<Tripl> OptixPrimeFunctionality::calculateAllVisibility(std::vector<p
 
 	std::vector<Tripl> res = {};
 
+	std::cout << "Creating rays..." << std::endl;
+
 	for (int row = 0; row < numtriangles - 1; row++) {
 		for (int col = (row + 1); col < numtriangles; col++) {
 			optix::float3 origin;
@@ -159,6 +179,19 @@ std::vector<Tripl> OptixPrimeFunctionality::calculateAllVisibility(std::vector<p
 				entries.push_back(Tripl(row, col, 0.0));
 			}
 		}
+		// draw progress bar
+		int barWidth = 70;
+		float progress = (float) row/(float) numtriangles;
+		std::cout << "[";
+		int pos = barWidth * progress;
+		for (int i = 0; i < barWidth; ++i) {
+			if (i < pos) std::cout << "=";
+			else if (i == pos) std::cout << ">";
+			else std::cout << " ";
+		}
+
+		std::cout << "] " << int(progress * 100.0) << " %\r";
+		std::cout.flush();
 	}
 
 	int numEntries = entries.size();

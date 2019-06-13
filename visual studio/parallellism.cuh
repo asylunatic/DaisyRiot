@@ -2,6 +2,7 @@
 
 #include "Vertex.h"
 #include "Defines.h"
+#include <chrono>
 
 //#include "cuda_runtime.h"
 //#include "device_launch_parameters.h"

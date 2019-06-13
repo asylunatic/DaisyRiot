@@ -82,11 +82,21 @@ std::vector<parallellism::Tripl> parallellism::runCalculateRadiosityMatrix(verte
 		cudaMallocManaged(&tripletRow, numtriangles*sizeof(Tripl));
 		cudaCheckError();
 
-		calculateRow<<<1, 256>>>(row, tripletRow, vertices, normals, triangleIndices, numtriangles);
+		int blockSize = 256;
+		int numBlocks = (numtriangles + blockSize - 1) / blockSize;
+
+		auto start = std::chrono::high_resolution_clock::now();
+		calculateRow<<<numBlocks, blockSize>>>(row, tripletRow, vertices, normals, triangleIndices, numtriangles);
 		cudaDeviceSynchronize();
 		cudaCheckError();
 
+		auto finish = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> elapsed = finish - start;
+		//std::cout << "Elapsed time: " << elapsed.count() << " s\n";
+
 		tripletList.insert(tripletList.end(), tripletRow, &tripletRow[numtriangles]);
+
+		cudaFree(tripletRow);
 
 		// draw progress bar
 		numfilled += numtriangles;
@@ -113,8 +123,8 @@ std::vector<parallellism::Tripl> parallellism::runCalculateRadiosityMatrix(verte
 __global__
 void parallellism::calculateRow(int row, Tripl* rowTripletList,
 glm::vec3* vertices, glm::vec3* normals, vertex::TriangleIndex* triangleIndices, int numtriangles) {
-	int threadIndex =  threadIdx.x;
-	int stride = blockDim.x;
+	int threadIndex = blockIdx.x * blockDim.x + threadIdx.x;
+	int stride = blockDim.x * gridDim.x;
 	for (int col = threadIndex; col < numtriangles; col += stride) {
 		float formfactorRC = p2pFormfactor(row, col, vertices, normals, triangleIndices);
 		if (formfactorRC > 0.0) {
