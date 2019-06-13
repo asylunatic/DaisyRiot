@@ -89,17 +89,12 @@ protected:
 
 class SpectralLightning : public Lightning{
 private:
-	float emission_value;
 	int numsamples;
 	std::vector<glm::vec3> xyz_per_wavelength;
 	Eigen::MatrixXf emissionmat;
 	Eigen::MatrixXf residualmat;
 	Eigen::MatrixXf lightningmat;
 	Eigen::MatrixXf reflectionmat;
-	std::vector<Eigen::VectorXf> emission;
-	std::vector<Eigen::VectorXf> residualvector;
-	std::vector<Eigen::VectorXf> lightningvalues; // per color channel
-	std::vector<Eigen::VectorXf> reflectionvalues; // how much of which color is reflected per patch
 
 public:
 	SpectralLightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec, char* matfile = nullptr){
@@ -120,24 +115,20 @@ public:
 
 	glm::vec3 get_color_of_patch(int index){
 		// get row from lightningvales
-		//Eigen::VectorXf spectral_values_vec = lightningmat.row(index);
-		std::vector<float> spectral_values_vec = {};
-		for (int i = 0; i < numsamples; i++){
-			spectral_values_vec.push_back(lightningvalues[i][index]);
-		}
+		Eigen::VectorXf spectral_values_vec_from_mat = lightningmat.row(index);
+
 		// pairwise multiplication to get color
 		glm::vec3 xyzcolor = { 0.0, 0.0, 0.0 };
 		for (int i = 0; i < numsamples; i++){
-			xyzcolor += xyz_per_wavelength[i] * spectral_values_vec[i];
+			xyzcolor += xyz_per_wavelength[i] * spectral_values_vec_from_mat[i];
 		}
-
 		glm::vec3 rgbcolor;
 		daisy_color::XYZToRGB(xyzcolor, rgbcolor);
 		return rgbcolor;
 	}
 
 	void converge_lightning(){
-		while (check_convergence(residualvector) > 0.0001){
+		while (check_convergence(residualmat) > 0.0001){
 			increment_lightpass();
 		}
 	}
@@ -149,12 +140,6 @@ public:
 		}
 		lightningmat = lightningmat + residualmat;
 
-		// VEC
-		for (int i = 0; i < numsamples; i++){
-			residualvector[i] = (RadMat * residualvector[i]).cwiseProduct(reflectionvalues[i]);
-			lightningvalues[i] = lightningvalues[i] + residualvector[i];
-		}
-
 		numpasses++;
 	}
 
@@ -162,9 +147,6 @@ public:
 		// MAT
 		residualmat = emissionmat;
 		lightningmat = emissionmat;
-		// VEC
-		residualvector = emission;
-		lightningvalues = emission;
 		numpasses = 0;
 	}
 
@@ -197,19 +179,8 @@ private:
 		for (int i = 0; i < numsamples; i++){
 			// set emissive values from material
 			for (int j = 0; j < mesh.numtriangles; j++){
-				float val = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i];
-				float otherval = emissionmat.col(j)[i];
-				emissionmat(j, i) = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] * emission_value;
-			}
-		}
-		// VEC
-		emission.resize(numsamples);
-		for (int i = 0; i < numsamples; i++){
-			emission[i] = Eigen::VectorXf::Zero(mesh.numtriangles);
-			// set emissive values from material
-			for (int j = 0; j < mesh.numtriangles; j++){
 				if (mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] > 0.0){
-					emission[i][j] = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] * emission_value;
+					emissionmat(j, i) = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] * emission_value;
 				}
 			}
 		}
@@ -221,16 +192,6 @@ private:
 		for (int i = 0; i < numsamples; i++){
 			for (int j = 0; j < mesh.numtriangles; j++){
 				reflectionmat.col(i)[j] = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_values[i];
-			}
-		}
-		// VEC
-		reflectionvalues.resize(numsamples);
-		for (int i = 0; i < numsamples; i++){
-			reflectionvalues[i] = Eigen::VectorXf::Zero(mesh.numtriangles);
-			for (int j = 0; j < mesh.numtriangles; j++){
-				if (mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_values[i] > 0.0){
-					reflectionvalues[i](j) = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_values[i];
-				}
 			}
 		}
 	}
