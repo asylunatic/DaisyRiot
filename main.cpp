@@ -99,7 +99,8 @@ int main() {
 
 	// set up lightning
 	std::vector<float> wavelengths = { 600.0, 550.0, 500.0, 450.0, 400.0, 350.0, 300.0, 250.0, 200.0 };
-	SpectralLightning lightning(mesh, optixP, emission_value, store_mat_filepath, wavelengths);
+	SpectralLightning lightning(mesh, optixP, emission_value, wavelengths, store_mat_filepath);
+	//RGBLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
 	//BWLightning lightning(mesh, optixP, emission_value);
 
 	//initializing result optix drawing

@@ -18,10 +18,11 @@ MeshS::MeshS(char* filepath, char* mtlpath){
 	trianglesPerVertex = std::vector<std::vector<int>>();
 	materials = std::vector<Material>();
 	materialIndexPerTriangle = std::vector<int>();
-	loadFromFile(filepath, mtlpath);
+	std::vector<float> wavelengths = {};
+	loadFromFile(filepath, mtlpath, wavelengths);
 }
 
-void MeshS::loadFromFile(char * filepath, char * mtldirpath)
+void MeshS::loadFromFile(char * filepath, char * mtldirpath, std::vector<float> &wavelengths)
 {
 	// Load vertices of model
 	tinyobj::attrib_t attrib;
@@ -41,7 +42,6 @@ void MeshS::loadFromFile(char * filepath, char * mtldirpath)
 	for (int i = 0; i < tinyobj_materials.size(); i++){
 		glm::vec3 diffuse(tinyobj_materials[i].diffuse[0], tinyobj_materials[i].diffuse[1], tinyobj_materials[i].diffuse[2]);
 		glm::vec3 emission(tinyobj_materials[i].emission[0], tinyobj_materials[i].emission[1], tinyobj_materials[i].emission[2]);
-		std::vector<float> wavelengths = { 600.0, 550.0, 500.0, 450.0, 400.0, 350.0, 300.0, 250.0, 200.0 };
 		Material mattie(diffuse, emission, wavelengths);
 		materials.push_back(mattie);
 	}

@@ -120,5 +120,8 @@
     <ClInclude Include="rgb2spec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
