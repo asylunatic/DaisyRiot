@@ -134,7 +134,6 @@ public:
 	}
 
 	void increment_lightpass(){
-		// MAT
 		for (int i = 0; i < numsamples; i++){
 			residualmat.col(i) = (RadMat * residualmat.col(i)).cwiseProduct(reflectionmat.col(i));
 		}
@@ -144,7 +143,6 @@ public:
 	}
 
 	void reset(){
-		// MAT
 		residualmat = emissionmat;
 		lightningmat = emissionmat;
 		numpasses = 0;
