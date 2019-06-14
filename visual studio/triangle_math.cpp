@@ -61,7 +61,6 @@ std::vector<std::vector<glm::vec3>> triangle_math::divideInFourTriangles(float t
 	glm::vec3 a = mesh.vertices[mesh.triangleIndices[triangleId].vertex.x];
 	glm::vec3 b = mesh.vertices[mesh.triangleIndices[triangleId].vertex.y];
 	glm::vec3 c = mesh.vertices[mesh.triangleIndices[triangleId].vertex.z];
-	std::vector<glm::vec3> innerTriangle;
 	glm::vec3 innerA = ((b - a) / 2.0f) + a;
 	glm::vec3 innerC = ((c - a) / 2.0f) + a;
 	glm::vec3 innerB = ((b - c) / 2.0f) + c;

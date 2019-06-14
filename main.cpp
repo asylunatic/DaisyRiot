@@ -43,6 +43,7 @@
 #include "visual studio\InputHandler.h"
 #include "visual studio\INIReader.h"
 #include "visual studio\Camera.h"
+#include "visual studio\parallellism.cuh"
 
 // Variables to be set from config.ini file
 int WIDTH, HEIGHT;
@@ -130,7 +131,7 @@ int main() {
 	// initialize radiosity matrix
 	int numtriangles = mesh.triangleIndices.size();
 	SpMat RadMat(numtriangles, numtriangles);
-	optixP.calculateRadiosityMatrixStochastic(RadMat, mesh, rands);
+	optixP.cudaCalculateRadiosityMatrix(RadMat, mesh, rands);
 
 	// set up lightning
 	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);

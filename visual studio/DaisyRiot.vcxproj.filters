@@ -57,10 +57,8 @@
     <None Include="..\config.ini" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="FirstTry.cu">
-      <Filter>Source Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="geometry.cu" />
+    <CudaCompile Include="parallellism.cu" />
+    <CudaCompile Include="parallellism.cuh" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\stdafx.h">

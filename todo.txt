@@ -2,6 +2,7 @@ H materials laden
 H renderen met kleur
 H set different lightning by keyboard input or manual selection 
 H divide lightning value of surface by area
+H save matrix to file
 M van optix prime naar optix
 M debug drawing of rays (also nice for report) 
 M gamma correction in result rendering
