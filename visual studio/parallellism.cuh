@@ -31,9 +31,6 @@ namespace parallellism
 		double m_value;
 	};
 
-	__global__
-	void add(int n, float *x, float *y);
-
 	std::vector<parallellism::Tripl>  runCalculateRadiosityMatrix(vertex::MeshS& mesh);
 
 	__global__
