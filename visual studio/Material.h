@@ -30,7 +30,7 @@ public:
 
 
 		// set spectrum from emission rgb
-		float emit[3] = { emission.x, emission.y, emission.z };
+		float emit[3] = { emission.x/2.0, emission.y/2.0, emission.z/2.0 };
 		rgb2spec_fetch(model, emit, coeff);
 		for (int i = 0; i < numwavelengths; i++){
 			// set emission value
