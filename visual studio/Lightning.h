@@ -87,6 +87,122 @@ protected:
 	}
 };
 
+class SpectralLightningFast : public Lightning{
+private:
+	int numsamples;
+	int numpatches;
+	std::vector<glm::vec3> xyz_per_wavelength;
+	std::vector<glm::vec3> rgb_color_per_patch;		// here we cache the rgb colors of the patches
+
+	std::vector<Eigen::VectorXf> emission;
+	std::vector<Eigen::VectorXf> residualvector;
+	std::vector<Eigen::VectorXf> lightningvalues; // per color channel
+	std::vector<Eigen::VectorXf> reflectionvalues; // how much of which color is reflected per patch
+
+public:
+	SpectralLightningFast(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec, char* matfile = nullptr){
+		numsamples = wavelengthsvec.size();
+		numpatches = mesh.numtriangles;
+		xyz_per_wavelength = get_xyz_conversions(wavelengthsvec);
+		emission_value = emissionval;
+		set_sampled_emission(mesh);
+		set_reflectionvalues(mesh);
+		if (matfile == nullptr){
+			initMat(mesh, optixP);
+		}
+		else{
+			initMatFromFile(mesh, optixP, matfile);
+		}
+		reset();
+		std::cout << "The lightning is reset" << std::endl;
+		converge_lightning();
+		std::cout << "The lightning is converged" << std::endl;
+	}
+
+	glm::vec3 get_color_of_patch(int index){
+		return rgb_color_per_patch[index];
+	}
+
+	void converge_lightning(){
+		while (check_convergence(residualvector) > 200){
+			std::cout << "Residual light in scene: " << check_convergence(residualvector) << std::endl;
+			increment_lightpass();
+		}
+	}
+
+	void increment_lightpass(){
+		// increment light
+		for (int i = 0; i < numsamples; i++){
+			residualvector[i] = (RadMat * residualvector[i]).cwiseProduct(reflectionvalues[i]);
+			lightningvalues[i] = lightningvalues[i] + residualvector[i];
+		}
+		// update color per patch
+		for (int i = 0; i < rgb_color_per_patch.size(); i++){
+			glm::vec3 xyz;
+			for (int j = 0; j < numsamples; j++){
+				xyz += xyz_per_wavelength[j] * lightningvalues[j][i];
+			}
+			glm::vec3 rgb = { 0.0, 0.0, 0.0 };
+			daisy_color::XYZToRGB(xyz, rgb);
+			rgb_color_per_patch[i] = rgb;
+		}
+		numpasses++;
+	}
+
+	void reset(){
+		rgb_color_per_patch = std::vector<glm::vec3>(numpatches, { 0.0, 0.0, 0.0 });
+		residualvector = emission;
+		lightningvalues = emission;
+		numpasses = 0;
+	}
+
+private:
+	std::vector<glm::vec3> get_xyz_conversions(std::vector<float> wavelengthsvec){
+		std::vector<glm::vec3> res;
+		res.resize(numsamples);
+		for (int i = 0; i < numsamples; i++){
+			glm::vec3 xyz = daisy_color::cie1931WavelengthToXYZFit(wavelengthsvec[i]);
+			res[i] = xyz;
+		}
+		return res;
+	}
+
+	float check_convergence(std::vector<Eigen::VectorXf> input){
+		float sum = 0.0;
+		for (int i = 0; i < numsamples; i++){
+			sum += input[i].sum();
+		}
+		return sum;
+	}
+
+	void set_sampled_emission(MeshS &mesh){
+		emission.resize(numsamples);
+		for (int i = 0; i < numsamples; i++){
+			emission[i] = Eigen::VectorXf::Zero(mesh.numtriangles);
+			// set emissive values from material
+			for (int j = 0; j < mesh.numtriangles; j++){
+				if (mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] > 0.0){
+					emission[i][j] = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] * emission_value;
+				}
+			}
+		}
+	}
+
+	void set_reflectionvalues(MeshS &mesh){
+		reflectionvalues.resize(numsamples);
+		for (int i = 0; i < numsamples; i++){
+			reflectionvalues[i] = Eigen::VectorXf::Zero(mesh.numtriangles);
+			for (int j = 0; j < mesh.numtriangles; j++){
+				if (mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_values[i] > 0.0){
+					reflectionvalues[i](j) = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_values[i];
+				}
+			}
+		}
+	}
+
+
+};
+
 class SpectralLightning : public Lightning{
 private:
 	int numsamples;
@@ -163,14 +279,6 @@ private:
 			res(2, i) = xyz.z;
 		}
 		return res;
-	}
-
-	float check_convergence(std::vector<Eigen::VectorXf> input){
-		float sum = 0.0;
-		for (int i = 0; i < numsamples; i++){
-			sum += input[i].sum();
-		}
-		return sum;
 	}
 
 	float check_convergence(Eigen::MatrixXf input){
