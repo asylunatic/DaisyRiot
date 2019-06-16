@@ -92,14 +92,13 @@ int main() {
 	MeshS mesh(obj_filepath, mtl_dirpath, wavelengths);
 	OptixPrimeFunctionality optixP(mesh);
 
-	std::cout << "mesh num triangles: " << mesh.numtriangles << std::endl;
-
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
 	// set up lightning
 	SpectralLightning lightning(mesh, optixP, emission_value, wavelengths, store_mat_filepath);
+	std::cout << "Done setting up spectral lightning " << std::endl;
 	//RGBLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
 	//BWLightning lightning(mesh, optixP, emission_value);
 

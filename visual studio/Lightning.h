@@ -90,7 +90,7 @@ protected:
 class SpectralLightning : public Lightning{
 private:
 	int numsamples;
-	std::vector<glm::vec3> xyz_per_wavelength;
+	Eigen::MatrixXf xyz_per_wavelength;
 	Eigen::MatrixXf emissionmat;
 	Eigen::MatrixXf residualmat;
 	Eigen::MatrixXf lightningmat;
@@ -98,8 +98,8 @@ private:
 
 public:
 	SpectralLightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec, char* matfile = nullptr){
-		xyz_per_wavelength = get_xyz_conversions(wavelengthsvec);
 		numsamples = wavelengthsvec.size();
+		xyz_per_wavelength = get_xyz_conversions(wavelengthsvec);
 		emission_value = emissionval;
 		set_sampled_emission(mesh);
 		set_reflectionvalues(mesh);
@@ -110,7 +110,9 @@ public:
 			initMatFromFile(mesh, optixP, matfile);
 		}
 		reset();
+		std::cout << "The lightning is reset" << std::endl;
 		converge_lightning();
+		std::cout << "The lightning is converged" << std::endl;
 	}
 
 	glm::vec3 get_color_of_patch(int index){
@@ -118,17 +120,20 @@ public:
 		Eigen::VectorXf spectral_values_vec_from_mat = lightningmat.row(index);
 
 		// pairwise multiplication to get color
-		glm::vec3 xyzcolor = { 0.0, 0.0, 0.0 };
-		for (int i = 0; i < numsamples; i++){
+		//glm::vec3 xyzcolor = { 0.0, 0.0, 0.0 };
+		Eigen::VectorXf xyzcolor_vec = xyz_per_wavelength * spectral_values_vec_from_mat;
+		glm::vec3 xyzcolor = { xyzcolor_vec[0], xyzcolor_vec[1], xyzcolor_vec[2] };
+		/*for (int i = 0; i < numsamples; i++){
 			xyzcolor += xyz_per_wavelength[i] * spectral_values_vec_from_mat[i];
-		}
+		}*/
 		glm::vec3 rgbcolor;
 		daisy_color::XYZToRGB(xyzcolor, rgbcolor);
 		return rgbcolor;
 	}
 
 	void converge_lightning(){
-		while (check_convergence(residualmat) > 0.0001){
+		while (check_convergence(residualmat) > 200){
+			std::cout << "Residual light in scene: " << check_convergence(residualmat) << std::endl;
 			increment_lightpass();
 		}
 	}
@@ -149,11 +154,13 @@ public:
 	}
 
 private:
-	std::vector<glm::vec3> get_xyz_conversions(std::vector<float> wavelengthsvec){
-		std::vector<glm::vec3> res = {};
-		for (int i = 0; i < wavelengthsvec.size(); i++){
+	Eigen::MatrixXf get_xyz_conversions(std::vector<float> wavelengthsvec){
+		Eigen::MatrixXf res = Eigen::MatrixXf::Zero(3, numsamples);
+		for (int i = 0; i < numsamples; i++){
 			glm::vec3 xyz = daisy_color::cie1931WavelengthToXYZFit(wavelengthsvec[i]);
-			res.push_back(xyz);
+			res(0, i) = xyz.x;
+			res(1, i) = xyz.y;
+			res(2, i) = xyz.z;
 		}
 		return res;
 	}
@@ -172,10 +179,8 @@ private:
 	}
 
 	void set_sampled_emission(MeshS &mesh){
-		// MAT
 		emissionmat = Eigen::MatrixXf::Zero(mesh.numtriangles, numsamples);
 		for (int i = 0; i < numsamples; i++){
-			// set emissive values from material
 			for (int j = 0; j < mesh.numtriangles; j++){
 				if (mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] > 0.0){
 					emissionmat(j, i) = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] * emission_value;
@@ -185,7 +190,6 @@ private:
 	}
 
 	void set_reflectionvalues(MeshS &mesh){
-		// MAT
 		reflectionmat = Eigen::MatrixXf::Zero(mesh.numtriangles, numsamples);
 		for (int i = 0; i < numsamples; i++){
 			for (int j = 0; j < mesh.numtriangles; j++){
