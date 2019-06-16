@@ -100,7 +100,7 @@ int main() {
 	SpectralLightningFast lightning(mesh, optixP, emission_value, wavelengths, store_mat_filepath);
 	std::cout << "Done setting up spectral lightning " << std::endl;
 	//RGBLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
-	//BWLightning lightning(mesh, optixP, emission_value);
+	//BWLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
 
 	//initializing result optix drawing
 	GLuint optixShader;

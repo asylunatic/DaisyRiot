@@ -126,16 +126,26 @@ public:
 	void converge_lightning(){
 		while (check_convergence(residualvector) > 200){
 			std::cout << "Residual light in scene: " << check_convergence(residualvector) << std::endl;
-			increment_lightpass();
+			increment_light_fast();
 		}
+		update_patch_colors();
 	}
 
 	void increment_lightpass(){
-		// increment light
-		for (int i = 0; i < numsamples; i++){
-			residualvector[i] = (RadMat * residualvector[i]).cwiseProduct(reflectionvalues[i]);
-			lightningvalues[i] = lightningvalues[i] + residualvector[i];
-		}
+		increment_light_fast();
+		update_patch_colors();	
+	}
+
+	void reset(){
+		rgb_color_per_patch = std::vector<glm::vec3>(numpatches, { 0.0, 0.0, 0.0 });
+		residualvector = emission;
+		lightningvalues = emission;
+		update_patch_colors();
+		numpasses = 0;
+	}
+
+private:
+	void update_patch_colors(){
 		// update color per patch
 		for (int i = 0; i < rgb_color_per_patch.size(); i++){
 			glm::vec3 xyz;
@@ -149,14 +159,13 @@ public:
 		numpasses++;
 	}
 
-	void reset(){
-		rgb_color_per_patch = std::vector<glm::vec3>(numpatches, { 0.0, 0.0, 0.0 });
-		residualvector = emission;
-		lightningvalues = emission;
-		numpasses = 0;
+	void increment_light_fast(){
+		for (int i = 0; i < numsamples; i++){
+			residualvector[i] = (RadMat * residualvector[i]).cwiseProduct(reflectionvalues[i]);
+			lightningvalues[i] = lightningvalues[i] + residualvector[i];
+		}
 	}
 
-private:
 	std::vector<glm::vec3> get_xyz_conversions(std::vector<float> wavelengthsvec){
 		std::vector<glm::vec3> res;
 		res.resize(numsamples);
@@ -179,7 +188,6 @@ private:
 		emission.resize(numsamples);
 		for (int i = 0; i < numsamples; i++){
 			emission[i] = Eigen::VectorXf::Zero(mesh.numtriangles);
-			// set emissive values from material
 			for (int j = 0; j < mesh.numtriangles; j++){
 				if (mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] > 0.0){
 					emission[i][j] = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] * emission_value;
@@ -397,10 +405,15 @@ public:
 	Eigen::VectorXf residualvector;
 	Eigen::VectorXf lightningvalues;
 	
-	BWLightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval){
+	BWLightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, char* matfile = nullptr){
 		emission_value = emissionval;
 		setemission(mesh);
-		initMat(mesh, optixP);
+		if (matfile == nullptr){
+			initMat(mesh, optixP);
+		}
+		else{
+			initMatFromFile(mesh, optixP, matfile);
+		}
 		reset();
 		converge_lightning();
 	}
