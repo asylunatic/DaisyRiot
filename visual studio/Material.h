@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include "rgb2spec.h"
 #include "color.h"
+#include <Eigen\Dense>
 
 class Material{
 public:
@@ -16,12 +17,13 @@ public:
 	std::vector<float> spectral_emission; 
 	std::vector<float> &wavelengths;
 
-//	Eigen::MatrixXf M; // matrix to influence wavelengths
+	Eigen::MatrixXf M; // matrix to influence wavelengths
 	
 	Material(glm::vec3 rgbcolor, glm::vec3 emission, glm::vec3 blacklight_2_rgb, std::vector<float> &wave_lengths)
 		:rgbcolor(rgbcolor), emission(emission), blacklight_2_rgb(blacklight_2_rgb), wavelengths(wave_lengths){
 
 		numwavelengths = wave_lengths.size();
+		M = Eigen::MatrixXf::Identity(numwavelengths, numwavelengths);
 		
 		RGB2Spec *model = rgb2spec_load("tables/srgb.coeff");
 
