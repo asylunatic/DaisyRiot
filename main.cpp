@@ -77,8 +77,6 @@ int main() {
 		std::cout << f.rdbuf();
 	f.close();
 
-	parallellism::runAdd();
-
 	// load config
 	INIReader reader("config.ini");
 	if (reader.ParseError() != 0) {
