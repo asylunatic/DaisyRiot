@@ -12,4 +12,4 @@ struct MatrixIndex {
 };
 
 
-#define RAYS_PER_PATCH 100
+#define RAYS_PER_PATCH 50
