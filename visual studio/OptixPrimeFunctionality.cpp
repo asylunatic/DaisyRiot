@@ -9,9 +9,12 @@ void OptixPrimeFunctionality::cudaCalculateRadiosityMatrix(SpMat &RadMat, vertex
 
 	std::vector<parallellism::Tripl> tripletList = parallellism::runCalculateRadiosityMatrix(mesh);
 
+	auto middle = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> formElapsed = middle - start;
+	std::cout << "Calculation time of form factors: " << formElapsed.count() << std::endl;
+
 	std::cout << "\nCalculating visibility..." << std::endl;
 
-	auto middle = std::chrono::high_resolution_clock::now();
 
 	std::vector<Tripl> eigenTriplets = calculateAllVisibility(tripletList, mesh, contextP, model, rands);
 
@@ -19,11 +22,8 @@ void OptixPrimeFunctionality::cudaCalculateRadiosityMatrix(SpMat &RadMat, vertex
 	std::cout << "... done!                                                                                       " << std::endl;
 	auto finish = std::chrono::high_resolution_clock::now();
 
-	std::chrono::duration<double> formElapsed = middle - start; 
 	std::chrono::duration<double> visibilityElapsed = finish - middle;
 	std::chrono::duration<double> totalElapsed = finish - start;
-
-	std::cout << "Calculation time of form factors: " << formElapsed.count() << std::endl;
 	std::cout << "Calculation time of visibility: " << visibilityElapsed.count() << std::endl;
 	std::cout << "Total lapsed time: " << totalElapsed.count() << " s\n";
 
