@@ -6,9 +6,9 @@ std::vector<parallellism::Tripl> parallellism::runCalculateRadiosityMatrix(Simpl
 	int numtriangles = mesh.triangleIndices.size();
 
 	//Load mesh into cuda memory
-	glm::vec3* vertices;// = new glm::vec3[mesh.vertices.size()];
-	glm::vec3* normals;// = new glm::vec3[mesh.normals.size()];
-	vertex::TriangleIndex* triangleIndices;// = new vertex::TriangleIndex[mesh.triangleIndices.size()];
+	glm::vec3* vertices;
+	glm::vec3* normals;
+	vertex::TriangleIndex* triangleIndices;
 	cudaMallocManaged(&vertices, mesh.vertices.size()*sizeof(glm::vec3));
 	cudaMallocManaged(&normals, mesh.normals.size()*sizeof(glm::vec3));
 	cudaMallocManaged(&triangleIndices, mesh.triangleIndices.size()*sizeof(vertex::TriangleIndex));
@@ -20,7 +20,7 @@ std::vector<parallellism::Tripl> parallellism::runCalculateRadiosityMatrix(Simpl
 
 	int numfilled = 0;
 
-	int rowStride = std::min(1000000/numtriangles, numtriangles);
+	int rowStride = std::max(1, std::min(1000000/numtriangles, numtriangles));
 	
 
 	for (int row = 0; row < numtriangles; row += rowStride) {
@@ -43,9 +43,14 @@ std::vector<parallellism::Tripl> parallellism::runCalculateRadiosityMatrix(Simpl
 		cudaMallocManaged(&tripletRow, numtriangles*sizeof(Tripl)*rowStride);
 		cudaCheckError();
 
-		int colThreads = (256 + rowStride -1) / rowStride;
-		dim3 blockDim(rowStride, colThreads);
-		dim3 gridDim(1, (numtriangles + colThreads - 1)/colThreads);
+		float rowColRatio = (float) numtriangles / (float) rowStride;
+		int colThreads = sqrt(256 * rowColRatio);
+		int rowThreads = 256 / colThreads;
+		/*std::cout << "rowStride: " << rowStride << ", rowColRatio: " << rowColRatio
+			<< "\ncolThreads: " << colThreads << ", rowThreads: " << rowThreads 
+			<< "\ncolGrid: " << numtriangles / colThreads << ", rowGrid: " << rowStride / rowThreads << std::endl;*/
+		dim3 blockDim(rowThreads, colThreads);
+		dim3 gridDim(rowStride/rowThreads, numtriangles/colThreads);
 
 
 		auto start = std::chrono::high_resolution_clock::now();
