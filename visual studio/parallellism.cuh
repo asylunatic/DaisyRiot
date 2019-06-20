@@ -3,6 +3,7 @@
 #include "Vertex.h"
 #include "Defines.h"
 #include <chrono>
+#include <algorithm>
 
 //#include "cuda_runtime.h"
 //#include "device_launch_parameters.h"
@@ -34,7 +35,7 @@ namespace parallellism
 	std::vector<parallellism::Tripl>  runCalculateRadiosityMatrix(SimpleMesh& mesh);
 
 	__global__
-	void calculateRow(int row, Tripl* rowTripletList,
+	void calculateRow(int rowStart, int rowStride, Tripl* rowTripletList,
 		glm::vec3* vertices, glm::vec3* normals, vertex::TriangleIndex* triangleIndices, int numtriangles);
 	__device__
 	float p2pFormfactor(int originPatch, int destPatch,

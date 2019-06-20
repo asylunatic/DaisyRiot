@@ -19,9 +19,11 @@ std::vector<parallellism::Tripl> parallellism::runCalculateRadiosityMatrix(Simpl
 
 
 	int numfilled = 0;
+
+	int rowStride = std::min(1000000/numtriangles, numtriangles);
 	
 
-	for (int row = 0; row < numtriangles; row++) {
+	for (int row = 0; row < numtriangles; row += rowStride) {
 		// calulate form factors current patch to all other patches (that have not been calculated already):
 		// matrix shape should be as follows:
 		// *------*------*------*
@@ -38,14 +40,16 @@ std::vector<parallellism::Tripl> parallellism::runCalculateRadiosityMatrix(Simpl
 		// V1 is a vector containing the light that is emitted per patch 
 		// V2 is a vector containing the light that is emitted per patch after the bounce
 		Tripl* tripletRow;// = new Tripl[numtriangles];
-		cudaMallocManaged(&tripletRow, numtriangles*sizeof(Tripl));
+		cudaMallocManaged(&tripletRow, numtriangles*sizeof(Tripl)*rowStride);
 		cudaCheckError();
 
-		int blockSize = 256;
-		int numBlocks = (numtriangles + blockSize - 1) / blockSize;
+		int colThreads = (256 + rowStride -1) / rowStride;
+		dim3 blockDim(rowStride, colThreads);
+		dim3 gridDim(1, (numtriangles + colThreads - 1)/colThreads);
+
 
 		auto start = std::chrono::high_resolution_clock::now();
-		calculateRow<<<numBlocks, blockSize>>>(row, tripletRow, vertices, normals, triangleIndices, numtriangles);
+		calculateRow<<<gridDim, blockDim>>>(row, std::min(numtriangles, row + rowStride), tripletRow, vertices, normals, triangleIndices, numtriangles);
 		cudaDeviceSynchronize();
 		cudaCheckError();
 
@@ -53,12 +57,12 @@ std::vector<parallellism::Tripl> parallellism::runCalculateRadiosityMatrix(Simpl
 		std::chrono::duration<double> elapsed = finish - start;
 		//std::cout << "Elapsed time: " << elapsed.count() << " s\n";
 
-		tripletList.insert(tripletList.end(), tripletRow, &tripletRow[numtriangles]);
+		tripletList.insert(tripletList.end(), tripletRow, &tripletRow[numtriangles*rowStride]);
 
 		cudaFree(tripletRow);
 
 		// draw progress bar
-		numfilled += numtriangles;
+		numfilled += numtriangles*rowStride;
 		int barWidth = 70;
 		float progress = float(float(numfilled) / float(numtriangles*(numtriangles - 1)));
 		std::cout << "[";
@@ -80,19 +84,23 @@ std::vector<parallellism::Tripl> parallellism::runCalculateRadiosityMatrix(Simpl
 }
 
 __global__
-void parallellism::calculateRow(int row, Tripl* rowTripletList,
+void parallellism::calculateRow(int rowStart, int rowEnd, Tripl* rowTripletList,
 glm::vec3* vertices, glm::vec3* normals, vertex::TriangleIndex* triangleIndices, int numtriangles) {
-	int threadIndex = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
-	for (int col = threadIndex; col < numtriangles; col += stride) {
-		float formfactorRC = p2pFormfactor(row, col, vertices, normals, triangleIndices);
-		if (formfactorRC > 0.0) {
-			// at place (x, y) we want the form factor y->x 
-			// but as this is a col major matrix we store (x, y) at (y, x) -> confused yet?
-			rowTripletList[col] = { row, col, formfactorRC };
-		}
-		else {
-			rowTripletList[col] = { row, col, 0.0 };
+	int threadRow = (blockIdx.x * blockDim.x + threadIdx.x) + rowStart;
+	int threadCol = blockIdx.y * blockDim.y + threadIdx.y;
+	int rowStride = blockDim.x * gridDim.x;
+	int colStride = blockDim.y * gridDim.y;
+	for (int row = threadRow; row < rowEnd; row += rowStride) {
+		for (int col = threadCol; col < numtriangles; col += colStride) {
+			float formfactorRC = p2pFormfactor(row, col, vertices, normals, triangleIndices);
+			if (formfactorRC > 0.0) {
+				// at place (x, y) we want the form factor y->x 
+				// but as this is a col major matrix we store (x, y) at (y, x) -> confused yet?
+				rowTripletList[(row - rowStart) * numtriangles + col] = { row, col, formfactorRC };
+			}
+			else {
+				rowTripletList[(row - rowStart) * numtriangles + col] = { row, col, 0.0 };
+			}
 		}
 	}
 }

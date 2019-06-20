@@ -13,9 +13,12 @@ void OptixPrimeFunctionality::cudaCalculateRadiosityMatrix(SpMat &RadMat, MeshS&
 	SimpleMesh simpleMesh = {mesh.numtriangles, mesh.vertices, mesh.normals, mesh.triangleIndices};
 	std::vector<parallellism::Tripl> tripletList = parallellism::runCalculateRadiosityMatrix(simpleMesh);
 
-	std::cout << "Calculating visibility..." << std::endl;
-
 	auto middle = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> formElapsed = middle - start;
+	std::cout << "Calculation time of form factors: " << formElapsed.count() << std::endl;
+
+	std::cout << "\nCalculating visibility..." << std::endl;
+
 
 	std::vector<Tripl> eigenTriplets = calculateAllVisibility(tripletList, mesh, contextP, model, rands);
 
@@ -23,11 +26,8 @@ void OptixPrimeFunctionality::cudaCalculateRadiosityMatrix(SpMat &RadMat, MeshS&
 	std::cout << "... done!                                                                                       " << std::endl;
 	auto finish = std::chrono::high_resolution_clock::now();
 
-	std::chrono::duration<double> formElapsed = middle - start; 
 	std::chrono::duration<double> visibilityElapsed = finish - middle;
 	std::chrono::duration<double> totalElapsed = finish - start;
-
-	std::cout << "Calculation time of form factors: " << formElapsed.count() << std::endl;
 	std::cout << "Calculation time of visibility: " << visibilityElapsed.count() << std::endl;
 	std::cout << "Total lapsed time: " << totalElapsed.count() << " s\n";
 
@@ -162,13 +162,18 @@ float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, Mes
 
 std::vector<Tripl> OptixPrimeFunctionality::calculateAllVisibility(std::vector<parallellism::Tripl> &tripletlist, MeshS& mesh, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
 	int numtriangles = mesh.triangleIndices.size();
+	int raySize = 2 * RAYS_PER_PATCH*numtriangles*(numtriangles - 1) / 2;
+	int batchSize = 4000000;
 
 	std::vector<optix::float3> rays = {};
+	rays.reserve(batchSize*2);
 	std::vector<Tripl> entries = {};
-	std::vector<optix_functionality::Hit> hits;
 
+	std::vector<optix_functionality::Hit> hits;
+	
 
 	std::vector<Tripl> res = {};
+	res.reserve(numtriangles*(numtriangles - 1) / 2);
 
 	std::cout << "Creating rays..." << std::endl;
 
@@ -185,7 +190,34 @@ std::vector<Tripl> OptixPrimeFunctionality::calculateAllVisibility(std::vector<p
 				}
 				entries.push_back(Tripl(row, col, 0.0));
 			}
+
+			if (rays.size() > batchSize*2 || (row == numtriangles - 2 && col == numtriangles - 1)) {
+				hits.resize(rays.size() / 2);
+				optixQuery(rays.size() / 2, rays, hits);
+				int numEntries = entries.size();
+
+				for (int t = 0; t < numEntries; t++) {
+					float visibility = 0;
+					for (int h = t*RAYS_PER_PATCH; h < (t + 1)*RAYS_PER_PATCH; h++) {
+						float newT = hits[h].t > 0 && hits[h].triangleId == entries[t].col() ? 1 : 0;
+						visibility += newT;
+					}
+					visibility = visibility / RAYS_PER_PATCH;
+
+					if (visibility > 0) {
+						res.push_back(Tripl(entries[t].row(), entries[t].col(),
+							visibility*tripletlist[entries[t].row()*numtriangles + entries[t].col()].m_value));
+						res.push_back(Tripl(entries[t].col(), entries[t].row(),
+							visibility*tripletlist[entries[t].col()*numtriangles + entries[t].row()].m_value));
+					}
+				}
+				hits.clear();
+				rays.clear();
+				rays.reserve(batchSize*2);
+				entries.clear();
+			}
 		}
+
 		// draw progress bar
 		int barWidth = 70;
 		float progress = (float) row/(float) numtriangles;
@@ -196,30 +228,9 @@ std::vector<Tripl> OptixPrimeFunctionality::calculateAllVisibility(std::vector<p
 			else if (i == pos) std::cout << ">";
 			else std::cout << " ";
 		}
-
 		std::cout << "] " << int(progress * 100.0) << " %\r";
 		std::cout.flush();
-	}
 
-	int numEntries = entries.size();
-	hits.resize(RAYS_PER_PATCH*numEntries);
-
-	optixQuery(RAYS_PER_PATCH*numEntries, rays, hits);
-
-	for (int t = 0; t < entries.size(); t++) {
-		float visibility = 0;
-		for (int h = t*RAYS_PER_PATCH; h < (t+1)*RAYS_PER_PATCH; h++) {
-			float newT = hits[h].t > 0 && hits[h].triangleId == entries[t].col() ? 1 : 0;
-			visibility += newT;
-		}
-		visibility = visibility / RAYS_PER_PATCH;
-
-		if (visibility > 0) {
-			res.push_back(Tripl(entries[t].row(), entries[t].col(), 
-				visibility*tripletlist[entries[t].row()*numtriangles + entries[t].col()].m_value));
-			res.push_back(Tripl(entries[t].col(), entries[t].row(),
-				visibility*tripletlist[entries[t].col()*numtriangles + entries[t].row()].m_value));
-		}
 	}
 	return res;
 }
