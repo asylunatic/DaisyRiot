@@ -1,8 +1,7 @@
 #include "parallellism.cuh"
 
-__global__
 
-std::vector<parallellism::Tripl> parallellism::runCalculateRadiosityMatrix(vertex::MeshS& mesh) {
+std::vector<parallellism::Tripl> parallellism::runCalculateRadiosityMatrix(MeshS& mesh) {
 	std::vector<Tripl> tripletList = {};
 	int numtriangles = mesh.triangleIndices.size();
 
