@@ -1,7 +1,6 @@
 #pragma once;
 
 #include "Vertex.h"
-#include "MeshS.h"
 #include "Defines.h"
 #include <chrono>
 
@@ -32,7 +31,7 @@ namespace parallellism
 		double m_value;
 	};
 
-	std::vector<parallellism::Tripl>  runCalculateRadiosityMatrix(MeshS& mesh);
+	std::vector<parallellism::Tripl>  runCalculateRadiosityMatrix(SimpleMesh& mesh);
 
 	__global__
 	void calculateRow(int row, Tripl* rowTripletList,

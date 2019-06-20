@@ -28,7 +28,7 @@ public:
 	optix::prime::Model model;
 	optix::prime::Context contextP;
 
-	void cudaCalculateRadiosityMatrix(SpMat &RadMat, MeshS& mesh, std::vector<UV> &rands);
+	void cudaCalculateRadiosityMatrix(SpMat &RadMat, MeshS& mesh);
 
 	bool intersectMouse(Drawer::DebugLine &debugline, double xpos, double ypos, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
 		std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, MeshS& mesh);

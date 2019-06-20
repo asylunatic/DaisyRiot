@@ -70,7 +70,7 @@ protected:
 	}
 	void initMat(MeshS &mesh, OptixPrimeFunctionality &optixP){
 		RadMat = SpMat(mesh.numtriangles, mesh.numtriangles);
-		optixP.calculateRadiosityMatrix(RadMat, mesh); 
+		optixP.cudaCalculateRadiosityMatrix(RadMat, mesh); 
 	}
 	void initMatFromFile( MeshS &mesh, OptixPrimeFunctionality &optixP, char* matfile){
 		RadMat = SpMat(mesh.numtriangles, mesh.numtriangles);
@@ -80,7 +80,7 @@ protected:
 			std::cout << "Deserialized matrix" << std::endl;
 		}
 		else{
-			optixP.calculateRadiosityMatrix(RadMat, mesh);
+			optixP.cudaCalculateRadiosityMatrix(RadMat, mesh);
 			SerializeMat(RadMat, matfile);
 			std::cout << "Loaded & Serialized matrix" << std::endl;
 		}

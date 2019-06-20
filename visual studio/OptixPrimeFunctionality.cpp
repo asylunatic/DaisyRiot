@@ -3,14 +3,15 @@
 
 typedef Eigen::SparseMatrix<float> SpMat;
 
-void OptixPrimeFunctionality::cudaCalculateRadiosityMatrix(SpMat &RadMat, MeshS& mesh, std::vector<UV> &rands) {
+void OptixPrimeFunctionality::cudaCalculateRadiosityMatrix(SpMat &RadMat, MeshS& mesh) {
 	std::cout << "Calculating radiosity matrix..." << std::endl;
 
 	std::cout << "Number of triangles: " << mesh.triangleIndices.size() << std::endl;
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-	std::vector<parallellism::Tripl> tripletList = parallellism::runCalculateRadiosityMatrix(mesh);
+	SimpleMesh simpleMesh = {mesh.numtriangles, mesh.vertices, mesh.normals, mesh.triangleIndices};
+	std::vector<parallellism::Tripl> tripletList = parallellism::runCalculateRadiosityMatrix(simpleMesh);
 
 	std::cout << "Calculating visibility..." << std::endl;
 
