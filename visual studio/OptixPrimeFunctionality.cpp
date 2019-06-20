@@ -1,6 +1,38 @@
 ﻿#include "OptixPrimeFunctionality.h"
 #include "Lightning.h"
 
+typedef Eigen::SparseMatrix<float> SpMat;
+
+void OptixPrimeFunctionality::cudaCalculateRadiosityMatrix(SpMat &RadMat, MeshS& mesh, std::vector<UV> &rands) {
+	std::cout << "Calculating radiosity matrix..." << std::endl;
+
+	std::cout << "Number of triangles: " << mesh.triangleIndices.size() << std::endl;
+
+	auto start = std::chrono::high_resolution_clock::now();
+
+	std::vector<parallellism::Tripl> tripletList = parallellism::runCalculateRadiosityMatrix(mesh);
+
+	std::cout << "Calculating visibility..." << std::endl;
+
+	auto middle = std::chrono::high_resolution_clock::now();
+
+	std::vector<Tripl> eigenTriplets = calculateAllVisibility(tripletList, mesh, contextP, model, rands);
+
+	RadMat.setFromTriplets(eigenTriplets.begin(), eigenTriplets.end());
+	std::cout << "... done!                                                                                       " << std::endl;
+	auto finish = std::chrono::high_resolution_clock::now();
+
+	std::chrono::duration<double> formElapsed = middle - start; 
+	std::chrono::duration<double> visibilityElapsed = finish - middle;
+	std::chrono::duration<double> totalElapsed = finish - start;
+
+	std::cout << "Calculation time of form factors: " << formElapsed.count() << std::endl;
+	std::cout << "Calculation time of visibility: " << visibilityElapsed.count() << std::endl;
+	std::cout << "Total lapsed time: " << totalElapsed.count() << " s\n";
+
+}
+
+
 OptixPrimeFunctionality::OptixPrimeFunctionality(MeshS& mesh) {
 	contextP = optix::prime::Context::create(RTP_CONTEXT_TYPE_CUDA);
 	optix::prime::BufferDesc vertexBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_VERTEX_FLOAT3, RTP_BUFFER_TYPE_HOST, mesh.vertices.data());
@@ -116,7 +148,7 @@ float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, Mes
 		for (int j = 0; j < 4; j++) {
 			formfactor = formfactor + triangle_math::calcPointFormfactor({ originpoints[i], originNormal },
 				{ destinationpoints[j], destNormal },
-				triangle_math::calculateSurface(origintriangles[i])*triangle_math::calculateSurface(destinationtriangles[i]));
+				triangle_math::calculateSurface(origintriangles[i])*triangle_math::calculateSurface(destinationtriangles[j]));
 		}
 	}
 	formfactor = formfactor / triangle_math::calculateSurface(originPatch, mesh);
@@ -125,6 +157,70 @@ float OptixPrimeFunctionality::p2pFormfactor(int originPatch, int destPatch, Mes
 
 	return formfactor * visibility;
 
+}
+
+std::vector<Tripl> OptixPrimeFunctionality::calculateAllVisibility(std::vector<parallellism::Tripl> &tripletlist, MeshS& mesh, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands) {
+	int numtriangles = mesh.triangleIndices.size();
+
+	std::vector<optix::float3> rays = {};
+	std::vector<Tripl> entries = {};
+	std::vector<optix_functionality::Hit> hits;
+
+
+	std::vector<Tripl> res = {};
+
+	std::cout << "Creating rays..." << std::endl;
+
+	for (int row = 0; row < numtriangles - 1; row++) {
+		for (int col = (row + 1); col < numtriangles; col++) {
+			optix::float3 origin;
+			optix::float3 dest;
+			if (tripletlist[row*numtriangles + col].m_value > 0) {
+				for (int i = 0; i < RAYS_PER_PATCH; i++) {
+					origin = triangle_math::uv2xyz(row, optix::make_float2(rands[i].u, rands[i].v), mesh);
+					dest = triangle_math::uv2xyz(col, optix::make_float2(rands[i].u, rands[i].v), mesh);
+					rays.push_back(origin + optix::normalize(dest - origin)*0.000001f);
+					rays.push_back(optix::normalize(dest - origin));
+				}
+				entries.push_back(Tripl(row, col, 0.0));
+			}
+		}
+		// draw progress bar
+		int barWidth = 70;
+		float progress = (float) row/(float) numtriangles;
+		std::cout << "[";
+		int pos = barWidth * progress;
+		for (int i = 0; i < barWidth; ++i) {
+			if (i < pos) std::cout << "=";
+			else if (i == pos) std::cout << ">";
+			else std::cout << " ";
+		}
+
+		std::cout << "] " << int(progress * 100.0) << " %\r";
+		std::cout.flush();
+	}
+
+	int numEntries = entries.size();
+	hits.resize(RAYS_PER_PATCH*numEntries);
+
+	optixQuery(RAYS_PER_PATCH*numEntries, rays, hits);
+
+	for (int t = 0; t < entries.size(); t++) {
+		float visibility = 0;
+		for (int h = t*RAYS_PER_PATCH; h < (t+1)*RAYS_PER_PATCH; h++) {
+			float newT = hits[h].t > 0 && hits[h].triangleId == entries[t].col() ? 1 : 0;
+			visibility += newT;
+		}
+		visibility = visibility / RAYS_PER_PATCH;
+
+		if (visibility > 0) {
+			res.push_back(Tripl(entries[t].row(), entries[t].col(), 
+				visibility*tripletlist[entries[t].row()*numtriangles + entries[t].col()].m_value));
+			res.push_back(Tripl(entries[t].col(), entries[t].row(),
+				visibility*tripletlist[entries[t].col()*numtriangles + entries[t].row()].m_value));
+		}
+	}
+	return res;
 }
 
 float OptixPrimeFunctionality::calculateVisibility(int originPatch, int destPatch, MeshS& mesh, optix::prime::Context &contextP, optix::prime::Model &model) {

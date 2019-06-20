@@ -38,21 +38,7 @@
     <None Include="..\config.ini" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="FirstTry.cu">
-      <KeepDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\ptx</KeepDir>
-      <KeepDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\ptx</KeepDir>
-      <KeepDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\ptx</KeepDir>
-      <KeepDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\ptx</KeepDir>
-      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">compute_30,sm_30</CodeGeneration>
-      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">compute_30,sm_30</CodeGeneration>
-      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_30,sm_30</CodeGeneration>
-      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">compute_30,sm_30</CodeGeneration>
-      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\ptx\%(Filename).ptx</CompileOut>
-      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\ptx\%(Filename).ptx</CompileOut>
-      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\ptx\%(Filename).ptx</CompileOut>
-      <CompileOut Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\ptx\%(Filename).ptx</CompileOut>
-    </CudaCompile>
-    <CudaCompile Include="geometry.cu" />
+    <CudaCompile Include="parallellism.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\lodepng.h" />
@@ -70,6 +56,7 @@
     <ClInclude Include="optix_functionality.h" />
     <ClInclude Include="OptixPrimeFunctionality.h" />
     <ClInclude Include="rgb2spec.h" />
+    <CudaCompile Include="parallellism.cuh" />
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="triangle_math.h" />
     <ClInclude Include="Vertex.h" />
@@ -97,7 +84,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -158,7 +145,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\libraries\glew-2.0.0\lib\Release\Win32;$(ProjectDir)..\libraries\glfw-3.2.1.bin.WIN32\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cudart.lib</AdditionalDependencies>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
@@ -181,18 +168,20 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\ProgramData\NVIDIA Corporation\OptiX SDK 4.1.1\lib64;$(ProjectDir)..\libraries\glew-2.0.0\lib\Release\x64;$(ProjectDir)..\libraries\glfw-3.2.1.bin.WIN64\lib-vc2013</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;optix.1.lib;optix_prime.1.lib;optixu.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\ProgramData\NVIDIA Corporation\OptiX SDK 4.1.1\lib64;$(ProjectDir)..\libraries\glew-2.0.0\lib\Release\x64;$(CudaToolkitLibDir);$(ProjectDir)..\libraries\glfw-3.2.1.bin.WIN64\lib-vc2013</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;optix.1.lib;optix_prime.1.lib;optixu.1.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>LIBCMT;MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <NvccCompilation>ptx</NvccCompilation>
+      <NvccCompilation>compile</NvccCompilation>
       <Include>
       </Include>
-      <CompileOut>..\ptx\%(Filename).ptx</CompileOut>
-      <KeepDir>..\ptx</KeepDir>
+      <CompileOut>$(IntDir)%(Filename)%(Extension).obj</CompileOut>
+      <KeepDir>$(CudaIntDir)</KeepDir>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <GenerateLineInfo>true</GenerateLineInfo>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -212,7 +201,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)..\libraries\glew-2.0.0\lib\Release\Win32;$(ProjectDir)..\libraries\glfw-3.2.1.bin.WIN32\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cudart.lib</AdditionalDependencies>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
@@ -239,16 +228,16 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\ProgramData\NVIDIA Corporation\OptiX SDK 4.1.1\lib64;$(ProjectDir)..\libraries\glew-2.0.0\lib\Release\x64;$(ProjectDir)..\libraries\glfw-3.2.1.bin.WIN64\lib-vc2013</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;optix.1.lib;optix_prime.1.lib;optixu.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\ProgramData\NVIDIA Corporation\OptiX SDK 4.1.1\lib64;$(ProjectDir)..\libraries\glew-2.0.0\lib\Release\x64;$(CudaToolkitLibDir);$(ProjectDir)..\libraries\glfw-3.2.1.bin.WIN64\lib-vc2013</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;optix.1.lib;optix_prime.1.lib;optixu.1.lib;cudart.lib;cudart.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <NvccCompilation>ptx</NvccCompilation>
+      <NvccCompilation>compile</NvccCompilation>
       <Include>
       </Include>
-      <CompileOut>..\ptx\%(Filename).ptx</CompileOut>
-      <KeepDir>..\ptx</KeepDir>
+      <CompileOut>$(IntDir)%(Filename)%(Extension).obj</CompileOut>
+      <KeepDir>$(CudaIntDir)</KeepDir>
     </CudaCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -96,6 +96,12 @@ int main() {
 	GLuint linevao, linevbo, debugprogram;
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
+
+	// initialize radiosity matrix
+	int numtriangles = mesh.triangleIndices.size();
+	//SpMat RadMat(numtriangles, numtriangles);
+	//optixP.cudaCalculateRadiosityMatrix(RadMat, mesh, rands);
+
 	// set up lightning
 	SpectralLightningFast lightning(mesh, optixP, emission_value, wavelengths, store_mat_filepath);
 	std::cout << "Done setting up spectral lightning " << std::endl;
