@@ -50,4 +50,6 @@ visual studio/backupprojectfiles/
 visual studio/backupprojectfiles/*
 visual studio/DaisyRiot.opensdf
 visual studio/DaisyRiot.v12.suo
+visual studio/vc120.pdb
 TryCuda/
+libraries/*.html
