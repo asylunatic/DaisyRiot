@@ -69,6 +69,7 @@ int main() {
 	int HEIGHT = reader.GetInteger("window", "height", -1);
 	float emission_value = reader.GetReal("lightning", "emission_value", -1);
 	bool radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
+	bool cuda_on = reader.GetBoolean("acceleration", "cuda_on", false);
 	char * obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
 	char * mtl_dirpath = new char[reader.Get("filepaths", "mtl_dir", "testscenes/").length() + 1];
@@ -103,7 +104,7 @@ int main() {
 	//optixP.cudaCalculateRadiosityMatrix(RadMat, mesh, rands);
 
 	// set up lightning
-	SpectralLightningFast lightning(mesh, optixP, emission_value, wavelengths, store_mat_filepath);
+	SpectralLightningFast lightning(mesh, optixP, emission_value, wavelengths, cuda_on, store_mat_filepath);
 	std::cout << "Done setting up spectral lightning " << std::endl;
 	//RGBLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
 	//BWLightning lightning(mesh, optixP, emission_value, store_mat_filepath);

@@ -11,6 +11,7 @@ public:
 	virtual void reset() = 0;
 
 protected:
+	bool cuda_on = false;
 	int numpasses;
 	SpMat RadMat;
 	float emission_value;
@@ -70,7 +71,12 @@ protected:
 	}
 	void initMat(MeshS &mesh, OptixPrimeFunctionality &optixP){
 		RadMat = SpMat(mesh.numtriangles, mesh.numtriangles);
-		optixP.cudaCalculateRadiosityMatrix(RadMat, mesh); 
+		if (cuda_on){
+			optixP.cudaCalculateRadiosityMatrix(RadMat, mesh);
+		}
+		else{
+			optixP.calculateRadiosityMatrix(RadMat, mesh);
+		}
 	}
 	void initMatFromFile( MeshS &mesh, OptixPrimeFunctionality &optixP, char* matfile){
 		RadMat = SpMat(mesh.numtriangles, mesh.numtriangles);
@@ -80,7 +86,7 @@ protected:
 			std::cout << "Deserialized matrix" << std::endl;
 		}
 		else{
-			optixP.cudaCalculateRadiosityMatrix(RadMat, mesh);
+			initMat(mesh, optixP);
 			SerializeMat(RadMat, matfile);
 			std::cout << "Loaded & Serialized matrix" << std::endl;
 		}
@@ -100,7 +106,8 @@ private:
 	std::vector<Eigen::VectorXf> reflectionvalues; // how much of which color is reflected per patch
 
 public:
-	SpectralLightningFast(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec, char* matfile = nullptr){
+	SpectralLightningFast(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec, bool cuda_enabled = false, char* matfile = nullptr){
+		cuda_on = cuda_enabled;
 		numsamples = wavelengthsvec.size();
 		numpatches = mesh.numtriangles;
 		xyz_per_wavelength = get_xyz_conversions(wavelengthsvec);
