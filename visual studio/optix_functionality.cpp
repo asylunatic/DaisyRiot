@@ -1,6 +1,6 @@
 #include "optix_functionality.h"
 
-void optix_functionality::initOptix(optix::Context &context, vertex::MeshS& mesh) {
+void optix_functionality::initOptix(optix::Context &context, MeshS& mesh) {
 
 	/* *******************************************************OPTIX******************************************************* */
 	//initializing context -> holds all programs and variables

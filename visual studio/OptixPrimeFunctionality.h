@@ -15,6 +15,7 @@
 #include "Defines.h"
 #include "Drawer.h"
 #include "Camera.h"
+#include "MeshS.h"
 #include "parallellism.cuh"
 
 typedef Eigen::SparseMatrix<float> SpMat;
@@ -23,25 +24,26 @@ typedef Eigen::Triplet<double> Tripl;
 class OptixPrimeFunctionality
 {
 public:
-
-	OptixPrimeFunctionality(vertex::MeshS& mesh);
+	OptixPrimeFunctionality(MeshS& mesh);
 	optix::prime::Model model;
 	optix::prime::Context contextP;
 
-	void cudaCalculateRadiosityMatrix(SpMat &RadMat, vertex::MeshS& mesh, std::vector<UV> &rands);
+	void cudaCalculateRadiosityMatrix(SpMat &RadMat, MeshS& mesh);
 
 	bool intersectMouse(Drawer::DebugLine &debugline, double xpos, double ypos, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
-		std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh);
-	bool shootPatchRay(std::vector<optix_functionality::Hit> &patches, vertex::MeshS& mesh);
-	float p2pFormfactor(int originPatch, int destPatch, vertex::MeshS& mesh, std::vector<UV> &rands);
-	float p2pFormfactorNusselt(int originPatch, int destPatch, vertex::MeshS& mesh, std::vector<UV> &rands);
-	float calculatePointLightVisibility(optix::float3 &lightpos, int patchindex, vertex::MeshS& mesh, std::vector<UV> &rands);
-	void calculateRadiosityMatrix(SpMat &RadMat, vertex::MeshS& mesh, std::vector<UV> &rands);
-	void calculateRadiosityMatrixStochastic(SpMat &RadMat, vertex::MeshS& mesh, std::vector<UV> &rands);
+		std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches, MeshS& mesh);
+	bool shootPatchRay(std::vector<optix_functionality::Hit> &patches, MeshS& mesh);
+	float p2pFormfactor(int originPatch, int destPatch, MeshS& mesh);
+	float p2pFormfactorNusselt(int originPatch, int destPatch, MeshS& mesh);
+	float calculatePointLightVisibility(optix::float3 &lightpos, int patchindex, MeshS& mesh);
+	void calculateRadiosityMatrix(SpMat &RadMat, MeshS& mesh);
+	void calculateRadiosityMatrixStochastic(SpMat &RadMat, MeshS& mesh);
 	void optixQuery(int number_of_rays, std::vector<optix::float3> &rays, std::vector<optix_functionality::Hit> &hits);
-	void traceScreen(std::vector<glm::vec3> &optixView, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen,
-		vertex::MeshS& mesh);
-	std::vector<Tripl> calculateAllVisibility(std::vector<parallellism::Tripl> &tripletlist, vertex::MeshS& mesh, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands);
-	float calculateVisibility(int originPatch, int destPatch, vertex::MeshS& mesh, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands);
+	void traceScreen(Drawer::RenderContext rendercontext);
+	float calculateVisibility(int originPatch, int destPatch, MeshS& mesh, optix::prime::Context &contextP, optix::prime::Model &model);
+	std::vector<Tripl> calculateAllVisibility(std::vector<parallellism::Tripl> &tripletlist, MeshS& mesh, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands);
+private:
+	std::vector<UV> rands;
+
 };
 

@@ -14,10 +14,6 @@
 // Library for loading .OBJ model
 #define TINYOBJLOADER_IMPLEMENTATION
 
-// Library for loading an image
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -43,23 +39,11 @@
 #include "visual studio\InputHandler.h"
 #include "visual studio\INIReader.h"
 #include "visual studio\Camera.h"
-#include "visual studio\parallellism.cuh"
+#include "visual studio\MeshS.h"
+#include "visual studio\Lightning.h"
 
-// Variables to be set from config.ini file
-int WIDTH, HEIGHT;
-char * obj_filepath;
-int emission_index;
-float emission_value;
-bool radiosityRendering;
-
-// The Matrix
 typedef Eigen::SparseMatrix<float> SpMat;
 
-optix::Context context;
-vertex::MeshS mesh = { std::vector<glm::vec3>(), 
-					   std::vector<glm::vec3>(), 
-					   std::vector<vertex::TriangleIndex>(), 
-					   std::vector<std::vector<int>>()};
 // optixview is an array containing all pixel values
 std::vector<glm::vec3> optixView;
 std::vector<std::vector<MatrixIndex>> trianglesonScreen;
@@ -67,8 +51,6 @@ std::vector<optix_functionality::Hit> patches;
 
 Drawer::DebugLine debugline;
 GLuint optixTex, optixVao;
-std::vector<UV> rands;
-Eigen::VectorXf lightningvalues;
 
 int main() {
 	// print header
@@ -83,75 +65,60 @@ int main() {
 		std::cout << "Can't load 'config.ini'\n";
 		return 1;
 	}
-	// set variables from config
-	WIDTH = reader.GetInteger("window", "width", -1);
-	HEIGHT = reader.GetInteger("window", "height", -1);
-	obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
+	int WIDTH = reader.GetInteger("window", "width", -1);
+	int HEIGHT = reader.GetInteger("window", "height", -1);
+	float emission_value = reader.GetReal("lightning", "emission_value", -1);
+	bool radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
+	bool cuda_on = reader.GetBoolean("acceleration", "cuda_on", false);
+	char * obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
-	emission_index = reader.GetInteger("lightning", "emission_index", -1);
-	emission_value = reader.GetReal("lightning", "emission_value", -1);
-	radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
+	char * mtl_dirpath = new char[reader.Get("filepaths", "mtl_dir", "testscenes/").length() + 1];
+	std::strcpy(mtl_dirpath, reader.Get("filepaths", "mtl_dir", "testscenes/").c_str());
+	char * store_mat_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() - 4];
+	std::strncpy(store_mat_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str(), reader.Get("filepaths", "scene", "UNKNOWN").length() - 4);
+	store_mat_filepath[reader.Get("filepaths", "scene", "UNKNOWN").length() - 4] = 0;
+	std::cout << "mat file path " << store_mat_filepath << std::endl;
 	
 	// set up camera
 	Camera camera(WIDTH, HEIGHT);
 
-	//initialize window
+	//initialize window, GLEW extension loader & OpenGL debug callback
 	GLFWwindow* window = Drawer::initWindow(WIDTH, HEIGHT);
-
-	// Initialize GLEW extension loader
 	glewExperimental = GL_TRUE;
 	glewInit();
+	glDebugMessageCallback(Drawer::debugCallback, nullptr);
 
-	// load scene
-	vertex::loadVertices(mesh, obj_filepath);
-
-	// set up randoms to be reused
-	rands.resize(RAYS_PER_PATCH);
-	std::srand(std::time(nullptr)); // use current time as seed for random generator
- 	for (size_t i = 0; i < RAYS_PER_PATCH; i++) {
-		UV uv = UV();
-		uv.u = ((float)(rand() % RAND_MAX)) / RAND_MAX;
-		uv.v = ((float)(rand() % RAND_MAX)) / RAND_MAX;
-		uv.v = uv.v * (1 - uv.u);
-		rands[i] = uv;
-	}
-
-	//initializing optix
+	// load scene into mesh & initialize optix
+	std::vector<float> wavelengths = { 600.0, 550.0, 500.0, 450.0, 400.0, 350.0, 300.0, 250.0, 200.0 };
+	MeshS mesh(obj_filepath, mtl_dirpath, wavelengths);
 	OptixPrimeFunctionality optixP(mesh);
-
-	//initializing result optix drawing
-	GLuint optixShader;
-	optixP.traceScreen(optixView, camera, trianglesonScreen, mesh);
-	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
 
 	//initializing debugline
 	GLuint linevao, linevbo, debugprogram;
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
+
 	// initialize radiosity matrix
 	int numtriangles = mesh.triangleIndices.size();
-	SpMat RadMat(numtriangles, numtriangles);
-	optixP.cudaCalculateRadiosityMatrix(RadMat, mesh, rands);
+	//SpMat RadMat(numtriangles, numtriangles);
+	//optixP.cudaCalculateRadiosityMatrix(RadMat, mesh, rands);
 
 	// set up lightning
-	Eigen::VectorXf emission = Eigen::VectorXf::Zero(numtriangles);
-	emission(emission_index) = emission_value;	
-	lightningvalues = Eigen::VectorXf::Zero(numtriangles);
-	lightningvalues = emission; 
-	Eigen::VectorXf residualvector = Eigen::VectorXf::Zero(numtriangles);
-	residualvector = emission;
-	int numpasses = 0;
-	// converge lightning
-	while (residualvector.sum() > 0.0001){
-		residualvector = RadMat * residualvector;
-		lightningvalues = lightningvalues + residualvector;
-		numpasses++;
-	}
+	SpectralLightningFast lightning(mesh, optixP, emission_value, wavelengths, cuda_on, store_mat_filepath);
+	std::cout << "Done setting up spectral lightning " << std::endl;
+	//RGBLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
+	//BWLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
+
+	//initializing result optix drawing
+	GLuint optixShader;
+	Drawer::RenderContext rendercontext(trianglesonScreen, lightning, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering);
+	optixP.traceScreen(rendercontext);
+	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
 
 	// set up callback context
 	patches.resize(2);
 	InputHandler inputhandler;
-	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, rands, optixP, lightningvalues, RadMat, emission, numpasses, residualvector, radiosityRendering, inputhandler);
+	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, optixP, lightning, radiosityRendering, inputhandler);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// Some neat casting of member functions such we can use them as callback AND have state too, as explained per:
@@ -160,26 +127,16 @@ int main() {
 	auto func_mouse = [](GLFWwindow* window, int button, int action, int mods) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->mouse_button_callback(window, button, action, mods); };
 	auto func_cursor = [](GLFWwindow* window, double xpos, double ypos) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->cursor_pos_callback(window, xpos, ypos); };
 
-	// Set up OpenGL debug callback
-	glDebugMessageCallback(Drawer::debugCallback, nullptr);
 	// Set up input callbacks
 	glfwSetMouseButtonCallback(window, func_mouse);
 	glfwSetCursorPosCallback(window, func_cursor);
 	glfwSetKeyCallback(window, func_key);
 
 	std::cout << "All is set up! Get ready to play around!" << std::endl;
-	// print menu
 	std::ifstream f_menu("print_menu.txt");
 	if (f_menu.is_open())
 		std::cout << f_menu.rdbuf();
 	f_menu.close();
-
-	if (radiosityRendering){
-		Drawer::setRadiosityTex(trianglesonScreen, lightningvalues, optixView, WIDTH, HEIGHT, mesh);
-		Drawer::refreshTexture(WIDTH, HEIGHT, optixView);
-	}
-
-	Drawer::RenderContext rendercontext(trianglesonScreen, lightningvalues, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering);
 
 	// Main loop
 	while (!glfwWindowShouldClose(window)) {

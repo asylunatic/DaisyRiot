@@ -12,10 +12,8 @@ callback_context* InputHandler::get_context(GLFWwindow* w) {
 }
 
 callback_context::callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView,
-	std::vector<optix_functionality::Hit>& patches, vertex::MeshS& mesh, std::vector<UV> &rands, OptixPrimeFunctionality& optixP, Eigen::VectorXf &lightningvalues, Eigen::SparseMatrix<float> &RadMat,
-	Eigen::VectorXf &emission, int &numpasses, Eigen::VectorXf &residualvector, bool &radiosityRendering, InputHandler &inputhandler) :
-	debugline(debugline), camera(camera), trianglesonScreen(trianglesonScreen), optixView(optixView), patches(patches), mesh(mesh), rands(rands), optixP(optixP), lightningvalues(lightningvalues),
-	RadMat(RadMat), emission(emission), numpasses(numpasses), residualvector(residualvector), radiosityRendering(radiosityRendering)
+	std::vector<optix_functionality::Hit>& patches, MeshS& mesh, OptixPrimeFunctionality& optixP, Lightning &lightning, bool &radiosityRendering, InputHandler &inputhandler) :
+	debugline(debugline), camera(camera), trianglesonScreen(trianglesonScreen), optixView(optixView), patches(patches), mesh(mesh), optixP(optixP), lightning(lightning), radiosityRendering(radiosityRendering)
 {
 }
 
@@ -179,7 +177,7 @@ void InputHandler::move_down(GLFWwindow* window){
 
 void InputHandler::calculate_form_vector(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
-	float ff = cbc_ptr->optixP.p2pFormfactorNusselt(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->mesh, cbc_ptr->rands);
+	float ff = cbc_ptr->optixP.p2pFormfactorNusselt(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->mesh);
 	std::cout << "Form factor = " << ff << std::endl;
 }
 
@@ -190,9 +188,6 @@ void InputHandler::find_triangle_by_id(GLFWwindow* window){
 	std::cin >> id;
 	cbc_ptr->debugline.debugtriangles.push_back(id);
 	cbc_ptr->debugline.cleared = false;
-	/*for (MatrixIndex index : cbc_ptr->trianglesonScreen[id]) {
-		cbc_ptr->optixView[(index.row*cbc_ptr->camera.pixwidth + index.col)] = glm::vec3(0.0, 1.0, 0.0);
-	}*/
 }
 
 void InputHandler::zoom_out(GLFWwindow* window){
@@ -208,12 +203,7 @@ void InputHandler::zoom_in(GLFWwindow* window){
 void InputHandler::calc_full_lightning(GLFWwindow* window){
 	std::cout << "Converging lightning calculation" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
-	while (cbc_ptr->residualvector.sum() > 0.0001){
-		cbc_ptr->residualvector = cbc_ptr->RadMat * cbc_ptr->residualvector;
-		cbc_ptr->lightningvalues = cbc_ptr->lightningvalues + cbc_ptr->residualvector;
-		cbc_ptr->numpasses++;
-	}
-	std::cout << "Number of light passes " << cbc_ptr->numpasses << ". Amount of residual light in scene " << cbc_ptr->residualvector.sum() << std::endl;
+	cbc_ptr->lightning.converge_lightning();
 }
 
 void InputHandler::toggle_view(GLFWwindow* window) {
@@ -226,19 +216,13 @@ void InputHandler::increment_lightpasses(GLFWwindow* window) {
 	std::cout << "Add another light pass" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
 	// calculate consecutive lighting pass
-	cbc_ptr->residualvector = cbc_ptr->RadMat * cbc_ptr->residualvector;
-	cbc_ptr->lightningvalues = cbc_ptr->lightningvalues + cbc_ptr->residualvector;
-	cbc_ptr->numpasses++;
-	std::cout << "Number of light passes " << cbc_ptr->numpasses << ". Amount of residual light in scene " << cbc_ptr->residualvector.sum() << std::endl;
+	cbc_ptr->lightning.increment_lightpass();
 }
 
 void InputHandler::clear_light(GLFWwindow* window) {
 	std::cout << "Reset light passes to 0" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
-	// clear light passes
-	cbc_ptr->residualvector = cbc_ptr->emission;
-	cbc_ptr->lightningvalues = cbc_ptr->emission;
-	cbc_ptr->numpasses = 0;
+	cbc_ptr->lightning.reset();
 }
 
 void InputHandler::leftclick(GLFWwindow* window)
