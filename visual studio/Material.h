@@ -9,12 +9,13 @@ class Material{
 public:
 	int numwavelengths;
 
-	glm::vec3 rgbcolor; 
+	glm::vec3 rgbcolor;
 	glm::vec3 emission;
 	glm::vec3 blacklight_2_rgb;
 
 	std::vector<float> spectral_values;
 	std::vector<float> spectral_emission; 
+	std::vector<float> spectral_from_blacklight;
 	std::vector<float> &wavelengths;
 
 	Eigen::MatrixXf M; // matrix to influence wavelengths
@@ -27,8 +28,11 @@ public:
 		
 		RGB2Spec *model = rgb2spec_load("tables/srgb.coeff");
 
-		set_rgb_spectrum(model);
-		set_emit_spectrum(model);
+		set_rgb_to_spectrumvec(model, blacklight_2_rgb, spectral_from_blacklight);
+		set_fluorescent_matrix();
+
+		set_rgb_to_spectrumvec(model, rgbcolor, spectral_values);
+		set_rgb_to_spectrumvec(model, emission, spectral_emission);
 
 		rgb2spec_free(model);
 	};
@@ -45,25 +49,25 @@ public:
 
 private:
 
-	void set_rgb_spectrum(RGB2Spec *model){
-		float coeff[3];
-		float rgb[3] = { rgbcolor.x, rgbcolor.y, rgbcolor.z };
-		// set spectrum from color rgb
-		rgb2spec_fetch(model, rgb, coeff);
+	void set_fluorescent_matrix(){
+		float* ptr = &spectral_from_blacklight[0];
+		Eigen::Map<Eigen::VectorXf> temp(ptr, numwavelengths);
 		for (int i = 0; i < numwavelengths; i++){
-			float wavelength_from_rgb = rgb2spec_eval_precise(coeff, wavelengths[i]);
-			spectral_values.push_back(wavelength_from_rgb);
+			if (300.0 < wavelengths[i] < 400.0){
+				M.col(i) = temp;
+			}
 		}
 	}
 
-	void set_emit_spectrum(RGB2Spec *model){
+	void set_rgb_to_spectrumvec(RGB2Spec *model, glm::vec3 rgbcolor, std::vector<float> &spectrum){
 		float coeff[3];
-		float emit[3] = { emission.x / 2.0, emission.y / 2.0, emission.z / 2.0 };
-		// set spectrum from emission rgb
-		rgb2spec_fetch(model, emit, coeff);
+		float rgb[3] = { rgbcolor.x, rgbcolor.y, rgbcolor.z };
+		// set spectrum from color rgb
+		spectrum = {};
+		rgb2spec_fetch(model, rgb, coeff);
 		for (int i = 0; i < numwavelengths; i++){
-			float emission_from_rgb = rgb2spec_eval_precise(coeff, wavelengths[i]);
-			spectral_emission.push_back(emission_from_rgb);
+			float wavelength_from_rgb = rgb2spec_eval_precise(coeff, wavelengths[i]);
+			spectrum.push_back(wavelength_from_rgb);
 		}
 	}
 

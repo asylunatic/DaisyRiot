@@ -89,7 +89,7 @@ int main() {
 	glDebugMessageCallback(Drawer::debugCallback, nullptr);
 
 	// load scene into mesh & initialize optix
-	std::vector<float> wavelengths = { 600.0, 550.0, 500.0, 450.0, 400.0, 350.0, 300.0, 250.0, 200.0 };
+	std::vector<float> wavelengths = { 200.0, 250.0, 300.0, 350.0, 400.0, 450.0, 500.0, 550.0, 600.0};
 	MeshS mesh(obj_filepath, mtl_dirpath, wavelengths);
 	OptixPrimeFunctionality optixP(mesh);
 
@@ -104,7 +104,7 @@ int main() {
 	//optixP.cudaCalculateRadiosityMatrix(RadMat, mesh, rands);
 
 	// set up lightning
-	SpectralLightningFast lightning(mesh, optixP, emission_value, wavelengths, cuda_on, store_mat_filepath);
+	SpectralLightning lightning(mesh, optixP, emission_value, wavelengths, cuda_on, store_mat_filepath);
 	std::cout << "Done setting up spectral lightning " << std::endl;
 	//RGBLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
 	//BWLightning lightning(mesh, optixP, emission_value, store_mat_filepath);

@@ -1,7 +1,5 @@
 #include "MeshS.h"
 
-
-
 MeshS::MeshS(){
 	vertices = std::vector<glm::vec3>();
 	normals = std::vector<glm::vec3>();
@@ -41,8 +39,8 @@ void MeshS::loadFromFile(char * filepath, char * mtldirpath, std::vector<float> 
 	for (int i = 0; i < tinyobj_materials.size(); i++){
 		glm::vec3 diffuse(tinyobj_materials[i].diffuse[0], tinyobj_materials[i].diffuse[1], tinyobj_materials[i].diffuse[2]);
 		glm::vec3 emission(tinyobj_materials[i].emission[0], tinyobj_materials[i].emission[1], tinyobj_materials[i].emission[2]);
-		glm::vec3 temp(0.0);
-		Material mattie(diffuse, emission, temp, wavelengths);
+		glm::vec3 blacklight(tinyobj_materials[i].specular[0], tinyobj_materials[i].specular[1], tinyobj_materials[i].specular[2]);
+		Material mattie(diffuse, emission, blacklight, wavelengths);
 		materials.push_back(mattie);
 	}
 

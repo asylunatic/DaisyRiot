@@ -93,7 +93,7 @@ protected:
 	}
 };
 
-class SpectralLightningFast : public Lightning{
+class SpectralLightning : public Lightning{
 private:
 	int numsamples;
 	int numpatches;
@@ -106,7 +106,7 @@ private:
 	std::vector<Eigen::VectorXf> reflectionvalues; // how much of which color is reflected per patch
 
 public:
-	SpectralLightningFast(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec, bool cuda_enabled = false, char* matfile = nullptr){
+	SpectralLightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec, bool cuda_enabled = false, char* matfile = nullptr){
 		cuda_on = cuda_enabled;
 		numsamples = wavelengthsvec.size();
 		numpatches = mesh.numtriangles;
@@ -218,111 +218,6 @@ private:
 
 };
 
-class SpectralLightning : public Lightning{
-private:
-	int numsamples;
-	Eigen::MatrixXf xyz_per_wavelength;
-	Eigen::MatrixXf emissionmat;
-	Eigen::MatrixXf residualmat;
-	Eigen::MatrixXf lightningmat;
-	Eigen::MatrixXf reflectionmat;
-
-public:
-	SpectralLightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec, char* matfile = nullptr){
-		numsamples = wavelengthsvec.size();
-		xyz_per_wavelength = get_xyz_conversions(wavelengthsvec);
-		emission_value = emissionval;
-		set_sampled_emission(mesh);
-		set_reflectionvalues(mesh);
-		if (matfile == nullptr){
-			initMat(mesh, optixP);
-		}
-		else{
-			initMatFromFile(mesh, optixP, matfile);
-		}
-		reset();
-		std::cout << "The lightning is reset" << std::endl;
-		converge_lightning();
-		std::cout << "The lightning is converged" << std::endl;
-	}
-
-	glm::vec3 get_color_of_patch(int index){
-		// get row from lightningvales
-		Eigen::VectorXf spectral_values_vec_from_mat = lightningmat.row(index);
-
-		// pairwise multiplication to get color
-		//glm::vec3 xyzcolor = { 0.0, 0.0, 0.0 };
-		Eigen::VectorXf xyzcolor_vec = xyz_per_wavelength * spectral_values_vec_from_mat;
-		glm::vec3 xyzcolor = { xyzcolor_vec[0], xyzcolor_vec[1], xyzcolor_vec[2] };
-		/*for (int i = 0; i < numsamples; i++){
-			xyzcolor += xyz_per_wavelength[i] * spectral_values_vec_from_mat[i];
-		}*/
-		glm::vec3 rgbcolor;
-		daisy_color::XYZToRGB(xyzcolor, rgbcolor);
-		return rgbcolor;
-	}
-
-	void converge_lightning(){
-		while (check_convergence(residualmat) > 200){
-			std::cout << "Residual light in scene: " << check_convergence(residualmat) << std::endl;
-			increment_lightpass();
-		}
-	}
-
-	void increment_lightpass(){
-		for (int i = 0; i < numsamples; i++){
-			residualmat.col(i) = (RadMat * residualmat.col(i)).cwiseProduct(reflectionmat.col(i));
-		}
-		lightningmat = lightningmat + residualmat;
-
-		numpasses++;
-	}
-
-	void reset(){
-		residualmat = emissionmat;
-		lightningmat = emissionmat;
-		numpasses = 0;
-	}
-
-private:
-	Eigen::MatrixXf get_xyz_conversions(std::vector<float> wavelengthsvec){
-		Eigen::MatrixXf res = Eigen::MatrixXf::Zero(3, numsamples);
-		for (int i = 0; i < numsamples; i++){
-			glm::vec3 xyz = daisy_color::cie1931WavelengthToXYZFit(wavelengthsvec[i]);
-			res(0, i) = xyz.x;
-			res(1, i) = xyz.y;
-			res(2, i) = xyz.z;
-		}
-		return res;
-	}
-
-	float check_convergence(Eigen::MatrixXf input){
-		float sum = input.sum();
-		return sum;
-	}
-
-	void set_sampled_emission(MeshS &mesh){
-		emissionmat = Eigen::MatrixXf::Zero(mesh.numtriangles, numsamples);
-		for (int i = 0; i < numsamples; i++){
-			for (int j = 0; j < mesh.numtriangles; j++){
-				if (mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] > 0.0){
-					emissionmat(j, i) = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_emission[i] * emission_value;
-				}
-			}
-		}
-	}
-
-	void set_reflectionvalues(MeshS &mesh){
-		reflectionmat = Eigen::MatrixXf::Zero(mesh.numtriangles, numsamples);
-		for (int i = 0; i < numsamples; i++){
-			for (int j = 0; j < mesh.numtriangles; j++){
-				reflectionmat.col(i)[j] = mesh.materials[mesh.materialIndexPerTriangle[j]].spectral_values[i];
-			}
-		}
-	}
-
-
-};
 
 class RGBLightning : public Lightning{
 private:
@@ -367,6 +262,7 @@ public:
 			residualvector[i] = (RadMat * residualvector[i]).cwiseProduct(reflectionvalues[i]);
 			lightningvalues[i] = lightningvalues[i] + residualvector[i];
 		}
+		// multiply with matrix first
 		numpasses++;
 	}
 
