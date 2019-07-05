@@ -86,39 +86,46 @@ void  OptixPrimeFunctionality::traceScreen(Drawer::RenderContext cntxt) {
 	cntxt.optixView.resize(cntxt.camera.pixwidth*cntxt.camera.pixheight);
 
 	std::vector<optix_functionality::Hit> hits;
-	hits.resize(cntxt.camera.pixwidth*cntxt.camera.pixheight);
+	hits.resize(cntxt.camera.rayWidth*cntxt.camera.rayHeight);
 
 	std::vector<optix::float3> rays;
 	cntxt.camera.gen_rays_for_screen(rays);
 
-	optixQuery(cntxt.camera.pixwidth * cntxt.camera.pixheight, rays, hits);
+	optixQuery(cntxt.camera.rayWidth * cntxt.camera.rayHeight, rays, hits);
 
 	cntxt.trianglesonScreen.clear();
 	cntxt.trianglesonScreen.resize(cntxt.mesh.triangleIndices.size());
 
-	for (size_t x = 0; x < cntxt.camera.pixwidth; x++) {
-		for (size_t y = 0; y < cntxt.camera.pixheight; y++) {
-			int pixelIndex = y*cntxt.camera.pixwidth + x;
+	for (size_t x = 0; x < cntxt.camera.rayWidth; x += 2) {
+		for (size_t y = 0; y < cntxt.camera.rayHeight; y += 2) {
+			//Calculate one pixel by averaging four pixels in a block
 			glm::vec3 color(0.0f, 0.0f, 0.0f);
-			if (hits[pixelIndex].t > 0){
-				if (!triangle_math::isFacingBack(optix_functionality::optix2glmf3(cntxt.camera.eye), hits[pixelIndex].triangleId, cntxt.mesh)) {
-					MatrixIndex index = {};
-					index.col = x;
-					index.row = y;
-					index.uv = { hits[pixelIndex].uv.x, hits[pixelIndex].uv.y };
-					cntxt.trianglesonScreen[hits[pixelIndex].triangleId].push_back(index);
-					if (cntxt.radiosityRendering){
-						color = Drawer::interpolate(index, hits[pixelIndex].triangleId, cntxt.lightning, cntxt.mesh);
-					}
-					else{
-						color = cntxt.mesh.materials[cntxt.mesh.materialIndexPerTriangle[hits[pixelIndex].triangleId]].rgbcolor;// get_color_from_spectrum();
+
+			for (int i = 0; i < 2; i++) {
+				for (int j = 0; j < 2; j++) {
+					int pixelIndex = (y+j)*cntxt.camera.rayWidth + (x+i);
+					if (hits[pixelIndex].t > 0){
+						if (!triangle_math::isFacingBack(optix_functionality::optix2glmf3(cntxt.camera.eye), hits[pixelIndex].triangleId, cntxt.mesh)) {
+							MatrixIndex index = {};
+							index.col = x;
+							index.row = y;
+							index.uv = { hits[pixelIndex].uv.x, hits[pixelIndex].uv.y };
+							cntxt.trianglesonScreen[hits[pixelIndex].triangleId].push_back(index);
+							if (cntxt.radiosityRendering){
+								color += Drawer::interpolate(index, hits[pixelIndex].triangleId, cntxt.lightning, cntxt.mesh);
+							}
+							else{
+								color += cntxt.mesh.materials[cntxt.mesh.materialIndexPerTriangle[hits[pixelIndex].triangleId]].rgbcolor;// get_color_from_spectrum();
+							}
+						}
+
 					}
 				}
-
 			}
+			color = glm::vec3(color.x/4, color.y/4, color.z/4);
 			// clamp values of color vec
 			color = glm::clamp(color, 0.f, 1.f);
-			cntxt.optixView[pixelIndex] = color;
+			cntxt.optixView[y/2*cntxt.camera.pixwidth + x/2] = color;
 		}
 	}
 

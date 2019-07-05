@@ -100,14 +100,10 @@ int main() {
 
 	// initialize radiosity matrix
 	int numtriangles = mesh.triangleIndices.size();
-	//SpMat RadMat(numtriangles, numtriangles);
-	//optixP.cudaCalculateRadiosityMatrix(RadMat, mesh, rands);
 
 	// set up lightning
 	SpectralLightningFast lightning(mesh, optixP, emission_value, wavelengths, cuda_on, store_mat_filepath);
 	std::cout << "Done setting up spectral lightning " << std::endl;
-	//RGBLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
-	//BWLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
 
 	//initializing result optix drawing
 	GLuint optixShader;
