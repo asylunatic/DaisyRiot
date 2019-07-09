@@ -244,11 +244,17 @@ public:
 		converge_lightning();
 	}
 
-	RGBLightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, char* matfile){
+	RGBLightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, bool cuda_enabled = false, char* matfile = nullptr){
+		cuda_on = cuda_enabled;
 		emission_value = emissionval;
 		set_sampled_emission(mesh);
 		set_reflectionvalues(mesh);
-		initMatFromFile(mesh, optixP, matfile);
+		if (matfile == nullptr){
+			initMat(mesh, optixP);
+		}
+		else{
+			initMatFromFile(mesh, optixP, matfile);
+		}
 		reset();
 		converge_lightning();
 	}
