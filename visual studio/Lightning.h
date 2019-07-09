@@ -98,7 +98,7 @@ private:
 	int numsamples;
 	int numpatches;
 	std::vector<glm::vec3> xyz_per_wavelength;
-	std::vector<glm::vec3> rgb_color_per_patch;		// here we cache the rgb colors of the patches
+	std::vector<glm::vec3> rgb_color_cache;		// here we cache the rgb colors of the patches
 
 	std::vector<Eigen::VectorXf> emission;
 	std::vector<Eigen::VectorXf> residualvector;
@@ -127,7 +127,7 @@ public:
 	}
 
 	glm::vec3 get_color_of_patch(int index){
-		return rgb_color_per_patch[index];
+		return rgb_color_cache[index];
 	}
 
 	void converge_lightning(){
@@ -140,11 +140,12 @@ public:
 
 	void increment_lightpass(){
 		increment_light_fast();
-		update_patch_colors();	
+		update_patch_colors();
+		numpasses++;
 	}
 
 	void reset(){
-		rgb_color_per_patch = std::vector<glm::vec3>(numpatches, { 0.0, 0.0, 0.0 });
+		rgb_color_cache = std::vector<glm::vec3>(numpatches, { 0.0, 0.0, 0.0 });
 		residualvector = emission;
 		lightningvalues = emission;
 		update_patch_colors();
@@ -154,16 +155,20 @@ public:
 private:
 	void update_patch_colors(){
 		// update color per patch
-		for (int i = 0; i < rgb_color_per_patch.size(); i++){
+		for (int i = 0; i < rgb_color_cache.size(); i++){
 			glm::vec3 xyz;
 			for (int j = 0; j < numsamples; j++){
 				xyz += xyz_per_wavelength[j] * lightningvalues[j][i];
 			}
 			glm::vec3 rgb = { 0.0, 0.0, 0.0 };
 			daisy_color::XYZToRGB(xyz, rgb);
-			rgb_color_per_patch[i] = rgb;
+			float maxval = std::fmaxf(rgb[0], std::fmaxf(rgb[1], rgb[2]));
+			if (maxval > 1){
+				rgb = { rgb[0] / maxval, rgb[1] / maxval, rgb[2] / maxval };
+			}
+			rgb_color_cache[i] = rgb;
+			
 		}
-		numpasses++;
 	}
 
 	void increment_light_fast(){
@@ -171,6 +176,7 @@ private:
 			residualvector[i] = (RadMat * residualvector[i]).cwiseProduct(reflectionvalues[i]);
 			lightningvalues[i] = lightningvalues[i] + residualvector[i];
 		}
+		numpasses++;
 	}
 
 	std::vector<glm::vec3> get_xyz_conversions(std::vector<float> wavelengthsvec){
