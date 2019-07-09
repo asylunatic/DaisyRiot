@@ -13,4 +13,5 @@ Press X to clear the radiosity calculations (so you can calculate the light pass
 Press L to calculate one light pass
 Press C to converge the radiosity calculations
 Press M to print this menu again
+Press A to toggle antialiasing (interaction will be faster with antialiasing turned off)
 Press Esc to exit

@@ -11,9 +11,10 @@ callback_context* InputHandler::get_context(GLFWwindow* w) {
 	return static_cast<callback_context*>(glfwGetWindowUserPointer(w));
 }
 
-callback_context::callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView,
-	std::vector<optix_functionality::Hit>& patches, MeshS& mesh, OptixPrimeFunctionality& optixP, Lightning &lightning, bool &radiosityRendering, bool &antiAliasing, InputHandler &inputhandler) :
-	debugline(debugline), camera(camera), trianglesonScreen(trianglesonScreen), optixView(optixView), patches(patches), mesh(mesh), optixP(optixP), lightning(lightning), radiosityRendering(radiosityRendering), antialiasing(antiAliasing)
+callback_context::callback_context(Drawer::DebugLine &debugline, 
+	std::vector<optix_functionality::Hit>& patches, MeshS& mesh, OptixPrimeFunctionality& optixP, Lightning &lightning, bool &radiosityRendering, bool &antiAliasing, Drawer::RenderContext &renderContext, InputHandler &inputhandler) :
+	debugline(debugline), patches(patches), mesh(mesh), optixP(optixP), lightning(lightning), radiosityRendering(radiosityRendering), antialiasing(antiAliasing),
+	render_cntxt(renderContext)
 {
 }
 
@@ -123,10 +124,10 @@ void InputHandler::cursor_pos_callback(GLFWwindow * window, double xpos, double 
 	double deltax = xpos - old_x;
 	double deltay = ypos - old_y;
 
-	double yaw = (180.0 / float(cbc_ptr->camera.pixwidth)) * deltax;
-	double pitch = (180.0 / float(cbc_ptr->camera.pixheight)) * deltay;
+	double yaw = (180.0 / float(cbc_ptr->render_cntxt.camera.pixwidth)) * deltax;
+	double pitch = (180.0 / float(cbc_ptr->render_cntxt.camera.pixheight)) * deltay;
 
-	cbc_ptr->camera.rotate(yaw, pitch, 0.0);
+	cbc_ptr->render_cntxt.camera.rotate(yaw, pitch, 0.0);
 
 	old_x = xpos;
 	old_y = ypos;
@@ -158,25 +159,25 @@ void InputHandler::save_screenshot(GLFWwindow* window){
 void InputHandler::move_left(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
 	std::cout << "left" << std::endl;
-	cbc_ptr->camera.rotate(-10.0, 0.0, 0.0);
+	cbc_ptr->render_cntxt.camera.rotate(-10.0, 0.0, 0.0);
 }
 
 void InputHandler::move_right(GLFWwindow *window){
 	callback_context* cbc_ptr = get_context(window);
 	std::cout << "right" << std::endl;
-	cbc_ptr->camera.rotate(10.0, 0.0, 0.0);
+	cbc_ptr->render_cntxt.camera.rotate(10.0, 0.0, 0.0);
 }
 
 void InputHandler::move_up(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
 	std::cout << "up" << std::endl;
-	cbc_ptr->camera.rotate(0.0, 10.0, 0.0);
+	cbc_ptr->render_cntxt.camera.rotate(0.0, 10.0, 0.0);
 }
 
 void InputHandler::move_down(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
 	std::cout << "down" << std::endl;
-	cbc_ptr->camera.rotate(0.0, -10.0, 0.0);
+	cbc_ptr->render_cntxt.camera.rotate(0.0, -10.0, 0.0);
 }
 
 void InputHandler::calculate_form_vector(GLFWwindow* window){
@@ -196,12 +197,12 @@ void InputHandler::find_triangle_by_id(GLFWwindow* window){
 
 void InputHandler::zoom_out(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
-	cbc_ptr->camera.eye = cbc_ptr->camera.eye*2.0;
+	cbc_ptr->render_cntxt.camera.eye = cbc_ptr->render_cntxt.camera.eye*2.0;
 }
 
 void InputHandler::zoom_in(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
-	cbc_ptr->camera.eye = cbc_ptr->camera.eye*0.5;
+	cbc_ptr->render_cntxt.camera.eye = cbc_ptr->render_cntxt.camera.eye*0.5;
 }
 
 void InputHandler::calc_full_lightning(GLFWwindow* window){
@@ -261,8 +262,8 @@ void InputHandler::rightclick(GLFWwindow* window)
 	printf("\nclick!: %f %f", xpos, ypos);
 	// calculate intersection
 	double ypos_corrected = height - ypos;
-	cbc_ptr->debugline.hitB = cbc_ptr->optixP.intersectMouse(cbc_ptr->debugline, xpos, ypos_corrected, cbc_ptr->camera, cbc_ptr->trianglesonScreen,
-		cbc_ptr->optixView, cbc_ptr->patches, cbc_ptr->mesh);
+	cbc_ptr->debugline.hitB = cbc_ptr->optixP.intersectMouse(cbc_ptr->debugline, xpos, ypos_corrected, cbc_ptr->render_cntxt.camera, cbc_ptr->render_cntxt.trianglesonScreen,
+		cbc_ptr->render_cntxt.optixView, cbc_ptr->patches, cbc_ptr->mesh);
 
 	// adjust debug line
 	xpos = xpos * 2 / width - 1;

@@ -45,17 +45,15 @@ private:
 };
 
 struct callback_context {
-	callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches,
-		MeshS& mesh, OptixPrimeFunctionality& optixP, Lightning &lightning, bool &radiosityRendering, bool &antialiasing, InputHandler &inputhandler);
+	callback_context(Drawer::DebugLine &debugline, std::vector<optix_functionality::Hit> &patches,
+		MeshS& mesh, OptixPrimeFunctionality& optixP, Lightning &lightning, bool &radiosityRendering, bool &antialiasing, Drawer::RenderContext &renderContext, InputHandler &inputhandler);
 	InputHandler inputhandler;
 	Lightning &lightning;
 	Drawer::DebugLine &debugline;
-	Camera &camera;
-	std::vector<std::vector<MatrixIndex>> &trianglesonScreen;
-	std::vector<glm::vec3> &optixView;
 	std::vector<optix_functionality::Hit> &patches;
 	MeshS& mesh;
 	OptixPrimeFunctionality &optixP;
 	bool &radiosityRendering;
 	bool &antialiasing;
+	Drawer::RenderContext &render_cntxt;
 };
