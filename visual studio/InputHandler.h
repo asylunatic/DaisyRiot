@@ -35,6 +35,7 @@ private:
 	void save_screenshot(GLFWwindow* window);
 	void find_triangle_by_id(GLFWwindow* window);
 	void toggle_view(GLFWwindow* window);
+	void toggle_antialiasing(GLFWwindow* window);
 	void increment_lightpasses(GLFWwindow* window);
 	void clear_light(GLFWwindow* window);
 	void calc_full_lightning(GLFWwindow* window);
@@ -45,7 +46,7 @@ private:
 
 struct callback_context {
 	callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>> &trianglesonScreen, std::vector<glm::vec3> &optixView, std::vector<optix_functionality::Hit> &patches,
-		MeshS& mesh, OptixPrimeFunctionality& optixP, Lightning &lightning, bool &radiosityRendering, InputHandler &inputhandler);
+		MeshS& mesh, OptixPrimeFunctionality& optixP, Lightning &lightning, bool &radiosityRendering, bool &antialiasing, InputHandler &inputhandler);
 	InputHandler inputhandler;
 	Lightning &lightning;
 	Drawer::DebugLine &debugline;
@@ -56,4 +57,5 @@ struct callback_context {
 	MeshS& mesh;
 	OptixPrimeFunctionality &optixP;
 	bool &radiosityRendering;
+	bool &antialiasing;
 };

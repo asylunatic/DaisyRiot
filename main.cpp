@@ -69,6 +69,7 @@ int main() {
 	int HEIGHT = reader.GetInteger("window", "height", -1);
 	float emission_value = reader.GetReal("lightning", "emission_value", -1);
 	bool radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
+	bool antiAliasing = reader.GetBoolean("drawing", "antiAliasing", false);
 	bool cuda_on = reader.GetBoolean("acceleration", "cuda_on", false);
 	char * obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
@@ -98,7 +99,6 @@ int main() {
 	GLuint linevao, linevbo, debugprogram;
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
-
 	// initialize radiosity matrix
 	int numtriangles = mesh.triangleIndices.size();
 	//SpMat RadMat(numtriangles, numtriangles);
@@ -112,14 +112,14 @@ int main() {
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	Drawer::RenderContext rendercontext(trianglesonScreen, lightning, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering);
+	Drawer::RenderContext rendercontext(trianglesonScreen, lightning, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering, antiAliasing);
 	optixP.traceScreen(rendercontext);
 	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
 
 	// set up callback context
 	patches.resize(2);
 	InputHandler inputhandler;
-	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, optixP, lightning, radiosityRendering, inputhandler);
+	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, optixP, lightning, radiosityRendering, antiAliasing, inputhandler);
 	glfwSetWindowUserPointer(window, &cbc);
 
 	// Some neat casting of member functions such we can use them as callback AND have state too, as explained per:

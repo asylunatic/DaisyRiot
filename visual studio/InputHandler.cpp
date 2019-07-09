@@ -12,8 +12,8 @@ callback_context* InputHandler::get_context(GLFWwindow* w) {
 }
 
 callback_context::callback_context(Drawer::DebugLine &debugline, Camera &camera, std::vector<std::vector<MatrixIndex>>& trianglesonScreen, std::vector<glm::vec3>& optixView,
-	std::vector<optix_functionality::Hit>& patches, MeshS& mesh, OptixPrimeFunctionality& optixP, Lightning &lightning, bool &radiosityRendering, InputHandler &inputhandler) :
-	debugline(debugline), camera(camera), trianglesonScreen(trianglesonScreen), optixView(optixView), patches(patches), mesh(mesh), optixP(optixP), lightning(lightning), radiosityRendering(radiosityRendering)
+	std::vector<optix_functionality::Hit>& patches, MeshS& mesh, OptixPrimeFunctionality& optixP, Lightning &lightning, bool &radiosityRendering, bool &antiAliasing, InputHandler &inputhandler) :
+	debugline(debugline), camera(camera), trianglesonScreen(trianglesonScreen), optixView(optixView), patches(patches), mesh(mesh), optixP(optixP), lightning(lightning), radiosityRendering(radiosityRendering), antialiasing(antiAliasing)
 {
 }
 
@@ -87,6 +87,10 @@ void InputHandler::key_callback(GLFWwindow* window, int key, int scancode, int a
 
 	if (key == GLFW_KEY_X && action == GLFW_PRESS) {
 		clear_light(window);
+	}
+
+	if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+		toggle_antialiasing(window);
 	}
 
 	if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS) {
@@ -210,6 +214,12 @@ void InputHandler::toggle_view(GLFWwindow* window) {
 	std::cout << "Toggle view" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
 	cbc_ptr->radiosityRendering = !cbc_ptr->radiosityRendering;
+}
+
+void InputHandler::toggle_antialiasing(GLFWwindow* window) {
+	std::cout << "Toggle antialiasing" << std::endl;
+	callback_context* cbc_ptr = get_context(window);
+	cbc_ptr->antialiasing = !cbc_ptr->antialiasing;
 }
 
 void InputHandler::increment_lightpasses(GLFWwindow* window) {
