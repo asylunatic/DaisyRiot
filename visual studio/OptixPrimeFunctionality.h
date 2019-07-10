@@ -40,7 +40,7 @@ public:
 	void calculateRadiosityMatrixStochastic(SpMat &RadMat, MeshS& mesh);
 	void optixQuery(int number_of_rays, std::vector<optix::float3> &rays, std::vector<optix_functionality::Hit> &hits);
 	void traceScreen(Drawer::RenderContext rendercontext);
-	void traceScreenAntialiased(Drawer::RenderContext rendercontext);
+	//void traceScreenAntialiased(Drawer::RenderContext rendercontext);
 	float calculateVisibility(int originPatch, int destPatch, MeshS& mesh, optix::prime::Context &contextP, optix::prime::Model &model);
 	std::vector<Tripl> calculateAllVisibility(std::vector<parallellism::Tripl> &tripletlist, MeshS& mesh, optix::prime::Context &contextP, optix::prime::Model &model, std::vector<UV> &rands);
 private:

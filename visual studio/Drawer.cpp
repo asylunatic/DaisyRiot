@@ -196,7 +196,8 @@ void Drawer::debugtrianglesDraw(DebugLine &debugline, RenderContext &renderconte
 
 void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Drawer::DebugLine &debugline, OptixPrimeFunctionality &optixP, Drawer::RenderContext &rendercontext){
 	// Do Optix stuff
-	rendercontext.antialiasing ? optixP.traceScreenAntialiased(rendercontext) : optixP.traceScreen(rendercontext);
+	//rendercontext.antialiasing ? optixP.traceScreenAntialiased(rendercontext) : optixP.traceScreen(rendercontext);
+	optixP.traceScreen(rendercontext);
 
 	// debug triangles
 	if (!debugline.cleared){

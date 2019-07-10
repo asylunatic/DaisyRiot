@@ -70,6 +70,7 @@ int main() {
 	float emission_value = reader.GetReal("lightning", "emission_value", -1);
 	bool radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
 	bool antiAliasing = reader.GetBoolean("drawing", "antiAliasing", false);
+	int supersampling = reader.GetInteger("drawing", "supersampling", 4);
 	bool cuda_on = reader.GetBoolean("acceleration", "cuda_on", false);
 	char * obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
@@ -81,7 +82,7 @@ int main() {
 	std::cout << "mat file path " << store_mat_filepath << std::endl;
 	
 	// set up camera
-	Camera camera(WIDTH, HEIGHT);
+	Camera camera(WIDTH, HEIGHT, supersampling);
 
 	//initialize window, GLEW extension loader & OpenGL debug callback
 	GLFWwindow* window = Drawer::initWindow(WIDTH, HEIGHT);
@@ -112,7 +113,7 @@ int main() {
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	Drawer::RenderContext rendercontext(trianglesonScreen, lightning, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering, antiAliasing);
+	Drawer::RenderContext rendercontext(trianglesonScreen, lightning, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering, antiAliasing, supersampling);
 	optixP.traceScreen(rendercontext);
 	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
 

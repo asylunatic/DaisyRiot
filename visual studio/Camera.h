@@ -12,7 +12,7 @@ public:
 	bool moving = false;
 	int pixwidth, pixheight;
 
-	Camera(int width, int height){
+	Camera(int width, int height, int supersampling){
 		eye = optix::make_float3(0.0f, 0.0f, 10.0f);
 		dir = optix::make_float3(0.0f, 0.0f, 0.0f);
 		up = optix::make_float3(0.0f, 1.0f, 0.0f);
@@ -20,6 +20,8 @@ public:
 		viewport = { 0.0f, 0.0f, float(width), float(height) };
 		pixwidth = width;
 		pixheight = height;
+		supersampling_ = supersampling;
+		set_alias_matrix(supersampling_);
 	}
 
 	void rotate(float yaw, float pitch, float roll){
@@ -49,63 +51,51 @@ public:
 		totalpitch += pitch;
 	}
 
-	void gen_rays_for_screen_antialiased(std::vector<optix::float3> &rays){
+	void gen_rays_for_screen(std::vector<optix::float3> &rays, bool antialiasing){
 
-		float jitterMatrix[4 * 2] = {
-			-1.0 / 4.0, 3.0 / 4.0,
-			3.0 / 4.0, 1.0 / 3.0,
-			-3.0 / 4.0, -1.0 / 4.0,
-			1.0 / 4.0, -3.0 / 4.0,
-		};
+		int samples = antialiasing ? supersampling_ : 1;
+		std::vector<float> matrix = antialiasing ? antialias_matrix : std::vector<float>(2, 0);
 
-		rays.resize(pixwidth*pixheight * 4 * 2);
+		rays.resize(pixwidth*pixheight * samples * 2);
 
 		glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(eye), optix_functionality::optix2glmf3(dir), optix_functionality::optix2glmf3(up));
-		glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
+		glm::mat4x4 projection = glm::perspective(45.0f, (float)(pixwidth) / (float)(pixheight), 0.1f, 1000.0f);
 		for (size_t x = 0; x < pixwidth; x++) {
 			for (size_t y = 0; y < pixheight; y++) {
-
-				for (int sample = 0; sample < 4; ++sample)
-				{
-					float x_ = x + jitterMatrix[2 * sample];
-					float y_ = y + jitterMatrix[2 * sample + 1];
+				for (int sample = 0; sample < samples; ++sample){
+					float x_ = x + matrix[2 * sample];
+					float y_ = y + matrix[2 * sample + 1];
 
 					// get ray origin
 					glm::vec3 win(x_, y_, 0.0);
 					glm::vec3 world_coord = glm::unProject(win, lookat, projection, viewport);
-					rays[(((y*pixwidth + x) * 4) + sample) * 2] = optix_functionality::glm2optixf3(world_coord);
+					rays[(((y*pixwidth + x) * samples) + sample) * 2] = optix_functionality::glm2optixf3(world_coord);
 					// get ray direction
 					glm::vec3 win_dir(x_, y_, 1.0);
 					glm::vec3 dir_coord = glm::unProject(win_dir, lookat, projection, viewport);
-					rays[(((y*pixwidth + x) * 4) + sample) * 2 + 1] = optix_functionality::glm2optixf3(dir_coord);
-
+					rays[(((y*pixwidth + x) * samples) + sample) * 2 + 1] = optix_functionality::glm2optixf3(dir_coord);
 				}
-
-			}
-		}
-	}
-
-	void gen_rays_for_screen(std::vector<optix::float3> &rays){
-
-		rays.resize(pixwidth*pixheight * 2);
-
-		glm::mat4x4 lookat = glm::lookAt(optix_functionality::optix2glmf3(eye), optix_functionality::optix2glmf3(dir), optix_functionality::optix2glmf3(up));
-		glm::mat4x4 projection = glm::perspective(45.0f, (float)(800) / (float)(600), 0.1f, 1000.0f);
-		for (size_t x = 0; x < pixwidth; x++) {
-			for (size_t y = 0; y < pixheight; y++) {
-				// get ray origin
-				glm::vec3 win(x, y, 0.0);
-				glm::vec3 world_coord = glm::unProject(win, lookat, projection, viewport);
-				rays[(y*pixwidth + x) * 2] = optix_functionality::glm2optixf3(world_coord);
-				// get ray direction
-				glm::vec3 win_dir(x, y, 1.0);
-				glm::vec3 dir_coord = glm::unProject(win_dir, lookat, projection, viewport);
-				rays[(y*pixwidth + x) * 2 + 1] = optix_functionality::glm2optixf3(dir_coord);
 			}
 		}
 	}
 
 private:
+	std::vector<float> antialias_matrix;
+	int supersampling_;
+
+	void set_alias_matrix(int supersampling){
+		antialias_matrix = std::vector<float>(supersampling * 2);
+		int dim = std::sqrt(supersampling);
+		float step = 1.0 / (dim + 1);
+		for (int x = 1; x <= dim; x++){
+			for (int y = 0; y <= dim; y++){
+				int index = (x*dim + y) * 2;
+				antialias_matrix[index] = float(x) * step;
+				antialias_matrix[index + 1] = float(y) * step;
+			}
+		}
+	}
+
 	optix::float3 yaw_pitch_eye(optix::float3 &eye_in, double yaw, double pitch){
 		// this function actually first inputted yaw 0.0 pitch 
 		glm::mat4x4 rotation_mat = yaw_pitch_roll_in_degrees_to_mat(yaw, 0.0, pitch);

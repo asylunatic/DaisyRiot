@@ -53,9 +53,9 @@ public:
 
 	struct RenderContext{
 		RenderContext(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Lightning &lightning, std::vector<glm::vec3> &optixView, MeshS &mesh, Camera &camera, 
-			GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, bool &radiosityRendering, bool &antiAliasing) :
+			GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, bool &radiosityRendering, bool &antiAliasing, int supersampling) :
 			trianglesonScreen(trianglesonScreen), lightning(lightning), optixView(optixView), mesh(mesh), camera(camera), debugprogram(debugprogram), linevao(linevao), 
-			linevbo(linevbo), radiosityRendering(radiosityRendering), antialiasing(antiAliasing){};
+			linevbo(linevbo), radiosityRendering(radiosityRendering), antialiasing(antiAliasing), supersampling(supersampling){};
 		std::vector<std::vector<MatrixIndex>> &trianglesonScreen;
 		Lightning &lightning;
 		std::vector<glm::vec3> &optixView;
@@ -66,6 +66,7 @@ public:
 		GLuint &linevbo;
 		bool &radiosityRendering;
 		bool &antialiasing;
+		int supersampling;
 	};
 
 	static GLFWwindow* initWindow(int width, int height);
