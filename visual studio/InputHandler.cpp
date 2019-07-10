@@ -12,9 +12,8 @@ callback_context* InputHandler::get_context(GLFWwindow* w) {
 }
 
 callback_context::callback_context(Drawer::DebugLine &debugline, 
-	std::vector<optix_functionality::Hit>& patches, MeshS& mesh, OptixPrimeFunctionality& optixP, Lightning &lightning, bool &radiosityRendering, bool &antiAliasing, Drawer::RenderContext &renderContext, InputHandler &inputhandler) :
-	debugline(debugline), patches(patches), mesh(mesh), optixP(optixP), lightning(lightning), radiosityRendering(radiosityRendering), antialiasing(antiAliasing),
-	render_cntxt(renderContext)
+	std::vector<optix_functionality::Hit>& patches, OptixPrimeFunctionality& optixP, Drawer::RenderContext &renderContext, InputHandler &inputhandler) :
+	debugline(debugline), patches(patches), optixP(optixP), render_cntxt(renderContext)
 {
 }
 
@@ -182,7 +181,7 @@ void InputHandler::move_down(GLFWwindow* window){
 
 void InputHandler::calculate_form_vector(GLFWwindow* window){
 	callback_context* cbc_ptr = get_context(window);
-	float ff = cbc_ptr->optixP.p2pFormfactorNusselt(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->mesh);
+	float ff = cbc_ptr->optixP.p2pFormfactorNusselt(cbc_ptr->patches[0].triangleId, cbc_ptr->patches[1].triangleId, cbc_ptr->render_cntxt.mesh);
 	std::cout << "Form factor = " << ff << std::endl;
 }
 
@@ -208,32 +207,32 @@ void InputHandler::zoom_in(GLFWwindow* window){
 void InputHandler::calc_full_lightning(GLFWwindow* window){
 	std::cout << "Converging lightning calculation" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
-	cbc_ptr->lightning.converge_lightning();
+	cbc_ptr->render_cntxt.lightning.converge_lightning();
 }
 
 void InputHandler::toggle_view(GLFWwindow* window) {
 	std::cout << "Toggle view" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
-	cbc_ptr->radiosityRendering = !cbc_ptr->radiosityRendering;
+	cbc_ptr->render_cntxt.radiosityRendering = !cbc_ptr->render_cntxt.radiosityRendering;
 }
 
 void InputHandler::toggle_antialiasing(GLFWwindow* window) {
 	std::cout << "Toggle antialiasing" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
-	cbc_ptr->antialiasing = !cbc_ptr->antialiasing;
+	cbc_ptr->render_cntxt.antialiasing = !cbc_ptr->render_cntxt.antialiasing;
 }
 
 void InputHandler::increment_lightpasses(GLFWwindow* window) {
 	std::cout << "Add another light pass" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
 	// calculate consecutive lighting pass
-	cbc_ptr->lightning.increment_lightpass();
+	cbc_ptr->render_cntxt.lightning.increment_lightpass();
 }
 
 void InputHandler::clear_light(GLFWwindow* window) {
 	std::cout << "Reset light passes to 0" << std::endl;
 	callback_context* cbc_ptr = get_context(window);
-	cbc_ptr->lightning.reset();
+	cbc_ptr->render_cntxt.lightning.reset();
 }
 
 void InputHandler::leftclick(GLFWwindow* window)
@@ -263,7 +262,7 @@ void InputHandler::rightclick(GLFWwindow* window)
 	// calculate intersection
 	double ypos_corrected = height - ypos;
 	cbc_ptr->debugline.hitB = cbc_ptr->optixP.intersectMouse(cbc_ptr->debugline, xpos, ypos_corrected, cbc_ptr->render_cntxt.camera, cbc_ptr->render_cntxt.trianglesonScreen,
-		cbc_ptr->render_cntxt.optixView, cbc_ptr->patches, cbc_ptr->mesh);
+		cbc_ptr->render_cntxt.optixView, cbc_ptr->patches, cbc_ptr->render_cntxt.mesh);
 
 	// adjust debug line
 	xpos = xpos * 2 / width - 1;
