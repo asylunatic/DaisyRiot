@@ -25,6 +25,7 @@
     <ClCompile Include="Drawer.cpp" />
     <ClCompile Include="ImageExporter.cpp" />
     <ClCompile Include="InputHandler.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshS.cpp" />
     <ClCompile Include="optix_functionality.cpp" />
     <ClCompile Include="OptixPrimeFunctionality.cpp" />

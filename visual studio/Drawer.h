@@ -1,13 +1,6 @@
 #pragma once
-// Library for OpenGL function loading
-// Must be included before GLFW
-#define GLEW_STATIC
 #include <GL/glew.h>
-
-// Library for window creation and event handling
 #include <GLFW/glfw3.h>
-
-// Library for vertex and matrix math
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>

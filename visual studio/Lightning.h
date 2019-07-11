@@ -2,6 +2,7 @@
 #include "ImageExporter.h"
 #include <iostream>
 #include <fstream>
+#include "color.h"
 
 class Lightning{
 public:
