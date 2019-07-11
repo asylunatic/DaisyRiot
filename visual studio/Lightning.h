@@ -102,6 +102,7 @@ private:
 	int numpatches;
 	std::vector<glm::vec3> xyz_per_wavelength;
 	std::vector<glm::vec3> rgb_color_cache;		// here we cache the rgb colors of the patches
+	MeshS& mesh_;
 
 	std::vector<Eigen::VectorXf> emission;
 	std::vector<Eigen::VectorXf> residualvector;
@@ -109,7 +110,7 @@ private:
 	std::vector<Eigen::VectorXf> reflectionvalues; // how much of which color is reflected per patch
 
 public:
-	SpectralLightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec, bool cuda_enabled = false, char* matfile = nullptr){
+	SpectralLightning(MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec, bool cuda_enabled = false, char* matfile = nullptr):mesh_(mesh){
 		cuda_on = cuda_enabled;
 		numsamples = wavelengthsvec.size();
 		numpatches = mesh.numtriangles;
@@ -176,10 +177,29 @@ private:
 	void increment_light_fast(){
 		for (int i = 0; i < numsamples; i++){
 			residualvector[i] = (RadMat * residualvector[i]).cwiseProduct(reflectionvalues[i]);
-			// do materialmatrix calculation here
 			lightningvalues[i] = lightningvalues[i] + residualvector[i];
 		}
+		mult_material_matrix();
 		numpasses++;
+	}
+
+	void mult_material_matrix(){
+		int numtriangles_ = mesh_.numtriangles;
+		for (int i = 0; i < numtriangles_; i++){
+			// make vector from row
+			Eigen::VectorXf patchrowvec = Eigen::VectorXf(numsamples);
+			for (int j = 0; j < numsamples; j++){
+				patchrowvec[j] = lightningvalues[j][i];
+			}
+			// get matrix of triangle
+			Eigen::MatrixXf trianglematrix = mesh_.materials[mesh_.materialIndexPerTriangle[i]].M;
+			// mult rowvec with matrix
+			Eigen::VectorXf result = trianglematrix * patchrowvec;
+			// put result back in lightningvalues
+			for (int j = 0; j < numsamples; j++){
+				lightningvalues[j][i] = result[j];
+			}
+		}
 	}
 
 	std::vector<glm::vec3> get_xyz_conversions(std::vector<float> wavelengthsvec){
