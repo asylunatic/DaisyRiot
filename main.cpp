@@ -68,6 +68,7 @@ int main() {
 	int WIDTH = reader.GetInteger("window", "width", -1);
 	int HEIGHT = reader.GetInteger("window", "height", -1);
 	float emission_value = reader.GetReal("lightning", "emission_value", -1);
+	int method = reader.GetInteger("lightning", "method", 0);
 	bool radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
 	bool antiAliasing = reader.GetBoolean("drawing", "antiAliasing", false);
 	int supersampling = reader.GetInteger("drawing", "supersampling", 4);
@@ -106,14 +107,11 @@ int main() {
 	//optixP.cudaCalculateRadiosityMatrix(RadMat, mesh, rands);
 
 	// set up lightning
-	SpectralLightning lightning(mesh, optixP, emission_value, wavelengths, cuda_on, store_mat_filepath);
-	std::cout << "Done setting up spectral lightning " << std::endl;
-	//RGBLightning lightning(mesh, optixP, emission_value, cuda_on, store_mat_filepath);
-	//BWLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
+	Lightning* lightning = Lightning::get_lightning(method, mesh, optixP, emission_value, wavelengths, cuda_on, store_mat_filepath);
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	Drawer::RenderContext rendercontext(trianglesonScreen, lightning, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering, antiAliasing, supersampling);
+	Drawer::RenderContext rendercontext(trianglesonScreen, *lightning, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering, antiAliasing, supersampling);
 	optixP.traceScreen(rendercontext);
 	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
 

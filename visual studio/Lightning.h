@@ -5,6 +5,8 @@
 
 class Lightning{
 public:
+	static Lightning* get_lightning(int method, MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec,
+		bool cuda_enabled = false, char* matfile = nullptr);
 	virtual glm::vec3 get_color_of_patch(int) = 0; 
 	virtual void converge_lightning() = 0;
 	virtual void increment_lightpass() = 0;
@@ -371,3 +373,17 @@ private:
 		}
 	}
 };
+
+
+inline Lightning* Lightning::get_lightning(int method, MeshS &mesh, OptixPrimeFunctionality &optixP, float &emissionval, std::vector<float> wavelengthsvec,
+	bool cuda_enabled , char* matfile){
+	if (method == 0){
+		return new BWLightning(mesh, optixP, emissionval, matfile);
+	}
+	else if (method == 1){
+		return new RGBLightning(mesh, optixP, emissionval, cuda_enabled, matfile);
+	}
+	else if (method == 2){
+		return new SpectralLightning(mesh, optixP, emissionval, wavelengthsvec, cuda_enabled, matfile);
+	}
+}
