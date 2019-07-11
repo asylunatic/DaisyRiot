@@ -87,11 +87,13 @@ private:
 		antialias_matrix = std::vector<float>(supersampling * 2);
 		int dim = std::sqrt(supersampling);
 		float step = 1.0 / (dim + 1);
+		int index = 0;
 		for (int x = 1; x <= dim; x++){
-			for (int y = 0; y <= dim; y++){
-				int index = (x*dim + y) * 2;
+			for (int y = 1; y <= dim; y++){
 				antialias_matrix[index] = float(x) * step;
 				antialias_matrix[index + 1] = float(y) * step;
+				if (index >= antialias_matrix.size()){ std::cout << "MATRIX OUT OF BOUNDS " << std::endl; }
+				index += 2;
 			}
 		}
 	}
