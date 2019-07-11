@@ -138,12 +138,12 @@ public:
 			std::cout << "Residual light in scene: " << check_convergence(residualvector) << std::endl;
 			increment_light_fast();
 		}
-		update_patch_colors();
+		update_color_cache();
 	}
 
 	void increment_lightpass(){
 		increment_light_fast();
-		update_patch_colors();
+		update_color_cache();
 		numpasses++;
 	}
 
@@ -151,12 +151,12 @@ public:
 		rgb_color_cache = std::vector<glm::vec3>(numpatches, { 0.0, 0.0, 0.0 });
 		residualvector = emission;
 		lightningvalues = emission;
-		update_patch_colors();
+		update_color_cache();
 		numpasses = 0;
 	}
 
 private:
-	void update_patch_colors(){
+	void update_color_cache(){
 		// update color per patch
 		for (int i = 0; i < rgb_color_cache.size(); i++){
 			glm::vec3 xyz;
@@ -170,13 +170,13 @@ private:
 				rgb = { rgb[0] / maxval, rgb[1] / maxval, rgb[2] / maxval };
 			}
 			rgb_color_cache[i] = rgb;
-			
 		}
 	}
 
 	void increment_light_fast(){
 		for (int i = 0; i < numsamples; i++){
 			residualvector[i] = (RadMat * residualvector[i]).cwiseProduct(reflectionvalues[i]);
+			// do materialmatrix calculation here
 			lightningvalues[i] = lightningvalues[i] + residualvector[i];
 		}
 		numpasses++;

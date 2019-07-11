@@ -39,7 +39,7 @@ void MeshS::loadFromFile(char * filepath, char * mtldirpath, std::vector<float> 
 		glm::vec3 blacklight(tinyobj_materials[i].specular[0], tinyobj_materials[i].specular[1], tinyobj_materials[i].specular[2]);
 		
 		bool blacklightsource = (emission[0] + emission[1] + emission[2] > 0 && diffuse[0] + diffuse[1] + diffuse[2] == 0.0);
-		Material mattie = blacklightsource ? UVLightMaterial(diffuse, emission, blacklight, wavelengths) : Material(diffuse, emission, blacklight, wavelengths);
+		Material mattie = blacklightsource ? UVLightMaterial({ 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, wavelengths) : Material(diffuse, emission, blacklight, wavelengths);
 
 		materials.push_back(mattie);
 	}
