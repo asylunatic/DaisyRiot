@@ -8,7 +8,10 @@ Optix SDK version 4.1.1 (https://developer.nvidia.com/designworks/optix/download
 ## Installation
 Set path variable: C:\ProgramData\NVIDIA Corporation\OptiX SDK 4.1.1\bin64
 
-And two unfortunate hacky adjustments:
+## Config
+Make a copy of the config_example.ini file, rename to config.ini and modify as you see fit.
+
+Two additional and unfortunate hacky adjustments:
 
 1) In optix_prime.h, linenumber 875: 
 RTPresult RTPAPI rtpQuerySetCudaStream(RTPquery query, cudaStream_t stream);
