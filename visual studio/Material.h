@@ -26,7 +26,7 @@ public:
 		numwavelengths = wave_lengths.size();
 		M = Eigen::MatrixXf::Identity(numwavelengths, numwavelengths);
 		
-		RGB2Spec *model = rgb2spec_load("tables/srgb.coeff");
+		RGB2Spec *model = rgb2spec_load("color_tables/srgb.coeff");
 
 		set_rgb_to_spectrumvec(model, blacklight_2_rgb, spectral_from_blacklight);
 		set_fluorescent_matrix();
