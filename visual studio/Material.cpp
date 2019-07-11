@@ -1,5 +1,6 @@
 #include "Material.h"
 #include "color.h"
+#include <math.h>
 
 Material::Material(glm::vec3 rgbcolor, glm::vec3 emission, glm::vec3 blacklightcolor, std::vector<float> &wave_lengths)
 	:rgbcolor(rgbcolor), emission(emission), blacklightcolor(blacklightcolor), wavelengths(wave_lengths){
@@ -54,9 +55,24 @@ UVLightMaterial::UVLightMaterial(glm::vec3 rgbcolor, glm::vec3 emission, glm::ve
 	rgbcolor = { 0.0, 0.0, 0.0 };
 	emission = { 0.0, 0.0, 0.0 };
 	blacklightcolor = { 0.0, 0.0, 0.0 };
-	resample_emission();
+	resample_emission(wave_lengths);
 }
 
-void UVLightMaterial::resample_emission(){
+void UVLightMaterial::resample_emission(std::vector<float> &wave_lengths){
+	// We sample the emission of the UV light sources modeled after a light bulb with BaSi2O5, Pb Mixture, which has a peak at 350 nm and a width of 40 nm
+	// Source: https://en.wikipedia.org/wiki/Blacklight
+	for (int i = 0; i < numwavelengths; i++){
+		float x = wave_lengths[i];
+		spectral_emission[i] = sample_bell_curve(x);
+		spectral_values[i] = sample_bell_curve(x);
+	}
+}
 
+float UVLightMaterial::sample_bell_curve(float x){
+	// Crude approximation with a bell curve: a*e^((-(x-b)^2) / (2*(c^2)))
+	float a = 100.0; // height of curve
+	float b = 350.0; // peak of curve
+	float c = 10.0; // width of curve
+	float value = a * exp( pow(-(x - b), 2.0) / (2 * pow(c, 2.0)) );
+	return value;
 }

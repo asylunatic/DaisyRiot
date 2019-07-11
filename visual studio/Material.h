@@ -31,5 +31,6 @@ class UVLightMaterial : public Material{
 public: 
 	UVLightMaterial(glm::vec3 rgbcolor, glm::vec3 emission, glm::vec3 blacklightcolor, std::vector<float> &wave_lengths);
 private:
-	void resample_emission();
+	void resample_emission(std::vector<float> &wave_lengths);
+	float sample_bell_curve(float x);
 };

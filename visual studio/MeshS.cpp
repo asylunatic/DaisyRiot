@@ -30,17 +30,20 @@ void MeshS::loadFromFile(char * filepath, char * mtldirpath, std::vector<float> 
 		std::cerr << err << std::endl;
 	}
 
-	std::cout << "size of shapes = " << shapes.size() << std::endl;
-	std::cout << "size of materials = " << tinyobj_materials.size() << std::endl;
 	trianglesPerVertex.resize(attrib.vertices.size() / 3);
 
 	// Get Materials
-	//materials.resize(tinyobj_materials.size());
 	for (int i = 0; i < tinyobj_materials.size(); i++){
 		glm::vec3 diffuse(tinyobj_materials[i].diffuse[0], tinyobj_materials[i].diffuse[1], tinyobj_materials[i].diffuse[2]);
 		glm::vec3 emission(tinyobj_materials[i].emission[0], tinyobj_materials[i].emission[1], tinyobj_materials[i].emission[2]);
 		glm::vec3 blacklight(tinyobj_materials[i].specular[0], tinyobj_materials[i].specular[1], tinyobj_materials[i].specular[2]);
+		
 		Material mattie(diffuse, emission, blacklight, wavelengths);
+
+		if (emission[0] + emission[1] + emission[2] > 0 && diffuse[0] + diffuse[1] + diffuse[2] == 0.0) {
+			mattie = UVLightMaterial(diffuse, emission, blacklight, wavelengths);
+		}
+
 		materials.push_back(mattie);
 	}
 
