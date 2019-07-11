@@ -1,6 +1,7 @@
 #include "Material.h"
 #include "color.h"
 #include <math.h>
+#include <iostream>
 
 Material::Material(glm::vec3 rgbcolor, glm::vec3 emission, glm::vec3 blacklightcolor, std::vector<float> &wave_lengths)
 	:rgbcolor(rgbcolor), emission(emission), blacklightcolor(blacklightcolor), wavelengths(wave_lengths){
@@ -63,16 +64,20 @@ void UVLightMaterial::resample_emission(std::vector<float> &wave_lengths){
 	// Source: https://en.wikipedia.org/wiki/Blacklight
 	for (int i = 0; i < numwavelengths; i++){
 		float x = wave_lengths[i];
-		spectral_emission[i] = sample_bell_curve(x);
-		spectral_values[i] = sample_bell_curve(x);
+		float sample = sample_bell_curve(x);
+		std::cout << "sampled bell curve at " << x << " value = " << sample << std::endl;
+		spectral_emission[i] = sample;
+		spectral_values[i] = 0.0;
 	}
 }
 
 float UVLightMaterial::sample_bell_curve(float x){
 	// Crude approximation with a bell curve: a*e^((-(x-b)^2) / (2*(c^2)))
-	float a = 100.0; // height of curve
+	//if (x < 250 || x > 450) return 0.0;
+	float a = 1.0; // height of curve
 	float b = 350.0; // peak of curve
 	float c = 10.0; // width of curve
-	float value = a * exp( pow(-(x - b), 2.0) / (2 * pow(c, 2.0)) );
+
+	float value = a * exp(-1.0*pow((x - b), 2.0) / (2 * pow(c, 2.0)));
 	return value;
 }
