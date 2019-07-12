@@ -3,16 +3,13 @@
 #include <math.h>
 #include <iostream>
 
-Material::Material(glm::vec3 rgbcolor, glm::vec3 emission, glm::vec3 blacklightcolor, std::vector<float> &wave_lengths)
-	:rgbcolor(rgbcolor), emission(emission), blacklightcolor(blacklightcolor), wavelengths(wave_lengths){
+Material::Material(glm::vec3 rgbcolor, glm::vec3 emission, std::vector<float> &wave_lengths)
+	:rgbcolor(rgbcolor), emission(emission), wavelengths(wave_lengths){
 
 	numwavelengths = wave_lengths.size();
 	M = Eigen::MatrixXf::Identity(numwavelengths, numwavelengths);
 
 	RGB2Spec *model = rgb2spec_load("color_tables/srgb.coeff");
-
-	rgb_to_spectrum(model, blacklightcolor, spectral_from_blacklight);
-	set_fluorescent_matrix();
 
 	rgb_to_spectrum(model, rgbcolor, spectral_values);
 	rgb_to_spectrum(model, emission, spectral_emission);
@@ -30,16 +27,6 @@ glm::vec3 Material::get_material_color_from_spectrum(){
 	return rgb;
 }
 
-void Material::set_fluorescent_matrix(){
-	float* ptr = &spectral_from_blacklight[0];
-	Eigen::Map<Eigen::VectorXf> temp(ptr, numwavelengths);
-	for (int i = 0; i < numwavelengths; i++){
-		if (300.0 < wavelengths[i] < 400.0){
-			M.col(i) = temp;
-		}
-	}
-}
-
 void Material::rgb_to_spectrum(RGB2Spec *model, glm::vec3 rgbcolor, std::vector<float> &spectrum){
 	float coeff[3];
 	float rgb[3] = { rgbcolor.x, rgbcolor.y, rgbcolor.z };
@@ -52,10 +39,9 @@ void Material::rgb_to_spectrum(RGB2Spec *model, glm::vec3 rgbcolor, std::vector<
 	}
 }
 
-UVLightMaterial::UVLightMaterial(glm::vec3 rgbcolor, glm::vec3 emission, glm::vec3 blacklightcolor, std::vector<float> &wave_lengths) :Material(rgbcolor, emission, blacklightcolor, wave_lengths){
+UVLightMaterial::UVLightMaterial(glm::vec3 rgbcolor, glm::vec3 emission,  std::vector<float> &wave_lengths) :Material(rgbcolor, emission, wave_lengths){
 	rgbcolor = { 0.0, 0.0, 0.0 };
 	emission = { 0.0, 0.0, 0.0 };
-	blacklightcolor = { 0.0, 0.0, 0.0 };
 	resample_emission(wave_lengths);
 }
 
@@ -80,4 +66,25 @@ float UVLightMaterial::sample_bell_curve(float x){
 
 	float value = a * exp(-1.0*pow((x - b), 2.0) / (2 * pow(c, 2.0)));
 	return value;
+}
+
+FluorescentMaterial::FluorescentMaterial(glm::vec3 rgbcolor, glm::vec3 emission, glm::vec3 blacklightcolor, std::vector<float> &wave_lengths) 
+	:Material(rgbcolor, emission, wave_lengths), blacklightcolor(blacklightcolor){
+
+	RGB2Spec *model = rgb2spec_load("color_tables/srgb.coeff");
+	rgb_to_spectrum(model, blacklightcolor, spectral_from_blacklight);
+	set_fluorescent_matrix();
+	rgb2spec_free(model);
+
+}
+
+void FluorescentMaterial::set_fluorescent_matrix(){
+	float* ptr = &spectral_from_blacklight[0];
+	Eigen::Map<Eigen::VectorXf> temp(ptr, numwavelengths);
+	for (int i = 0; i < numwavelengths; i++){
+		if (300.0 < wavelengths[i] && wavelengths[i] < 400.0){
+			M.col(i) = temp;
+			std::cout << "added " << temp << " at " << wavelengths[i] << " nm" << std::endl;
+		}
+	}
 }

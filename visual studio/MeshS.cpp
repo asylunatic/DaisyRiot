@@ -39,9 +39,30 @@ void MeshS::loadFromFile(char * filepath, char * mtldirpath, std::vector<float> 
 		glm::vec3 blacklight(tinyobj_materials[i].specular[0], tinyobj_materials[i].specular[1], tinyobj_materials[i].specular[2]);
 		
 		bool blacklightsource = (emission[0] + emission[1] + emission[2] > 0 && diffuse[0] + diffuse[1] + diffuse[2] == 0.0);
-		Material mattie = blacklightsource ? UVLightMaterial({ 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, wavelengths) : Material(diffuse, emission, blacklight, wavelengths);
-
-		materials.push_back(mattie);
+		bool fluorescent = (blacklight[0] + blacklight[1] + blacklight[2] > 0.0);
+		//Material mattie = Material(diffuse, emission, wavelengths);
+		if (blacklightsource){
+			Material mattie = UVLightMaterial({ 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, wavelengths);
+			materials.push_back(mattie);
+			std::cout << "Added UV light source " << std::endl;
+		}
+		else if (fluorescent){
+			Material mattie = FluorescentMaterial(diffuse, emission, blacklight, wavelengths);
+			materials.push_back(mattie);
+			std::cout << "Added diffuse material with diffuse col (" << diffuse[0] << ", " << diffuse[1] << ", " << diffuse[2] 
+						<< ") emission (" << emission[0] << ", " << emission[1] << ", " << emission[2] 
+						<< ") and blacklight (" << blacklight[0] << ", " << blacklight[1] << ", " << blacklight[2] << ")"
+						<< std::endl;
+		}
+		else{
+			Material mattie = Material(diffuse, emission, wavelengths);
+			materials.push_back(mattie);
+			std::cout << "Added diffuse material with diffuse col (" << diffuse[0] << ", " << diffuse[1] << ", " << diffuse[2]
+						<< ") emission (" << emission[0] << ", " << emission[1] << ", " << emission[2] << ")"
+						<< std::endl;
+		}
+		//materials.push_back(mattie);
+		
 	}
 
 	// Get vertices

@@ -175,11 +175,11 @@ private:
 	}
 
 	void increment_light_fast(){
+		mult_material_matrix();
 		for (int i = 0; i < numsamples; i++){
 			residualvector[i] = (RadMat * residualvector[i]).cwiseProduct(reflectionvalues[i]);
 			lightningvalues[i] = lightningvalues[i] + residualvector[i];
 		}
-		mult_material_matrix();
 		numpasses++;
 	}
 
