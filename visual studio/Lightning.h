@@ -134,7 +134,7 @@ public:
 		//std::cout << Eigen::MatrixXf(RadMat) << std::endl;
 		reset();
 		std::cout << "Lightning has been initialized" << std::endl;
-		//converge_lightning();
+		converge_lightning();
 		//std::cout << "The lightning is converged" << std::endl;
 	}
 
@@ -143,7 +143,7 @@ public:
 	}
 
 	void converge_lightning(){
-		while (check_convergence(residualvector) > 50){
+		while (check_convergence(residualvector) > 200){
 			std::cout << "Residual light in scene: " << check_convergence(residualvector) << std::endl;
 			increment_light_fluorescent();
 		}
