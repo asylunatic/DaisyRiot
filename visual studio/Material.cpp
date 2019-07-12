@@ -7,12 +7,17 @@ Material::Material(glm::vec3 rgbcolor, glm::vec3 emission, std::vector<float> &w
 	:rgbcolor(rgbcolor), emission(emission), wavelengths(wave_lengths){
 
 	numwavelengths = wave_lengths.size();
-	M = Eigen::MatrixXf::Identity(numwavelengths, numwavelengths);
 
 	RGB2Spec *model = rgb2spec_load("color_tables/srgb.coeff");
 
 	rgb_to_spectrum(model, rgbcolor, spectral_values);
 	rgb_to_spectrum(model, emission, spectral_emission);
+
+	// set up matrix
+	M = Eigen::MatrixXf::Identity(numwavelengths, numwavelengths);
+	for (int i = 0; i < numwavelengths; i++){
+		M(i, i) = spectral_values[i];
+	}
 
 	rgb2spec_free(model);
 };
@@ -42,7 +47,11 @@ void Material::rgb_to_spectrum(RGB2Spec *model, glm::vec3 rgbcolor, std::vector<
 UVLightMaterial::UVLightMaterial(glm::vec3 rgbcolor, glm::vec3 emission,  std::vector<float> &wave_lengths) :Material(rgbcolor, emission, wave_lengths){
 	rgbcolor = { 0.0, 0.0, 0.0 };
 	emission = { 0.0, 0.0, 0.0 };
+	M = Eigen::MatrixXf::Identity(numwavelengths, numwavelengths);
 	resample_emission(wave_lengths);
+	for (int i = 0; i < numwavelengths; i++){
+		M(i, i) = emission[i];
+	}
 }
 
 void UVLightMaterial::resample_emission(std::vector<float> &wave_lengths){
@@ -79,6 +88,7 @@ FluorescentMaterial::FluorescentMaterial(glm::vec3 rgbcolor, glm::vec3 emission,
 }
 
 void FluorescentMaterial::set_fluorescent_matrix(){
+	M = Eigen::MatrixXf::Identity(numwavelengths, numwavelengths);
 	float* ptr = &spectral_from_blacklight[0];
 	Eigen::Map<Eigen::VectorXf> temp(ptr, numwavelengths);
 	for (int i = 0; i < numwavelengths; i++){
