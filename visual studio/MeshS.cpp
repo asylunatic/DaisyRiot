@@ -1,7 +1,5 @@
 #include "MeshS.h"
 
-
-
 MeshS::MeshS(){
 	vertices = std::vector<glm::vec3>();
 	normals = std::vector<glm::vec3>();
@@ -32,18 +30,39 @@ void MeshS::loadFromFile(char * filepath, char * mtldirpath, std::vector<float> 
 		std::cerr << err << std::endl;
 	}
 
-	std::cout << "size of shapes = " << shapes.size() << std::endl;
-	std::cout << "size of materials = " << tinyobj_materials.size() << std::endl;
 	trianglesPerVertex.resize(attrib.vertices.size() / 3);
 
 	// Get Materials
-	//materials.resize(tinyobj_materials.size());
 	for (int i = 0; i < tinyobj_materials.size(); i++){
 		glm::vec3 diffuse(tinyobj_materials[i].diffuse[0], tinyobj_materials[i].diffuse[1], tinyobj_materials[i].diffuse[2]);
 		glm::vec3 emission(tinyobj_materials[i].emission[0], tinyobj_materials[i].emission[1], tinyobj_materials[i].emission[2]);
-		glm::vec3 temp(0.0);
-		Material mattie(diffuse, emission, temp, wavelengths);
-		materials.push_back(mattie);
+		glm::vec3 blacklight(tinyobj_materials[i].specular[0], tinyobj_materials[i].specular[1], tinyobj_materials[i].specular[2]);
+		
+		bool blacklightsource = (emission[0] + emission[1] + emission[2] > 0 && diffuse[0] + diffuse[1] + diffuse[2] == 0.0);
+		bool fluorescent = (blacklight[0] + blacklight[1] + blacklight[2] > 0.0);
+		//Material mattie = Material(diffuse, emission, wavelengths);
+		if (blacklightsource){
+			Material mattie = UVLightMaterial({ 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, wavelengths);
+			materials.push_back(mattie);
+			std::cout << "Added UV light source " << std::endl;
+		}
+		else if (fluorescent){
+			Material mattie = FluorescentMaterial(diffuse, emission, blacklight, wavelengths);
+			materials.push_back(mattie);
+			std::cout << "Added diffuse material with diffuse col (" << diffuse[0] << ", " << diffuse[1] << ", " << diffuse[2] 
+						<< ") emission (" << emission[0] << ", " << emission[1] << ", " << emission[2] 
+						<< ") and blacklight (" << blacklight[0] << ", " << blacklight[1] << ", " << blacklight[2] << ")"
+						<< std::endl;
+		}
+		else{
+			Material mattie = Material(diffuse, emission, wavelengths);
+			materials.push_back(mattie);
+			std::cout << "Added diffuse material with diffuse col (" << diffuse[0] << ", " << diffuse[1] << ", " << diffuse[2]
+						<< ") emission (" << emission[0] << ", " << emission[1] << ", " << emission[2] << ")"
+						<< std::endl;
+		}
+		//materials.push_back(mattie);
+		
 	}
 
 	// Get vertices

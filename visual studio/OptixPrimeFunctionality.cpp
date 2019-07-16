@@ -33,7 +33,6 @@ void OptixPrimeFunctionality::cudaCalculateRadiosityMatrix(SpMat &RadMat, MeshS&
 
 }
 
-
 OptixPrimeFunctionality::OptixPrimeFunctionality(MeshS& mesh) {
 	contextP = optix::prime::Context::create(RTP_CONTEXT_TYPE_CUDA);
 	optix::prime::BufferDesc vertexBuffer = contextP->createBufferDesc(RTP_BUFFER_FORMAT_VERTEX_FLOAT3, RTP_BUFFER_TYPE_HOST, mesh.vertices.data());
@@ -83,42 +82,49 @@ void OptixPrimeFunctionality::optixQuery(int number_of_rays, std::vector<optix::
 
 void  OptixPrimeFunctionality::traceScreen(Drawer::RenderContext cntxt) {
 
-	cntxt.optixView.resize(cntxt.camera.pixwidth*cntxt.camera.pixheight);
+	int samples = cntxt.antialiasing ? cntxt.supersampling : 1;
+
+	cntxt.optixView.resize(cntxt.camera.pixwidth * cntxt.camera.pixheight);
 
 	std::vector<optix_functionality::Hit> hits;
-	hits.resize(cntxt.camera.pixwidth*cntxt.camera.pixheight);
+	hits.resize(cntxt.camera.pixwidth * cntxt.camera.pixheight * samples);
 
 	std::vector<optix::float3> rays;
-	cntxt.camera.gen_rays_for_screen(rays);
+	cntxt.camera.gen_rays_for_screen(rays, cntxt.antialiasing);
 
-	optixQuery(cntxt.camera.pixwidth * cntxt.camera.pixheight, rays, hits);
+	optixQuery(cntxt.camera.pixwidth * cntxt.camera.pixheight * samples, rays, hits);
 
 	cntxt.trianglesonScreen.clear();
 	cntxt.trianglesonScreen.resize(cntxt.mesh.triangleIndices.size());
 
 	for (size_t x = 0; x < cntxt.camera.pixwidth; x++) {
 		for (size_t y = 0; y < cntxt.camera.pixheight; y++) {
-			int pixelIndex = y*cntxt.camera.pixwidth + x;
+			int pixelIndexG = y*cntxt.camera.pixwidth + x;
+			// collect color
 			glm::vec3 color(0.0f, 0.0f, 0.0f);
-			if (hits[pixelIndex].t > 0){
-				if (!triangle_math::isFacingBack(optix_functionality::optix2glmf3(cntxt.camera.eye), hits[pixelIndex].triangleId, cntxt.mesh)) {
-					MatrixIndex index = {};
-					index.col = x;
-					index.row = y;
-					index.uv = { hits[pixelIndex].uv.x, hits[pixelIndex].uv.y };
-					cntxt.trianglesonScreen[hits[pixelIndex].triangleId].push_back(index);
-					if (cntxt.radiosityRendering){
-						color = Drawer::interpolate(index, hits[pixelIndex].triangleId, cntxt.lightning, cntxt.mesh);
-					}
-					else{
-						color = cntxt.mesh.materials[cntxt.mesh.materialIndexPerTriangle[hits[pixelIndex].triangleId]].rgbcolor;// get_color_from_spectrum();
+			for (int i = 0; i < samples; i++){
+				int pixelIndex = pixelIndexG * samples + i;
+				if (hits[pixelIndex].t > 0){
+					if (!triangle_math::isFacingBack(optix_functionality::optix2glmf3(cntxt.camera.eye), hits[pixelIndex].triangleId, cntxt.mesh)) {
+						MatrixIndex index = {};
+						index.col = x;
+						index.row = y;
+						index.uv = { hits[pixelIndex].uv.x, hits[pixelIndex].uv.y };
+						cntxt.trianglesonScreen[hits[pixelIndex].triangleId].push_back(index);
+						if (cntxt.radiosityRendering){
+							color += Drawer::interpolate(index, hits[pixelIndex].triangleId, cntxt.lightning, cntxt.mesh);
+						}
+						else{
+							color += cntxt.mesh.materials[cntxt.mesh.materialIndexPerTriangle[hits[pixelIndex].triangleId]].rgbcolor;
+						}
 					}
 				}
-
 			}
+
+			color = { color[0] / float(samples), color[1] / float(samples), color[2] / float(samples) };
 			// clamp values of color vec
 			color = glm::clamp(color, 0.f, 1.f);
-			cntxt.optixView[pixelIndex] = color;
+			cntxt.optixView[pixelIndexG] = color;
 		}
 	}
 
@@ -301,7 +307,6 @@ float OptixPrimeFunctionality::p2pFormfactorNusselt(int originPatch, int destPat
 	return totalformfactor;
 
 }
-
 
 void OptixPrimeFunctionality::calculateRadiosityMatrix(SpMat &RadMat, MeshS& mesh) {
 	std::cout << "Calculating radiosity matrix..." << std::endl;

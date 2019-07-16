@@ -68,7 +68,10 @@ int main() {
 	int WIDTH = reader.GetInteger("window", "width", -1);
 	int HEIGHT = reader.GetInteger("window", "height", -1);
 	float emission_value = reader.GetReal("lightning", "emission_value", -1);
+	int method = reader.GetInteger("lightning", "method", 0);
 	bool radiosityRendering = reader.GetBoolean("drawing", "radiosityRendering", false);
+	bool antiAliasing = reader.GetBoolean("drawing", "antiAliasing", false);
+	int supersampling = reader.GetInteger("drawing", "supersampling", 4);
 	bool cuda_on = reader.GetBoolean("acceleration", "cuda_on", false);
 	char * obj_filepath = new char[reader.Get("filepaths", "scene", "UNKNOWN").length() + 1];
 	std::strcpy(obj_filepath, reader.Get("filepaths", "scene", "UNKNOWN").c_str());
@@ -80,7 +83,7 @@ int main() {
 	std::cout << "mat file path " << store_mat_filepath << std::endl;
 	
 	// set up camera
-	Camera camera(WIDTH, HEIGHT);
+	Camera camera(WIDTH, HEIGHT, supersampling);
 
 	//initialize window, GLEW extension loader & OpenGL debug callback
 	GLFWwindow* window = Drawer::initWindow(WIDTH, HEIGHT);
@@ -88,8 +91,9 @@ int main() {
 	glewInit();
 	glDebugMessageCallback(Drawer::debugCallback, nullptr);
 
+	std::vector<float> wavelengths = { 200.0, 250.0, 300.0, 350.0, 400.0, 450.0, 500.0, 550.0, 600.0 };
+
 	// load scene into mesh & initialize optix
-	std::vector<float> wavelengths = { 600.0, 550.0, 500.0, 450.0, 400.0, 350.0, 300.0, 250.0, 200.0 };
 	MeshS mesh(obj_filepath, mtl_dirpath, wavelengths);
 	OptixPrimeFunctionality optixP(mesh);
 
@@ -97,31 +101,25 @@ int main() {
 	GLuint linevao, linevbo, debugprogram;
 	Drawer::debuglineInit(linevao, linevbo, debugprogram);
 
-
 	// initialize radiosity matrix
 	int numtriangles = mesh.triangleIndices.size();
-	//SpMat RadMat(numtriangles, numtriangles);
-	//optixP.cudaCalculateRadiosityMatrix(RadMat, mesh, rands);
 
 	// set up lightning
-	SpectralLightningFast lightning(mesh, optixP, emission_value, wavelengths, cuda_on, store_mat_filepath);
-	std::cout << "Done setting up spectral lightning " << std::endl;
-	//RGBLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
-	//BWLightning lightning(mesh, optixP, emission_value, store_mat_filepath);
+	Lightning* lightning = Lightning::get_lightning(method, mesh, optixP, emission_value, wavelengths, cuda_on, store_mat_filepath);
 
 	//initializing result optix drawing
 	GLuint optixShader;
-	Drawer::RenderContext rendercontext(trianglesonScreen, lightning, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering);
+	Drawer::RenderContext rendercontext(trianglesonScreen, *lightning, optixView, mesh, camera, debugprogram, linevao, linevbo, radiosityRendering, antiAliasing, supersampling);
 	optixP.traceScreen(rendercontext);
 	Drawer::initRes(optixShader, optixVao, optixTex, WIDTH, HEIGHT, optixView);
 
 	// set up callback context
 	patches.resize(2);
 	InputHandler inputhandler;
-	callback_context cbc(debugline, camera, trianglesonScreen, optixView, patches, mesh, optixP, lightning, radiosityRendering, inputhandler);
+	callback_context cbc(debugline, patches, optixP, rendercontext, inputhandler);
 	glfwSetWindowUserPointer(window, &cbc);
 
-	// Some neat casting of member functions such we can use them as callback AND have state too, as explained per:
+	// Some neat casting of member functions such that we can use them as callback AND have state too, as explained per:
 	// https://stackoverflow.com/a/28660673/7925249
 	auto func_key = [](GLFWwindow* window, int key, int scancode, int action, int mods) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->key_callback(window, key, scancode, action, mods); };
 	auto func_mouse = [](GLFWwindow* window, int button, int action, int mods) { static_cast<InputHandler*>(glfwGetWindowUserPointer(window))->mouse_button_callback(window, button, action, mods); };
@@ -148,6 +146,9 @@ int main() {
 	// clean up
 	glfwDestroyWindow(window);
 	glfwTerminate();
+
+	delete lightning;
+	lightning = nullptr;
 
 	return 0;
 }

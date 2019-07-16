@@ -1,13 +1,6 @@
 #pragma once
-// Library for OpenGL function loading
-// Must be included before GLFW
-#define GLEW_STATIC
 #include <GL/glew.h>
-
-// Library for window creation and event handling
 #include <GLFW/glfw3.h>
-
-// Library for vertex and matrix math
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -53,9 +46,9 @@ public:
 
 	struct RenderContext{
 		RenderContext(std::vector<std::vector<MatrixIndex>> &trianglesonScreen, Lightning &lightning, std::vector<glm::vec3> &optixView, MeshS &mesh, Camera &camera, 
-			GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, bool &radiosityRendering) :
+			GLuint &debugprogram, GLuint &linevao, GLuint &linevbo, bool &radiosityRendering, bool &antiAliasing, int supersampling) :
 			trianglesonScreen(trianglesonScreen), lightning(lightning), optixView(optixView), mesh(mesh), camera(camera), debugprogram(debugprogram), linevao(linevao), 
-			linevbo(linevbo), radiosityRendering(radiosityRendering){};
+			linevbo(linevbo), radiosityRendering(radiosityRendering), antialiasing(antiAliasing), supersampling(supersampling){};
 		std::vector<std::vector<MatrixIndex>> &trianglesonScreen;
 		Lightning &lightning;
 		std::vector<glm::vec3> &optixView;
@@ -65,6 +58,8 @@ public:
 		GLuint &linevao;
 		GLuint &linevbo;
 		bool &radiosityRendering;
+		bool &antialiasing;
+		int supersampling;
 	};
 
 	static GLFWwindow* initWindow(int width, int height);

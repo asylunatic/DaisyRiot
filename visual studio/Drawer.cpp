@@ -158,7 +158,6 @@ void Drawer::drawRes(GLuint &shaderProgram, GLuint &vao) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-
 glm::vec3 Drawer::interpolate(MatrixIndex& index, int triangleId, Lightning &lightning, MeshS& mesh) {
 	UV uv = index.uv;
 
@@ -197,6 +196,7 @@ void Drawer::debugtrianglesDraw(DebugLine &debugline, RenderContext &renderconte
 
 void Drawer::draw(GLFWwindow* window, GLuint &optixShader, GLuint &optixVao, Drawer::DebugLine &debugline, OptixPrimeFunctionality &optixP, Drawer::RenderContext &rendercontext){
 	// Do Optix stuff
+	//rendercontext.antialiasing ? optixP.traceScreenAntialiased(rendercontext) : optixP.traceScreen(rendercontext);
 	optixP.traceScreen(rendercontext);
 
 	// debug triangles
