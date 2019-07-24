@@ -2,8 +2,8 @@
 Project for a global illumination rediosity renderer that supports fluorescent materials.
 
 ## Prerequisites
-Cuda version 9.0 (https://developer.nvidia.com/cuda-toolkit-archive)
-Optix SDK version 4.1.1 (https://developer.nvidia.com/designworks/optix/downloads/legacy)
+Cuda version 9.0 (https://developer.nvidia.com/cuda-toolkit-archive)   
+Optix SDK version 4.1.1 (https://developer.nvidia.com/designworks/optix/downloads/legacy)   
 Visual Studio 2013 is recommended, the provided project files are for VS2013. Later versions may work, but no guarantees on that.
 
 ## Installation
