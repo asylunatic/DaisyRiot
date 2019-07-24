@@ -12,7 +12,7 @@ Set path variable: C:\ProgramData\NVIDIA Corporation\OptiX SDK 4.1.1\bin64
 Two unfortunate hacky adjustments:
 
 1) In optix_prime.h, find line number 875:   
-`RTPresult RTPAPI rtpQuerySetCudaStream(RTPquery query, cudaStream_t stream);`
+`RTPresult RTPAPI rtpQuerySetCudaStream(RTPquery query, cudaStream_t stream);`  
 Change this line to:   
 `RTPresult RTPAPI rtpQuerySetCudaStream(RTPquery query, optix::cudaStream_t stream);`
 
