@@ -2,18 +2,18 @@
 Project for a global illumination rediosity renderer that supports fluorescent materials.
 
 ## Prerequisites
-Cuda version 9.0 (https://developer.nvidia.com/cuda-toolkit-archive)  
+Cuda version 9.0 (https://developer.nvidia.com/cuda-toolkit-archive)
 Optix SDK version 4.1.1 (https://developer.nvidia.com/designworks/optix/downloads/legacy)
 Visual Studio 2013 is recommended, the provided project files are for VS2013. Later versions may work, but no guarantees on that.
 
 ## Installation
 Set path variable: C:\ProgramData\NVIDIA Corporation\OptiX SDK 4.1.1\bin64
 
-Two additional and unfortunate hacky adjustments:
+Two unfortunate hacky adjustments:
 
-1) In optix_prime.h, find line number 875: 
+1) In optix_prime.h, find line number 875:   
 `RTPresult RTPAPI rtpQuerySetCudaStream(RTPquery query, cudaStream_t stream);`
-Change this line to:
+Change this line to:   
 `RTPresult RTPAPI rtpQuerySetCudaStream(RTPquery query, optix::cudaStream_t stream);`
 
 2) In Ref.h, move the following two method declarations to the public section: 
