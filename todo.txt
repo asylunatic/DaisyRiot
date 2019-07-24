@@ -4,12 +4,15 @@ H Implement a more cache-friendly lookup of triangle values (as suggested by Joc
 H Clean console prints 
 H Ensure fluorescent materials behave correct wrt their 'regular'/diffuse color as well
 H Sample a small peak of purple for blacklight sources, to make them more realistic
+
 M set different lightning by keyboard input or manual selection 
 M van optix prime naar optix
 M debug drawing of rays (also nice for report) 
 M gamma correction in result rendering
+
 L normale renderer voor vergelijking
 L debug drawin of form factors (nice for report lol)
+
 ? normal interpolation (for calculation of form factor?)
 
 Marijn: 
