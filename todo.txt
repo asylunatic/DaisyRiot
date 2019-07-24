@@ -1,5 +1,10 @@
-H set different lightning by keyboard input or manual selection 
-H divide lightning value of surface by area
+H Move displaced files to the appropriate folders
+H Move header includes to implementation files where possible
+H Implement a more cache-friendly lookup of triangle values (as suggested by Jochem)
+H Clean console prints 
+H Ensure fluorescent materials behave correct wrt their 'regular'/diffuse color as well
+H Sample a small peak of purple for blacklight sources, to make them more realistic
+M set different lightning by keyboard input or manual selection 
 M van optix prime naar optix
 M debug drawing of rays (also nice for report) 
 M gamma correction in result rendering
