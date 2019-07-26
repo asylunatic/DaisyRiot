@@ -1,5 +1,5 @@
 # DaisyRiot
-Project for a global illumination rediosity renderer that supports fluorescent materials.
+Project for a global illumination radiosity renderer that supports fluorescent materials.
 
 ## Prerequisites
 Cuda version 9.0 (https://developer.nvidia.com/cuda-toolkit-archive)   
