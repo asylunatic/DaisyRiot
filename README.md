@@ -36,6 +36,10 @@ Make a copy of the config_example.ini file, rename to config.ini and modify as y
 A manual of all the options is printed to the console on startup.
 
 ### Custom scenes & materials
+Regarding geometry:
+* Ensure geometry is fully triangulated.
+* Take note that light is only reflected off of front of the surface as indicated by the normal.
+
 Materials are best defined in Blender: 
 * Diffuse color will be used as the emissive and reflective color. Emissiveness is set with the emit factor under 'Shading'.
 * Specular color is interpreted as the fluorescent color of a material. Setting the intensity to zero (or the specular color to black) disables fluorescence for the material.
